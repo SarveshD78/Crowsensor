@@ -2,8 +2,6 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from functools import wraps
 
-# TENANT: Decorator to protect system admin views using Django's built-in superuser
-
 def system_admin_required(view_func):
     """
     Decorator to ensure only authenticated superusers can access the view
@@ -13,21 +11,24 @@ def system_admin_required(view_func):
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        # STEP 1: Block tenant subdomains (but allow IP addresses)
+        # STEP 1: Block tenant subdomains (but allow main domain)
         hostname = request.get_host().split(':')[0]
         parts = hostname.split('.')
         
         # Check if it's an IP address (4 numeric parts)
         is_ip_address = len(parts) == 4 and all(part.isdigit() for part in parts)
         
-        # Check if we're on a subdomain (tenant context) - but NOT an IP
-        is_subdomain = len(parts) > 1 and not is_ip_address and parts[0] not in ['www', 'localhost', '127']
+        # Check if this is the main domain
+        is_main_domain = hostname in ['e2e-75-221.ssdcloudindia.net', 'localhost', '127.0.0.1'] or is_ip_address
+        
+        # Subdomain detection: more than 3 parts AND not main domain
+        is_subdomain = len(parts) > 3 and not is_main_domain
         
         if is_subdomain:
             # BLOCKED: Tenant subdomain trying to access system admin
             print(f"🚫 BLOCKED: System admin access attempted from tenant subdomain: {hostname}")
             messages.error(request, 'System admin is not accessible from this domain.')
-            return redirect('accounts:login')  # Redirect to tenant login
+            return redirect('accounts:login')
         
         # STEP 2: Check if user is authenticated
         if not request.user.is_authenticated:
@@ -49,7 +50,7 @@ def main_domain_only(view_func):
     """
     Decorator to block access from tenant subdomains
     Use for public system admin pages (like login page)
-    Allows access from IP addresses
+    Allows access from main domain
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
@@ -57,19 +58,22 @@ def main_domain_only(view_func):
         hostname = request.get_host().split(':')[0]
         parts = hostname.split('.')
         
-        # Check if it's an IP address (4 numeric parts like 164.52.207.221)
+        # Check if it's an IP address (4 numeric parts)
         is_ip_address = len(parts) == 4 and all(part.isdigit() for part in parts)
         
-        # Check if we're on a subdomain (tenant context) - but NOT an IP
-        is_subdomain = len(parts) > 1 and not is_ip_address and parts[0] not in ['www', 'localhost', '127']
+        # Check if this is the main domain
+        is_main_domain = hostname in ['e2e-75-221.ssdcloudindia.net', 'localhost', '127.0.0.1'] or is_ip_address
+        
+        # Subdomain detection: more than 3 parts AND not main domain
+        is_subdomain = len(parts) > 3 and not is_main_domain
         
         if is_subdomain:
             # BLOCKED: Tenant subdomain trying to access system admin
             print(f"🚫 BLOCKED: System admin access attempted from tenant subdomain: {hostname}")
             messages.error(request, 'System admin is not accessible from this domain.')
-            return redirect('accounts:login')  # Redirect to tenant login
+            return redirect('accounts:login')
         
-        # Allow access from main domain or IP address
+        # Allow access from main domain
         print(f"✅ ALLOWED: System admin access from: {hostname}")
         return view_func(request, *args, **kwargs)
     
