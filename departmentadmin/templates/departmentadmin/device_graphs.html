@@ -1,0 +1,1242 @@
+{% extends "departmentadmin/base.html" %}
+{% load static %}
+
+{% block title %}Device Graphs - {{ device.device_name }}{% endblock %}
+{% block page_heading %}Graphs{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================================
+   PROFESSIONAL INDUSTRIAL IoT DASHBOARD - REFERENCE IMAGE STYLE
+   ============================================================================ */
+
+/* ===== ROOT VARIABLES ===== */
+:root {
+    /* Primary Colors */
+    --primary-blue: #2563eb;
+    --primary-blue-dark: #1d4ed8;
+    
+    /* Status Colors */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    
+    /* Neutral Colors */
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    
+    /* Text Colors */
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-tertiary: #9ca3af;
+    
+    /* Background */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    
+    /* Borders */
+    --border-light: #e5e7eb;
+    
+    /* Spacing */
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    
+    /* Radius */
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== CONTAINER ===== */
+.graphs-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-6);
+    background: var(--bg-secondary);
+}
+
+/* ===== MINIMAL TOP HEADER ===== */
+.minimal-header {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-6);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.header-device-id {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+}
+
+.header-last-update {
+    background: var(--success);
+    color: white;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* ===== TIME RANGE SELECTOR ===== */
+.time-range-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.time-range-card h5 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-4) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.time-range-card h5 i {
+    color: var(--primary-blue);
+}
+
+.time-range-buttons {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.time-range-btn {
+    padding: var(--space-3) var(--space-5);
+    border: 2px solid var(--border-light);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.time-range-btn:hover {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.time-range-btn.active {
+    background: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-md);
+}
+
+/* ===== LOADING & ERROR STATES ===== */
+.loading-state,
+.error-state {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.spinner {
+    border: 4px solid var(--gray-200);
+    border-top: 4px solid var(--primary-blue);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-state h5 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.loading-state p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.error-state {
+    border-color: var(--danger);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.error-state i {
+    font-size: 64px;
+    color: var(--danger);
+    margin-bottom: var(--space-4);
+    display: block;
+}
+
+.error-state h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--danger);
+    margin: 0 0 var(--space-3) 0;
+}
+
+.error-state p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+}
+
+.error-state .btn {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.error-state .btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ===== SECTION CARDS ===== */
+.section-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.section-header {
+    background: var(--gray-50);
+    border-left: 4px solid var(--primary-blue);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.section-header h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.section-header h4 i {
+    color: var(--primary-blue);
+}
+
+.section-body {
+    padding: var(--space-6);
+}
+
+/* ============================================================================
+   GAUGE SECTION - REFERENCE IMAGE STYLE (4 PER ROW)
+   ============================================================================ */
+.gauge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-5);
+}
+
+.gauge-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    position: relative;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.gauge-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.gauge-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+}
+
+.gauge-sensor-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.gauge-menu-icon {
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-size: 1.25rem;
+}
+
+.gauge-menu-icon:hover {
+    color: var(--text-primary);
+}
+
+.gauge-chart-wrapper {
+    position: relative;
+    height: 200px;
+    margin: var(--space-4) 0;
+}
+
+.gauge-value-display {
+    position: absolute;
+    top: 65%;
+    left: 40%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.gauge-current-value {
+
+    font-weight: 1000;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.gauge-unit-label {
+
+    color: var(--text-secondary);
+    margin-top: var(--space-2);
+}
+
+/* ============================================================================
+   DIGITAL STATUS - HORIZONTAL LAYOUT (3 PER ROW)
+   ============================================================================ */
+.digital-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-5);
+}
+
+.digital-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.digital-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* HORIZONTAL LAYOUT */
+.digital-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+}
+
+.digital-indicator-wrapper {
+    flex-shrink: 0;
+}
+
+.digital-indicator {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    transition: all 0.3s ease;
+}
+
+.digital-indicator.on {
+    background: var(--success);
+    color: white;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.digital-indicator.off {
+    background: var(--gray-200);
+    color: var(--gray-500);
+}
+
+.digital-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.digital-name {
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+}
+
+.digital-status-label {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-2);
+}
+
+.digital-status-label.on {
+    color: var(--success);
+}
+
+.digital-status-label.off {
+    color: var(--gray-500);
+}
+
+.digital-timestamp {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+/* ============================================================================
+   TIME SERIES CHARTS (3 PER ROW) - UNCHANGED
+   ============================================================================ */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: var(--space-5);
+}
+
+.chart-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--primary-blue);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.chart-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.chart-header {
+    padding: var(--space-4) var(--space-5);
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chart-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.chart-title i {
+    color: var(--primary-blue);
+}
+
+.chart-meta {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.chart-meta .badge {
+    font-size: 11px;
+    padding: 4px var(--space-3);
+    border-radius: 0.25rem;
+    font-weight: 600;
+}
+
+.badge.bg-light {
+    background: var(--gray-200) !important;
+    color: var(--text-primary);
+}
+
+.badge.bg-info {
+    background: var(--info) !important;
+    color: white;
+}
+
+.chart-body {
+    padding: var(--space-5);
+    position: relative;
+    height: 320px;
+    background: var(--bg-primary);
+}
+
+.chart-body canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1400px) {
+    .gauge-grid {
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    }
+}
+
+@media (max-width: 1200px) {
+    .gauge-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+    
+    .digital-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+    
+    .charts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    .graphs-container {
+        padding: var(--space-4);
+    }
+    
+    .gauge-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .digital-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-body {
+        height: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .minimal-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .gauge-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .digital-content {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .time-range-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="graphs-container">
+
+    <!-- Minimal Header - Device ID + Last Update ONLY -->
+    <div class="minimal-header">
+        <div class="header-device-id">
+            Device Name: {{ device.measurement_name }} ({{ device.device_id }})
+        </div>
+        <div class="header-last-update">
+            <i class="fas fa-sync-alt"></i>
+            Last Updated: <span id="last-update-time">--</span>
+        </div>
+    </div>
+
+    <!-- Time Range Selector -->
+    <div class="time-range-card">
+        <h5>
+            <i class="fas fa-clock"></i>
+            Select Time Range
+        </h5>
+        <div class="time-range-buttons">
+            <button class="time-range-btn active" data-range="now() - 1h">1 Hour</button>
+            <button class="time-range-btn" data-range="now() - 3h">3 Hours</button>
+            <button class="time-range-btn" data-range="now() - 6h">6 Hours</button>
+            <button class="time-range-btn" data-range="now() - 12h">12 Hours</button>
+            <button class="time-range-btn" data-range="now() - 24h">24 Hours</button>
+            <button class="time-range-btn" data-range="now() - 2d">2 Days</button>
+            <button class="time-range-btn" data-range="now() - 7d">7 Days</button>
+            <button class="time-range-btn" data-range="now() - 30d">30 Days</button>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="loading-state">
+        <div class="spinner"></div>
+        <h5>Loading sensor data...</h5>
+        <p>Please wait while we fetch the latest readings</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="error-state" style="display: none;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h4>Error Loading Data</h4>
+        <p id="error-message">An error occurred while loading the sensor data.</p>
+        <button class="btn" onclick="loadGraphData()">
+            <i class="fas fa-sync-alt me-2"></i>Retry
+        </button>
+    </div>
+
+    <!-- Graphs Content -->
+    <div id="graphs-content" style="display: none;">
+        
+        <!-- Gauge Section - Reference Image Style -->
+        <div id="gauge-section" class="section-card" style="display: none;">
+            <div class="section-header">
+                <h4>
+                    <i class="fas fa-tachometer-alt"></i>
+                    Live Sensor Readings
+                </h4>
+            </div>
+            <div class="section-body">
+                <div class="gauge-grid" id="gauge-container"></div>
+            </div>
+        </div>
+
+        <!-- Digital Status - Horizontal Layout (3 per row) -->
+        <div id="digital-section" class="section-card" style="display: none;">
+            <div class="section-header">
+                <h4>
+                    <i class="fas fa-toggle-on"></i>
+                    Digital Status Indicators
+                </h4>
+            </div>
+            <div class="section-body">
+                <div class="digital-grid" id="digital-container"></div>
+            </div>
+        </div>
+
+        <!-- Time Series Charts -->
+        <div id="charts-section" class="section-card" style="display: none;">
+            <div class="section-header">
+                <h4>
+                    <i class="fas fa-chart-area"></i>
+                    Time Series Trends
+                </h4>
+            </div>
+            <div class="section-body">
+                <div class="charts-grid" id="charts-container"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js and Plugins -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+
+<script>
+/* ============================================================================
+   PROFESSIONAL INDUSTRIAL IoT DASHBOARD - REFERENCE IMAGE STYLE
+   ============================================================================ */
+
+console.log('=== GRAPH SCRIPT LOADING ===');
+
+// CSRF Token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+// Global variables
+const deviceId = {{ device.id }};
+let currentTimeRange = 'now() - 1h';
+let chartInstances = [];
+let gaugeChartInstances = [];
+
+// Time Range Buttons
+document.querySelectorAll('.time-range-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentTimeRange = this.dataset.range;
+        loadGraphData();
+    });
+});
+
+// Load Graph Data
+function loadGraphData() {
+    console.log('\n=== LOADING GRAPH DATA ===');
+    
+    // Show loading
+    document.getElementById('loading-state').style.display = 'block';
+    document.getElementById('error-state').style.display = 'none';
+    document.getElementById('graphs-content').style.display = 'none';
+    
+    // Destroy existing charts
+    chartInstances.forEach(chart => {
+        try { chart.destroy(); } catch(e) {}
+    });
+    chartInstances = [];
+    
+    gaugeChartInstances.forEach(chart => {
+        try { chart.destroy(); } catch(e) {}
+    });
+    gaugeChartInstances = [];
+    
+    // Fetch data
+    const fetchUrl = `/department/devices/graphs/${deviceId}/?time_range=${encodeURIComponent(currentTimeRange)}`;
+    
+    fetch(fetchUrl, {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            renderGraphs(data);
+            document.getElementById('last-update-time').textContent = new Date().toLocaleString('en-IN');
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('graphs-content').style.display = 'block';
+        } else {
+            throw new Error(data.message || 'Unknown error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('error-state').style.display = 'block';
+        document.getElementById('error-message').textContent = error.message;
+    });
+}
+
+/* ============================================================================
+   HELPER FUNCTIONS
+   ============================================================================ */
+function hasMetadata(sensor) {
+    if (!sensor.metadata) return false;
+    return (
+        sensor.metadata.show_time_series !== undefined ||
+        sensor.metadata.show_latest_value !== undefined ||
+        sensor.metadata.show_digital !== undefined
+    );
+}
+
+function calculateStats(values) {
+    const validValues = values.filter(v => v !== null && !isNaN(v) && v !== undefined);
+    if (validValues.length === 0) {
+        return { min: 0, max: 0, avg: 0, current: 0 };
+    }
+    return {
+        min: Math.min(...validValues),
+        max: Math.max(...validValues),
+        avg: validValues.reduce((a, b) => a + b, 0) / validValues.length,
+        current: validValues[validValues.length - 1] || 0
+    };
+}
+
+function getAlarmStatus(currentValue, metadata) {
+    if (!metadata) return 'normal';
+    
+    if (metadata.upper_limit !== null && currentValue > metadata.upper_limit) {
+        return 'critical';
+    }
+    if (metadata.lower_limit !== null && currentValue < metadata.lower_limit) {
+        return 'critical';
+    }
+    
+    if (metadata.upper_limit !== null) {
+        const warningThreshold = metadata.upper_limit * 0.9;
+        if (currentValue > warningThreshold) return 'warning';
+    }
+    if (metadata.lower_limit !== null) {
+        const warningThreshold = metadata.lower_limit * 1.1;
+        if (currentValue < warningThreshold) return 'warning';
+    }
+    
+    return 'normal';
+}
+
+/* ============================================================================
+   RENDER ALL GRAPHS
+   ============================================================================ */
+function renderGraphs(data) {
+    console.log('\n=== RENDER GRAPHS CALLED ===');
+    
+    const timestamps = data.data.timestamps;
+    const sensors = data.data.sensors;
+    
+    if (!timestamps || !sensors) {
+        console.error('Missing data');
+        return;
+    }
+    
+    // Clear containers
+    document.getElementById('gauge-container').innerHTML = '';
+    document.getElementById('digital-container').innerHTML = '';
+    document.getElementById('charts-container').innerHTML = '';
+    
+    let hasGauges = false;
+    let hasDigital = false;
+    let hasCharts = false;
+    
+    sensors.forEach((sensor, index) => {
+        if (!sensor.values || !Array.isArray(sensor.values)) return;
+        
+        const stats = calculateStats(sensor.values);
+        sensor.stats = stats;
+        
+        const sensorHasMetadata = hasMetadata(sensor);
+        let hasAnyVisualizationEnabled = false;
+        
+        if (sensorHasMetadata) {
+            hasAnyVisualizationEnabled = (
+                sensor.metadata.show_time_series === true ||
+                sensor.metadata.show_latest_value === true ||
+                sensor.metadata.show_digital === true
+            );
+        }
+        
+        if (sensorHasMetadata && hasAnyVisualizationEnabled) {
+            if (sensor.metadata.show_latest_value === true) {
+                renderReferenceGauge(sensor, index);
+                hasGauges = true;
+            }
+            if (sensor.metadata.show_digital === true) {
+                renderHorizontalDigital(sensor);
+                hasDigital = true;
+            }
+            if (sensor.metadata.show_time_series === true) {
+                renderIndustrialChart(sensor, timestamps, index);
+                hasCharts = true;
+            }
+        } else {
+            renderIndustrialChart(sensor, timestamps, index);
+            hasCharts = true;
+        }
+    });
+    
+    document.getElementById('gauge-section').style.display = hasGauges ? 'block' : 'none';
+    document.getElementById('digital-section').style.display = hasDigital ? 'block' : 'none';
+    document.getElementById('charts-section').style.display = hasCharts ? 'block' : 'none';
+}
+
+/* ============================================================================
+   REFERENCE IMAGE GAUGE - COLORED ARC STYLE
+   ============================================================================ */
+function renderReferenceGauge(sensor, index) {
+    const container = document.getElementById('gauge-container');
+    const gaugeId = `gauge-${sensor.id}`;
+    const currentValue = sensor.latest_value !== null ? sensor.latest_value : 0;
+    const stats = sensor.stats;
+    
+    const gaugeHtml = `
+        <div class="gauge-card">
+            <div class="gauge-card-header">
+                <div class="gauge-sensor-name">${sensor.display_name}</div>
+                <i class="fas fa-ellipsis-v gauge-menu-icon"></i>
+            </div>
+            
+            <div class="gauge-chart-wrapper">
+                <canvas id="${gaugeId}"></canvas>
+                <div class="gauge-value-display">
+                    <div class="gauge-current-value">${currentValue.toFixed(2)}</div>
+                    <div class="gauge-unit-label">${sensor.unit || ''}</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', gaugeHtml);
+    
+    // Create gauge with colored segments (like reference image)
+    const ctx = document.getElementById(gaugeId).getContext('2d');
+    
+    const lowerLimit = sensor.metadata?.lower_limit || 0;
+    const upperLimit = sensor.metadata?.upper_limit || stats.max * 1.2;
+    const maxValue = Math.max(upperLimit, stats.max * 1.1);
+    const percentage = ((currentValue - lowerLimit) / (maxValue - lowerLimit)) * 100;
+    
+    // Color segments like reference: Green -> Yellow -> Red
+    const segmentColors = [
+        '#10b981',  // Green (0-33%)
+        '#fbbf24',  // Yellow (33-66%)
+        '#ef4444'   // Red (66-100%)
+    ];
+    
+    const gaugeChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [33, 33, 34],
+                backgroundColor: segmentColors,
+                borderWidth: 0,
+                circumference: 180,
+                rotation: 270
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '70%',
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            }
+        },
+        plugins: [{
+            id: 'needlePlugin',
+            afterDatasetDraw(chart) {
+                const { ctx, chartArea: { width, height } } = chart;
+                const cx = width / 2;
+                const cy = height;
+                const angle = Math.PI + (Math.min(Math.max(percentage, 0), 100) / 100) * Math.PI;
+                
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angle);
+                
+                // Needle
+                ctx.beginPath();
+                ctx.strokeStyle = '#1f2937';
+                ctx.fillStyle = '#1f2937';
+                ctx.lineWidth = 3;
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, -(height * 0.6));
+                ctx.stroke();
+                
+                // Center dot
+                ctx.beginPath();
+                ctx.arc(0, 0, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }]
+    });
+    
+    gaugeChartInstances.push(gaugeChart);
+}
+
+/* ============================================================================
+   HORIZONTAL DIGITAL STATUS (3 PER ROW)
+   ============================================================================ */
+function renderHorizontalDigital(sensor) {
+    const container = document.getElementById('digital-container');
+    const isOn = sensor.latest_value >= 1;
+    const timestamp = new Date().toLocaleTimeString('en-IN', { hour12: false });
+    
+    const digitalHtml = `
+        <div class="digital-card">
+            <div class="digital-content">
+                <div class="digital-indicator-wrapper">
+                    <div class="digital-indicator ${isOn ? 'on' : 'off'}">
+                        <i class="fas fa-${isOn ? 'power-off' : 'circle'}"></i>
+                    </div>
+                </div>
+                <div class="digital-info">
+                    <div class="digital-name">${sensor.display_name}</div>
+                    <div class="digital-status-label ${isOn ? 'on' : 'off'}">
+                        ${isOn ? 'ON' : 'OFF'}
+                    </div>
+                    <div class="digital-timestamp">${timestamp}</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', digitalHtml);
+}
+
+/* ============================================================================
+   TIME SERIES CHART (UNCHANGED)
+   ============================================================================ */
+function renderIndustrialChart(sensor, timestamps, index) {
+    const container = document.getElementById('charts-container');
+    const chartId = `chart-${index}`;
+    const canvasId = `canvas-${index}`;
+    
+    const chartHtml = `
+        <div class="chart-card" id="${chartId}">
+            <div class="chart-header">
+                <h5 class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    ${sensor.display_name}
+                </h5>
+                <div class="chart-meta">
+                    <span class="badge bg-light">
+                        <i class="fas fa-clock me-1"></i>${timestamps.length} Points
+                    </span>
+                    ${sensor.unit ? `<span class="badge bg-info">${sensor.unit}</span>` : ''}
+                </div>
+            </div>
+            <div class="chart-body">
+                <canvas id="${canvasId}"></canvas>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', chartHtml);
+    
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return null;
+    
+    const labels = timestamps.map(ts => {
+        const date = new Date(ts);
+        return date.toLocaleTimeString('en-IN', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+        });
+    });
+    
+    const config = {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: sensor.display_name || sensor.sensor_name,
+                data: sensor.values,
+                borderColor: '#2563eb',
+                borderWidth: 3,
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#2563eb',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                tension: 0.4,
+                spanGaps: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: { size: 12 },
+                        color: '#1f2937',
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y.toFixed(2);
+                                if (sensor.unit) label += ' ' + sensor.unit;
+                            }
+                            return label;
+                        }
+                    }
+                },
+                annotation: {
+                    annotations: (() => {
+                        const annotations = {};
+                        if (sensor.metadata) {
+                            if (sensor.metadata.upper_limit !== null) {
+                                annotations.upperLimit = {
+                                    type: 'line',
+                                    yMin: sensor.metadata.upper_limit,
+                                    yMax: sensor.metadata.upper_limit,
+                                    borderColor: '#ef4444',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        display: true,
+                                        content: `Upper: ${sensor.metadata.upper_limit}`,
+                                        position: 'end',
+                                        backgroundColor: '#ef4444',
+                                        color: '#ffffff',
+                                        font: { size: 10 }
+                                    }
+                                };
+                            }
+                            if (sensor.metadata.lower_limit !== null) {
+                                annotations.lowerLimit = {
+                                    type: 'line',
+                                    yMin: sensor.metadata.lower_limit,
+                                    yMax: sensor.metadata.lower_limit,
+                                    borderColor: '#f59e0b',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        display: true,
+                                        content: `Lower: ${sensor.metadata.lower_limit}`,
+                                        position: 'start',
+                                        backgroundColor: '#f59e0b',
+                                        color: '#ffffff',
+                                        font: { size: 10 }
+                                    }
+                                };
+                            }
+                            if (sensor.metadata.central_line !== null) {
+                                annotations.centralLine = {
+                                    type: 'line',
+                                    yMin: sensor.metadata.central_line,
+                                    yMax: sensor.metadata.central_line,
+                                    borderColor: '#10b981',
+                                    borderWidth: 1,
+                                    borderDash: [3, 3],
+                                    label: {
+                                        display: true,
+                                        content: `Target: ${sensor.metadata.central_line}`,
+                                        position: 'center',
+                                        backgroundColor: '#10b981',
+                                        color: '#ffffff',
+                                        font: { size: 10 }
+                                    }
+                                };
+                            }
+                        }
+                        return annotations;
+                    })()
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Time',
+                        color: '#6b7280',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        maxRotation: 45,
+                        autoSkip: true,
+                        maxTicksLimit: 10
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: sensor.unit ? `Value (${sensor.unit})` : 'Value',
+                        color: '#6b7280',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        callback: function(value) {
+                            return value.toFixed(1);
+                        }
+                    },
+                    beginAtZero: false,
+                    grace: '10%'
+                }
+            }
+        }
+    };
+    
+    try {
+        const chart = new Chart(ctx, config);
+        chartInstances.push(chart);
+        return chart;
+    } catch (error) {
+        console.error('Chart error:', error);
+        return null;
+    }
+}
+
+// Load on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadGraphData();
+});
+</script>
+{% endblock %}

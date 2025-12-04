@@ -1,0 +1,358 @@
+{% extends 'systemadmin/base.html' %}
+
+{% block title %}Edit Tenant{% endblock %}
+{% block page_heading %}Edit Tenant: {{ tenant.company_name }}{% endblock %}
+
+{% block section_actions %}
+<a href="{% url 'systemadmin:system_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Edit Form Container - UPDATED: Uses full space */
+.edit-container {
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Edit Form Card */
+.edit-form-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    max-width: 1200px; /* Only limit the card itself */
+    margin: 0 auto;
+}
+
+.form-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-section-title i {
+    color: #3094FF;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #4C4C5C;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    padding: 10px 14px;
+    font-size: 14px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #3094FF;
+    box-shadow: 0 0 0 0.2rem rgba(48, 148, 255, 0.15);
+}
+
+.form-control:disabled, .form-control[readonly] {
+    background-color: #f8f9fa;
+    opacity: 0.7;
+}
+
+.form-text {
+    font-size: 13px;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+/* Info Card */
+.info-card {
+    background: linear-gradient(135deg, #e0efff 0%, #f0f7ff 100%);
+    border: 1px solid #b3d9ff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    max-width: 1200px; /* Match card width */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.info-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-card-title i {
+    color: #3094FF;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 13px;
+}
+
+.info-value {
+    font-weight: 600;
+    color: #333B4A;
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+}
+
+/* NEW: Tenant Code Display (Read-only) */
+.tenant-code-readonly {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+.domain-badge {
+    display: inline-block;
+    background: #3094FF;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-right: 6px;
+    font-family: 'Courier New', monospace;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid #e9ecef;
+}
+
+.btn-custom {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .edit-form-card {
+        padding: 24px 20px;
+    }
+    
+    .action-buttons {
+        flex-direction: column-reverse;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="edit-container">
+    <!-- Tenant Information (Read-only) -->
+    <div class="info-card">
+        <div class="info-card-title">
+            <i class="fas fa-info-circle"></i>
+            Tenant Information (Read-Only)
+        </div>
+        <div class="row">
+            <!-- NEW: Tenant Access Code -->
+            {% if tenant.tenant_code %}
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Access Code:</span>
+                    <span class="info-value">
+                        <span class="tenant-code-readonly">
+                            <i class="fas fa-key" style="font-size: 12px;"></i>
+                            {{ tenant.tenant_code }}
+                        </span>
+                    </span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Schema Name:</span>
+                    <span class="info-value">{{ tenant.schema_name }}</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Subdomain:</span>
+                    <span class="info-value">{{ tenant.subdomain }}</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Created:</span>
+                    <span class="info-value">{{ tenant.created_on|date:"M d, Y H:i" }}</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item">
+                    <span class="info-label">Last Updated:</span>
+                    <span class="info-value">{{ tenant.modified_on|date:"M d, Y H:i" }}</span>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="info-item">
+                    <span class="info-label">Domains:</span>
+                    <div>
+                        {% for domain in tenant.domains.all %}
+                            <span class="domain-badge">
+                                {{ domain.domain }}
+                                {% if domain.is_primary %}
+                                    <i class="fas fa-star" style="font-size: 10px;"></i>
+                                {% endif %}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="edit-form-card">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Company Details Section -->
+            <div class="form-section-title">
+                <i class="fas fa-building"></i>
+                Company Details
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.company_name.id_for_label }}" class="form-label">
+                        Company Name <span class="text-danger">*</span>
+                    </label>
+                    {{ form.company_name }}
+                    {% if form.company_name.errors %}
+                        <div class="text-danger small mt-1">{{ form.company_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        Status
+                    </label>
+                    <div class="form-check mt-2">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            <i class="fas fa-check-circle text-success me-1"></i>
+                            Active (tenant can login)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information Section -->
+            <div class="form-section-title mt-4">
+                <i class="fas fa-address-card"></i>
+                Contact Information
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.contact_person.id_for_label }}" class="form-label">
+                        Contact Person
+                    </label>
+                    {{ form.contact_person }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.contact_email.id_for_label }}" class="form-label">
+                        Contact Email
+                    </label>
+                    {{ form.contact_email }}
+                    {% if form.contact_email.errors %}
+                        <div class="text-danger small mt-1">{{ form.contact_email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.contact_phone.id_for_label }}" class="form-label">
+                        Contact Phone
+                    </label>
+                    {{ form.contact_phone }}
+                </div>
+            </div>
+
+            <!-- Internal Notes Section -->
+            <div class="form-section-title mt-4">
+                <i class="fas fa-sticky-note"></i>
+                Internal Notes
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.notes.id_for_label }}" class="form-label">
+                    Notes (Internal Use Only)
+                </label>
+                {{ form.notes }}
+                <small class="form-text text-muted">These notes are only visible to system administrators</small>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{% url 'systemadmin:system_dashboard' %}" class="btn btn-secondary btn-custom">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-custom">
+                    <i class="fas fa-save"></i>
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

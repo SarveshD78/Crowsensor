@@ -1,0 +1,952 @@
+{% extends 'companyadmin/base.html' %}
+
+{% block title %}Device Setup Wizard{% endblock %}
+{% block page_heading %}Device Setup Wizard{% endblock %}
+
+{% block extra_css %}
+<style>
+.wizard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.wizard-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.wizard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.wizard-header h2 {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.wizard-header p {
+    margin: 0;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.wizard-body {
+    padding: 40px;
+}
+
+/* Progress Steps */
+.wizard-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.wizard-progress::before {
+    content: '';
+    position: absolute;
+    top: 25px;
+    left: 12.5%;
+    right: 12.5%;
+    height: 3px;
+    background: #e9ecef;
+    z-index: 0;
+}
+
+.wizard-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.wizard-step-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px auto;
+    font-weight: 700;
+    font-size: 18px;
+    border: 3px solid #e9ecef;
+    transition: all 0.3s;
+}
+
+.wizard-step.active .wizard-step-circle {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+.wizard-step.completed .wizard-step-circle {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.wizard-step-label {
+    font-size: 14px;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.wizard-step.active .wizard-step-label {
+    color: #667eea;
+    font-weight: 700;
+}
+
+/* Step Content */
+.step-content {
+    display: none;
+}
+
+.step-content.active {
+    display: block;
+}
+
+.step-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 8px;
+}
+
+.step-description {
+    font-size: 16px;
+    color: #6c757d;
+    margin-bottom: 30px;
+}
+
+/* Info Box */
+.info-box {
+    background: #e7f3ff;
+    border-left: 4px solid #3094FF;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.info-box i {
+    color: #3094FF;
+    margin-right: 10px;
+}
+
+/* Measurement Selection */
+.measurement-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.measurement-checkbox {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.measurement-checkbox:hover {
+    border-color: #667eea;
+    background: #f0f2ff;
+}
+
+.measurement-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.measurement-checkbox input[type="checkbox"]:checked ~ .measurement-label {
+    color: #667eea;
+    font-weight: 700;
+}
+
+.measurement-checkbox.checked {
+    border-color: #667eea;
+    background: #e7f3ff;
+}
+
+.measurement-label {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: #333B4A;
+    cursor: pointer;
+}
+
+/* Column Selection */
+.column-selection-grid {
+    display: grid;
+    gap: 24px;
+}
+
+.column-selection-item {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.column-selection-header {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.column-selection-header i {
+    color: #667eea;
+}
+
+.column-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.column-select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Column Analysis Table */
+.column-analysis-table {
+    width: 100%;
+    font-size: 13px;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.column-analysis-table thead tr {
+    background: #667eea;
+    color: white;
+}
+
+.column-analysis-table th {
+    padding: 12px 8px;
+    text-align: left;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+.column-analysis-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.column-analysis-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.column-analysis-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.col-name {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #333B4A;
+}
+
+.category-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-block;
+    letter-spacing: 0.5px;
+}
+
+.category-device {
+    background: #667eea;
+    color: white;
+}
+
+.category-slave {
+    background: #ffc107;
+    color: #333;
+}
+
+.category-sensor {
+    background: #28a745;
+    color: white;
+}
+
+.category-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.category-hidden {
+    background: #6c757d;
+    color: white;
+}
+
+.col-type {
+    color: #6c757d;
+    font-size: 12px;
+}
+
+.col-reason {
+    color: #6c757d;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* Preview Cards */
+.preview-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.preview-card {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 24px;
+}
+
+.preview-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.preview-card-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333B4A;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.preview-card-title i {
+    color: #667eea;
+}
+
+.preview-badge {
+    background: #667eea;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.preview-section {
+    margin-bottom: 20px;
+}
+
+.preview-section:last-child {
+    margin-bottom: 0;
+}
+
+.preview-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #6c757d;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.preview-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.preview-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+}
+
+.preview-item.sensor {
+    border-color: #28a745;
+    background: #d4edda;
+    color: #155724;
+}
+
+.preview-item.slave {
+    border-color: #ffc107;
+    background: #fff3cd;
+    color: #856404;
+}
+
+.preview-item.info {
+    border-color: #17a2b8;
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+/* Action Buttons */
+.wizard-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 2px solid #e9ecef;
+}
+
+.wizard-btn {
+    padding: 14px 28px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wizard-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.wizard-btn-primary:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #6a3f8c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.wizard-btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.wizard-btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.wizard-btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.wizard-btn-success:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+.wizard-btn-outline {
+    background: white;
+    color: #6c757d;
+    border: 2px solid #e9ecef;
+}
+
+.wizard-btn-outline:hover {
+    border-color: #6c757d;
+    color: #495057;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #e9ecef;
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: #e9ecef;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 12px;
+}
+
+.empty-state p {
+    font-size: 16px;
+    color: #6c757d;
+}
+
+/* Summary Stats */
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.summary-stat {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.summary-stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.summary-stat-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* Device Column Select Box */
+.device-column-select-box {
+    margin-top: 20px;
+    padding: 16px;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+}
+
+.device-column-select-box label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333B4A;
+}
+
+.device-column-select-box i {
+    color: #667eea;
+    margin-right: 6px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .wizard-progress::before {
+        display: none;
+    }
+    
+    .wizard-progress {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .measurement-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .wizard-actions {
+        flex-direction: column;
+    }
+    
+    .wizard-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .column-analysis-table {
+        font-size: 11px;
+    }
+    
+    .column-analysis-table th,
+    .column-analysis-table td {
+        padding: 8px 4px;
+    }
+    
+    .summary-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wizard-container">
+    
+    <div class="wizard-card">
+        
+        <!-- Header -->
+        <div class="wizard-header">
+            <h2><i class="fas fa-magic"></i> Device Setup Wizard</h2>
+            <p>Follow the steps to discover and configure your IoT devices with smart auto-detection</p>
+        </div>
+
+        <!-- Body -->
+        <div class="wizard-body">
+            
+            <!-- Progress Steps -->
+            <div class="wizard-progress">
+                <div class="wizard-step {% if current_step >= 1 %}active{% endif %} {% if current_step > 1 %}completed{% endif %}">
+                    <div class="wizard-step-circle">
+                        {% if current_step > 1 %}<i class="fas fa-check"></i>{% else %}1{% endif %}
+                    </div>
+                    <div class="wizard-step-label">Select Measurements</div>
+                </div>
+                <div class="wizard-step {% if current_step >= 2 %}active{% endif %} {% if current_step > 2 %}completed{% endif %}">
+                    <div class="wizard-step-circle">
+                        {% if current_step > 2 %}<i class="fas fa-check"></i>{% else %}2{% endif %}
+                    </div>
+                    <div class="wizard-step-label">Column Analysis</div>
+                </div>
+                <div class="wizard-step {% if current_step >= 3 %}active{% endif %} {% if current_step > 3 %}completed{% endif %}">
+                    <div class="wizard-step-circle">
+                        {% if current_step > 3 %}<i class="fas fa-check"></i>{% else %}3{% endif %}
+                    </div>
+                    <div class="wizard-step-label">Preview & Confirm</div>
+                </div>
+                <div class="wizard-step {% if current_step == 4 %}active{% endif %}">
+                    <div class="wizard-step-circle">4</div>
+                    <div class="wizard-step-label">Save</div>
+                </div>
+            </div>
+
+            <!-- STEP 1: SELECT MEASUREMENTS -->
+            <div class="step-content {% if current_step == 1 %}active{% endif %}">
+                <h3 class="step-title">Step 1: Select Measurements</h3>
+                <p class="step-description">Choose which measurements you want to import as devices</p>
+
+                {% if not wizard_data.measurements %}
+                <!-- Fetch Measurements -->
+                <div class="empty-state">
+                    <i class="fas fa-database"></i>
+                    <h3>Ready to Discover</h3>
+                    <p>Click below to scan your InfluxDB for available measurements</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="wizard-actions">
+                        <a href="{% url 'companyadmin:device_list' %}" class="wizard-btn wizard-btn-outline">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </a>
+                        <button type="submit" name="fetch_measurements" value="1" class="wizard-btn wizard-btn-primary">
+                            <i class="fas fa-search"></i>
+                            Fetch Measurements
+                        </button>
+                    </div>
+                </form>
+
+                {% else %}
+                <!-- Select Measurements -->
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Found {{ wizard_data.measurements|length }} measurements.</strong> Select the ones you want to configure.
+                </div>
+
+                <form method="POST" id="measurementForm">
+                    {% csrf_token %}
+                    
+                    <div class="measurement-list">
+                        {% for measurement in wizard_data.measurements %}
+                        <label class="measurement-checkbox">
+                            <input type="checkbox" name="selected_measurements" value="{{ measurement }}" 
+                                   onchange="this.closest('.measurement-checkbox').classList.toggle('checked', this.checked)">
+                            <span class="measurement-label">{{ measurement }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <div class="wizard-actions">
+                        <button type="submit" name="reset_wizard" value="1" class="wizard-btn wizard-btn-outline">
+                            <i class="fas fa-redo"></i>
+                            Start Over
+                        </button>
+                        <button type="submit" name="select_measurements" value="1" class="wizard-btn wizard-btn-primary">
+                            Next: Analyze Columns
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+
+            <!-- STEP 2: COLUMN ANALYSIS & DEVICE SELECTION -->
+            <div class="step-content {% if current_step == 2 %}active{% endif %}">
+                <h3 class="step-title">Step 2: Column Analysis & Device Selection</h3>
+                <p class="step-description">Review auto-detected columns and select the device ID column</p>
+
+                <div class="info-box">
+                    <i class="fas fa-robot"></i>
+                    <strong>Smart Auto-Detection Active!</strong> Analyzed last 10,000 entries. Columns are automatically categorized as Device, Slave, Sensor, or Info based on patterns and data.
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="column-selection-grid">
+                        {% for measurement in wizard_data.selected_measurements %}
+                        <div class="column-selection-item">
+                            <div class="column-selection-header">
+                                <i class="fas fa-database"></i>
+                                {{ measurement }}
+                            </div>
+                            
+                            <!-- Column Analysis Table -->
+                            {% if wizard_data.column_analysis %}
+                                {% for meas, columns in wizard_data.column_analysis.items %}
+                                    {% if meas == measurement %}
+                                    
+                                    <table class="column-analysis-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Column Name</th>
+                                                <th>Category</th>
+                                                <th>Type</th>
+                                                <th>Detection Reason</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for col_name, col_data in columns.items %}
+                                            <tr>
+                                                <td class="col-name">{{ col_name }}</td>
+                                                <td>
+                                                    <span class="category-badge category-{{ col_data.category }}">
+                                                        {{ col_data.category }}
+                                                    </span>
+                                                </td>
+                                                <td class="col-type">{{ col_data.type }}</td>
+                                                <td class="col-reason">{{ col_data.reason }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    
+                                    <!-- Device Column Selector -->
+                                    <div class="device-column-select-box">
+                                        <label>
+                                            <i class="fas fa-check-circle"></i>
+                                            Select Device ID Column:
+                                        </label>
+                                        <select name="device_column_{{ measurement }}" class="column-select" required>
+                                            <option value="">-- Select Device ID Column --</option>
+                                            {% for col_name, col_data in columns.items %}
+                                                {% if col_data.category != 'hidden' %}
+                                                <option value="{{ col_name }}" {% if col_data.category == 'device' %}selected{% endif %}>
+                                                    {{ col_name }} ({{ col_data.category|upper }} - {{ col_data.unique_count }} unique values)
+                                                </option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="wizard-actions">
+                        <button type="submit" name="back_to_step1" value="1" class="wizard-btn wizard-btn-secondary">
+                            <i class="fas fa-arrow-left"></i>
+                            Back
+                        </button>
+                        <button type="submit" name="select_device_columns" value="1" class="wizard-btn wizard-btn-primary">
+                            Preview Devices
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+<!-- STEP 3: PREVIEW -->
+<!-- STEP 3: PREVIEW -->
+<div class="step-content {% if current_step == 3 %}active{% endif %}">
+    <h3 class="step-title">Step 3: Preview Device-Specific Configuration</h3>
+    <p class="step-description">Each device has been analyzed individually and will get its unique sensors</p>
+
+    {% if wizard_data.preview_data %}
+    
+    <!-- Summary Stats -->
+    <div class="summary-stats">
+        <div class="summary-stat">
+            <div class="summary-stat-value">{{ wizard_data.preview_data|length }}</div>
+            <div class="summary-stat-label">Measurements</div>
+        </div>
+        <div class="summary-stat">
+            <div class="summary-stat-value">
+                {% for item in wizard_data.preview_data %}
+                    {% if forloop.first %}{{ item.device_count }}{% endif %}
+                {% endfor %}
+            </div>
+            <div class="summary-stat-label">Total Devices</div>
+        </div>
+    </div>
+
+    <!-- Preview Cards - Device-Specific View -->
+    <div class="preview-grid">
+        {% for item in wizard_data.preview_data %}
+        <div class="preview-card">
+            
+            <!-- Measurement Header -->
+            <div class="preview-card-header">
+                <div class="preview-card-title">
+                    <i class="fas fa-database"></i>
+                    Measurement: {{ item.measurement }}
+                </div>
+                <span class="preview-badge">{{ item.device_count }} Devices</span>
+            </div>
+
+            <!-- Device Column Info -->
+            <div style="background: #e7f3ff; border: 2px solid #3094FF; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <i class="fas fa-key" style="color: #3094FF;"></i>
+                    <strong style="color: #004085;">Device ID Column:</strong>
+                    <span style="background: #667eea; color: white; padding: 4px 12px; border-radius: 6px; font-family: monospace; font-weight: 600;">
+                        {{ item.device_column }}
+                    </span>
+                </div>
+                <p style="color: #004085; font-size: 13px; margin: 0;">
+                    <i class="fas fa-info-circle"></i>
+                    Each device below has been queried individually to detect its unique sensor configuration.
+                </p>
+            </div>
+
+            <!-- Device List with Individual Sensors -->
+            <div style="margin-top: 20px;">
+                {% for device_info in item.devices_with_sensors %}
+                <div style="background: white; border: 2px solid #e9ecef; border-radius: 10px; padding: 20px; margin-bottom: 16px;">
+                    
+                    <!-- Device Header -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i class="fas fa-microchip" style="color: #667eea; font-size: 24px;"></i>
+                            <div>
+                                <strong style="font-size: 18px; color: #333B4A; display: block;">
+                                    Device {{ device_info.device_id }}
+                                </strong>
+                                <span style="font-size: 12px; color: #6c757d;">
+                                    {{ device_info.sensors|length }} total fields detected
+                                </span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <span style="background: #d4edda; color: #155724; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                {{ device_info.sensor_count }} Sensors
+                            </span>
+                            {% if device_info.slave_count > 0 %}
+                            <span style="background: #fff3cd; color: #856404; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                {{ device_info.slave_count }} Slaves
+                            </span>
+                            {% endif %}
+                            <span style="background: #d1ecf1; color: #0c5460; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                {{ device_info.info_count }} Info
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Sensors for THIS Device -->
+                    <div style="margin-left: 0px;">
+                        <div style="font-size: 12px; font-weight: 700; color: #6c757d; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="fas fa-list"></i> Fields for Device {{ device_info.device_id }}:
+                        </div>
+                        <div class="preview-items">
+                            {% for sensor in device_info.sensors %}
+                            <span class="preview-item {{ sensor.category }}" title="Type: {{ sensor.type }} | Sample: {{ sensor.sample_value }}">
+                                {{ sensor.name }} ({{ sensor.type }})
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                </div>
+                {% endfor %}
+                
+                {% if item.device_count > 10 %}
+                <div style="text-align: center; padding: 20px; background: #f8f9fa; border: 2px dashed #e9ecef; border-radius: 10px; color: #6c757d; font-size: 14px;">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Showing first 10 devices.</strong> All {{ item.device_count }} devices will be configured with their individual sensors when you save.
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="wizard-actions">
+            <button type="submit" name="back_to_step2" value="1" class="wizard-btn wizard-btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </button>
+            <button type="submit" name="confirm_save" value="1" class="wizard-btn wizard-btn-success">
+                <i class="fas fa-check"></i>
+                Confirm & Save All Devices
+            </button>
+        </div>
+    </form>
+
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-hourglass-half"></i>
+        <h3>Building Device-Specific Preview...</h3>
+        <p>Querying each device individually to detect unique sensors</p>
+    </div>
+    {% endif %}
+</div>
+            <!-- STEP 4: SAVING (Auto-redirect) -->
+            <div class="step-content {% if current_step == 4 %}active{% endif %}">
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 80px; color: #667eea;"></i>
+                    <h3>Saving to Database...</h3>
+                    <p>Creating devices and sensors with smart categorization. Please wait...</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Only redirect after final save (Step 4) -->
+{% if current_step == 4 %}
+<script>
+setTimeout(function() {
+    window.location.href = "{% url 'companyadmin:device_list' %}";
+}, 3000);
+</script>
+{% endif %}
+{% endblock %}

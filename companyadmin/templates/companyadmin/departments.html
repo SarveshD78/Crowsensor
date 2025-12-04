@@ -1,0 +1,842 @@
+{% extends 'companyadmin/base.html' %}
+
+{% block title %}Department Management{% endblock %}
+{% block page_heading %}Departments{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========================================
+   DEPARTMENTS PAGE - PRIMARY BLUE THEME
+   Matches Department Admin design exactly
+   ======================================== */
+
+/* ===== CONTAINER ===== */
+.dept-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* ===== FLOATING LABEL INPUTS ===== */
+.floating-label-group {
+    position: relative;
+    margin-bottom: var(--space-4);
+}
+
+.floating-label-group input,
+.floating-label-group select,
+.floating-label-group textarea {
+    width: 100%;
+    padding: 16px 12px 8px 12px;
+    font-size: 14px;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+}
+
+.floating-label-group label {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+    padding: 0 4px;
+    font-weight: 500;
+}
+
+.floating-label-group input:focus + label,
+.floating-label-group input:not(:placeholder-shown) + label,
+.floating-label-group select:focus + label,
+.floating-label-group textarea:focus + label,
+.floating-label-group textarea:not(:placeholder-shown) + label {
+    top: 0;
+    transform: translateY(0);
+    font-size: 11px;
+    color: var(--primary-blue);
+    font-weight: 600;
+    left: 10px;
+}
+
+.floating-label-group input:focus,
+.floating-label-group select:focus,
+.floating-label-group textarea:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.floating-label-group label .required-mark {
+    color: var(--danger);
+    margin-left: 2px;
+}
+
+/* ===== WELCOME CARD ===== */
+.welcome-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.welcome-card h3 {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.welcome-card h3 i {
+    color: var(--primary-blue);
+    font-size: var(--text-2xl);
+}
+
+.welcome-card p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.welcome-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.stats-badge {
+    background: var(--bg-primary);
+    border: 2px solid var(--primary-blue);
+    color: var(--primary-blue);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.stats-badge i {
+    color: var(--primary-blue);
+}
+
+/* ===== QUICK ADD FORM CARD ===== */
+.dept-add-section {
+    margin-bottom: var(--space-6);
+}
+
+.add-form-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.info-alert {
+    background: var(--gray-50);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-5);
+}
+
+.add-form-title {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.add-form-title i {
+    color: var(--primary-blue);
+    font-size: var(--text-xl);
+}
+
+.add-form-subtitle {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* ===== DEPARTMENT SECTION HEADER ===== */
+.dept-section {
+    margin-bottom: var(--space-6);
+}
+
+.section-header {
+    background: var(--bg-primary);
+    border-left: 4px solid var(--primary-blue);
+    border: 1px solid var(--border-light);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.section-title {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0;
+}
+
+.section-title i {
+    color: var(--primary-blue);
+    font-size: var(--text-xl);
+}
+
+.section-badge {
+    background: var(--gray-100);
+    color: var(--text-primary);
+    padding: 4px var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: 600;
+}
+
+/* ===== DEPARTMENT CARDS GRID ===== */
+.dept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-4);
+}
+
+/* ===== DEPARTMENT CARD ===== */
+.dept-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--primary-blue);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+}
+
+.dept-card:hover {
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.dept-card-header {
+    background: var(--gray-50);
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.dept-title {
+    font-size: var(--text-base);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.dept-title i {
+    color: var(--primary-blue);
+    font-size: var(--text-lg);
+}
+
+.dept-type-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-tertiary);
+    padding: 3px var(--space-2);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+
+.dept-card-body {
+    padding: var(--space-4);
+}
+
+/* ===== DEPARTMENT INFO ===== */
+.dept-info-compact {
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.dept-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--text-sm);
+}
+
+.dept-info-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.dept-info-label i.fa-tag {
+    color: var(--primary-blue);
+    width: 16px;
+    text-align: center;
+}
+
+.dept-info-label i.fa-map-marker-alt {
+    color: var(--info);
+    width: 16px;
+    text-align: center;
+}
+
+.dept-info-label i.fa-envelope {
+    color: var(--success);
+    width: 16px;
+    text-align: center;
+}
+
+.dept-info-label i.fa-users {
+    color: var(--warning);
+    width: 16px;
+    text-align: center;
+}
+
+.dept-info-label i.fa-calendar {
+    color: var(--gray-500);
+    width: 16px;
+    text-align: center;
+}
+
+.dept-info-value {
+    font-size: 12px;
+    color: var(--text-primary);
+    text-align: right;
+    max-width: 200px;
+    word-break: break-word;
+}
+
+/* ===== DEPARTMENT BADGES ===== */
+.dept-badge {
+    padding: 3px var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.dept-badge.active {
+    background: var(--success);
+    color: white;
+}
+
+.dept-badge.email-set {
+    background: var(--info);
+    color: white;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.dept-actions-compact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+}
+
+.dept-btn-compact {
+    padding: var(--space-2) var(--space-3);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    text-decoration: none;
+}
+
+.dept-btn-compact:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.dept-btn-edit {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.dept-btn-edit:hover {
+    background: var(--primary-blue-dark);
+    color: white;
+}
+
+.dept-btn-edit i {
+    color: white;
+}
+
+.dept-btn-delete {
+    background: var(--danger);
+    color: white;
+}
+
+.dept-btn-delete:hover {
+    background: rgb(89, 0, 0);
+}
+
+.dept-btn-delete i {
+    color: white;
+}
+
+/* ===== SUBMIT BUTTON ===== */
+.btn-primary-submit {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px var(--space-5);
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    cursor: pointer;
+}
+
+.btn-primary-submit:hover {
+    background: var(--primary-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+/* ===== MODAL STYLES ===== */
+.modal-header {
+    background: var(--primary-blue);
+    color: white;
+    border-bottom: none;
+    padding: var(--space-5);
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.modal-header .modal-title {
+    font-weight: 600;
+    font-size: var(--text-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.modal-header .modal-title i {
+    color: white;
+}
+
+.modal-body {
+    padding: var(--space-6);
+}
+
+.modal-footer {
+    padding: var(--space-4) var(--space-6);
+    border-top: 1px solid var(--border-light);
+}
+
+.modal-footer .btn i {
+    color: inherit;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border-medium);
+    grid-column: 1 / -1;
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: var(--gray-400);
+    margin-bottom: var(--space-5);
+    display: block;
+}
+
+.empty-state h3 {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+}
+
+.empty-state p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-bottom: 0;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .dept-container {
+        padding: var(--space-4);
+    }
+    
+    .dept-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .welcome-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .welcome-card h3 {
+        font-size: var(--text-xl);
+    }
+    
+    .dept-actions-compact {
+        grid-template-columns: 1fr;
+    }
+    
+    .floating-label-group {
+        margin-bottom: var(--space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dept-container">
+
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+        <div class="welcome-card-header">
+            <div>
+                <h3>
+                    <i class="fas fa-building"></i>
+                    Department Management
+                </h3>
+                <p>Manage company departments and organizational structure</p>
+            </div>
+            <span class="stats-badge">
+                <i class="fas fa-building"></i>
+                {{ total_departments|default:0 }} Department{{ total_departments|default:0|pluralize }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Quick Add Department Section -->
+    <div class="dept-add-section">
+        
+        <!-- Add Form Card -->
+        <div class="add-form-card">
+            <div class="info-alert">
+                <h4 class="add-form-title">
+                    <i class="fas fa-plus-circle"></i>
+                    Add New Department
+                </h4>
+                <p class="add-form-subtitle">
+                    Create a new department for your organization
+                </p>
+            </div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="add_department" value="1">
+                <input type="hidden" name="is_active" value="on">
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="floating-label-group">
+                            <input type="text" name="name" placeholder=" " required>
+                            <label>Department Name <span class="required-mark">*</span></label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="floating-label-group">
+                            <input type="text" name="department_type" placeholder=" " required>
+                            <label>Type <span class="required-mark">*</span></label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="floating-label-group">
+                            <input type="text" name="plant_location" placeholder=" " required>
+                            <label>Location <span class="required-mark">*</span></label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="floating-label-group">
+                            <input type="email" name="email" placeholder=" ">
+                            <label>Email (Optional)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn-primary-submit w-100" style="margin-top: 0;">
+                            <i class="fas fa-plus"></i> Add Department
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Departments Section -->
+    <div class="dept-section">
+        
+        <!-- Section Header -->
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-list"></i>
+                All Departments
+            </div>
+            <span class="section-badge">
+                {{ total_departments|default:0 }} Department{{ total_departments|default:0|pluralize }}
+            </span>
+        </div>
+
+        <!-- Department Cards Grid -->
+        <div class="dept-grid">
+            {% for department in departments %}
+            <div class="dept-card">
+                
+                <!-- Card Header -->
+                <div class="dept-card-header">
+                    <h3 class="dept-title">
+                        <i class="fas fa-building"></i>
+                        {{ department.name }}
+                    </h3>
+                    <span class="dept-type-label">
+                        {{ department.department_type }}
+                    </span>
+                </div>
+
+                <!-- Card Body -->
+                <div class="dept-card-body">
+                    
+                    <!-- Department Info -->
+                    <div class="dept-info-compact">
+                        
+                        <!-- Type Row -->
+                        <div class="dept-info-row">
+                            <span class="dept-info-label">
+                                <i class="fas fa-tag"></i>
+                                Type
+                            </span>
+                            <span class="dept-info-value">
+                                {{ department.department_type }}
+                            </span>
+                        </div>
+
+                        <!-- Location Row -->
+                        <div class="dept-info-row">
+                            <span class="dept-info-label">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Location
+                            </span>
+                            <span class="dept-info-value">
+                                {{ department.plant_location }}
+                            </span>
+                        </div>
+
+                        <!-- Email Row -->
+                        {% if department.email %}
+                        <div class="dept-info-row">
+                            <span class="dept-info-label">
+                                <i class="fas fa-envelope"></i>
+                                Email
+                            </span>
+                            <span class="dept-info-value">
+                                {{ department.email|truncatechars:25 }}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Users Row -->
+                        <div class="dept-info-row">
+                            <span class="dept-info-label">
+                                <i class="fas fa-users"></i>
+                                Total Users
+                            </span>
+                            <span class="dept-badge active">
+                                {{ department.total_users|default:0 }}
+                            </span>
+                        </div>
+
+                        <!-- Created Date Row -->
+                        <div class="dept-info-row">
+                            <span class="dept-info-label">
+                                <i class="fas fa-calendar"></i>
+                                Created
+                            </span>
+                            <span class="dept-info-value">
+                                {{ department.created_at|date:"M d, Y" }}
+                            </span>
+                        </div>
+
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="dept-actions-compact">
+                        <!-- Edit Button -->
+                        <button class="dept-btn-compact dept-btn-edit" 
+                                onclick="editDepartment({{ department.id }}, '{{ department.name|addslashes }}', '{{ department.department_type|addslashes }}', '{{ department.plant_location|addslashes }}', '{{ department.email|addslashes|default:'' }}')">
+                            <i class="fas fa-edit"></i>
+                            Edit
+                        </button>
+                        
+                        <!-- Delete Button -->
+                        <form method="POST" class="delete-form" style="margin: 0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_department" value="1">
+                            <input type="hidden" name="department_id" value="{{ department.id }}">
+                            <button type="submit" class="dept-btn-compact dept-btn-delete w-100" 
+                                    data-dept-name="{{ department.name }}">
+                                <i class="fas fa-trash"></i>
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-building"></i>
+                <h3>No Departments Yet</h3>
+                <p>Use the form above to create your first department.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Edit Department Modal -->
+<div class="modal fade" id="departmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="departmentForm">
+                {% csrf_token %}
+                <input type="hidden" name="edit_department" value="1">
+                <input type="hidden" name="department_id" id="modal_department_id">
+                
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        <i class="fas fa-edit"></i>Edit Department
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="floating-label-group">
+                        <input type="text" name="name" id="modal_name" placeholder=" " required>
+                        <label>Department Name <span class="required-mark">*</span></label>
+                    </div>
+                    
+                    <div class="floating-label-group">
+                        <input type="text" name="department_type" id="modal_type" placeholder=" " required>
+                        <label>Department Type <span class="required-mark">*</span></label>
+                    </div>
+                    
+                    <div class="floating-label-group">
+                        <input type="text" name="plant_location" id="modal_location" placeholder=" " required>
+                        <label>Plant Location <span class="required-mark">*</span></label>
+                    </div>
+                    
+                    <div class="floating-label-group">
+                        <input type="email" name="email" id="modal_email" placeholder=" ">
+                        <label>Primary Email</label>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn-primary-submit">
+                        <i class="fas fa-save"></i>Update Department
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ========== EDIT DEPARTMENT FUNCTION ==========
+function editDepartment(id, name, type, location, email) {
+    document.getElementById('modal_department_id').value = id;
+    document.getElementById('modal_name').value = name;
+    document.getElementById('modal_type').value = type;
+    document.getElementById('modal_location').value = location;
+    document.getElementById('modal_email').value = email || '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('departmentModal'));
+    modal.show();
+}
+
+// ========== FORM SUBMISSION HANDLING ==========
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn && !btn.disabled) {
+                
+                if (form.classList.contains('delete-form')) {
+                    const deptName = btn.getAttribute('data-dept-name');
+                    if (!confirm(`Are you sure you want to delete "${deptName}"?\n\nThis action cannot be undone.`)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+                
+                btn.disabled = true;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }, 10000);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

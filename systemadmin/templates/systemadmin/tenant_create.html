@@ -1,0 +1,461 @@
+{% extends 'systemadmin/base.html' %}
+
+{% block title %}Create New Tenant{% endblock %}
+{% block page_heading %}Create New Tenant{% endblock %}
+
+{% block section_actions %}
+<a href="{% url 'systemadmin:system_dashboard' %}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Create Form Container - UPDATED: No max-width, uses full space */
+.create-container {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.create-form-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    max-width: 1200px; /* Only limit the card itself */
+    margin: 0 auto;
+}
+
+.form-section {
+    margin-bottom: 32px;
+}
+
+.form-section:last-child {
+    margin-bottom: 0;
+}
+
+.form-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-section-title i {
+    color: #3094FF;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #4C4C5C;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-label .required {
+    color: #dc3545;
+    margin-left: 2px;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    padding: 10px 14px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #3094FF;
+    box-shadow: 0 0 0 0.2rem rgba(48, 148, 255, 0.15);
+}
+
+.form-text {
+    font-size: 13px;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+.form-check-input {
+    width: 20px;
+    height: 20px;
+    margin-top: 0;
+    cursor: pointer;
+}
+
+.form-check-label {
+    font-size: 14px;
+    color: #4C4C5C;
+    margin-left: 8px;
+    cursor: pointer;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid #e9ecef;
+}
+
+.btn-custom {
+    padding: 12px 32px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Enhanced Info Alert */
+.info-alert {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    border: 2px solid #667eea40;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: start;
+    gap: 14px;
+    max-width: 1200px; /* Match card width */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.info-alert i {
+    color: #667eea;
+    font-size: 24px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.info-alert-content {
+    flex: 1;
+}
+
+.info-alert-content h6 {
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.info-alert-content p {
+    font-size: 14px;
+    color: #4C4C5C;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.info-alert-content ul {
+    margin: 8px 0 0 0;
+    padding-left: 20px;
+}
+
+.info-alert-content ul li {
+    font-size: 14px;
+    color: #4C4C5C;
+    margin-bottom: 4px;
+}
+
+.info-alert-content .highlight {
+    background: #667eea;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-overlay.show {
+    display: flex;
+}
+
+.loading-content {
+    background: #fff;
+    padding: 32px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 300px;
+}
+
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #e9ecef;
+    border-top-color: #3094FF;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-content h6 {
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 8px;
+}
+
+.loading-content p {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
+}
+
+/* Subdomain Preview */
+.subdomain-preview {
+    background: #f8f9fa;
+    border: 2px dashed #3094FF;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 8px;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #3094FF;
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .create-form-card {
+        padding: 24px 20px;
+    }
+
+    .action-buttons {
+        flex-direction: column-reverse;
+    }
+
+    .action-buttons .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="create-container">
+    <!-- Enhanced Info Alert -->
+    <div class="info-alert">
+        <i class="fas fa-lightbulb"></i>
+        <div class="info-alert-content">
+            <h6>🚀 What happens when you create a tenant?</h6>
+            <p>The system will automatically:</p>
+            <ul>
+                <li>Create a dedicated PostgreSQL schema for data isolation</li>
+                <li>Run all database migrations</li>
+                <li>Generate a <span class="highlight">Tenant Access Code</span> (e.g., acme1234)</li>
+                <li>Create a Company Admin user with credentials</li>
+                <li>Set up primary domain (subdomain.localhost)</li>
+            </ul>
+            <p style="margin-top: 8px;">
+                <strong>⏱️ Time:</strong> ~10-15 seconds<br>
+                <strong>🎫 Access Code:</strong> Will be displayed once and can be used by users to access their tenant
+            </p>
+        </div>
+    </div>
+
+    <!-- Create Form Card -->
+    <div class="create-form-card">
+        <form method="post" id="createTenantForm">
+            {% csrf_token %}
+
+            <!-- Company Information Section -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-building"></i>
+                    Company Information
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.company_name.id_for_label }}" class="form-label">
+                            Company Name <span class="required">*</span>
+                        </label>
+                        {{ form.company_name }}
+                        <small class="form-text text-muted">
+                            <i class="fas fa-building"></i> Full legal company name
+                        </small>
+                        {% if form.company_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.company_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.subdomain.id_for_label }}" class="form-label">
+                            Subdomain <span class="required">*</span>
+                        </label>
+                        {{ form.subdomain }}
+                        <small class="form-text text-muted">
+                            <i class="fas fa-globe"></i> Lowercase letters & numbers only (e.g., acmecorp)
+                        </small>
+                        <div class="subdomain-preview" id="subdomainPreview">
+                            Preview: <span id="previewText">subdomain.localhost</span>
+                        </div>
+                        {% if form.subdomain.errors %}
+                            <div class="text-danger small mt-1">{{ form.subdomain.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.admin_email.id_for_label }}" class="form-label">
+                            Admin Email <span class="required">*</span>
+                        </label>
+                        {{ form.admin_email }}
+                        <small class="form-text text-muted">
+                            <i class="fas fa-envelope"></i> Email for company administrator login
+                        </small>
+                        {% if form.admin_email.errors %}
+                            <div class="text-danger small mt-1">{{ form.admin_email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Status</label>
+                        <div class="form-check mt-2">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                <i class="fas fa-check-circle text-success"></i>
+                                Active (tenant can login immediately)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information Section -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-address-card"></i>
+                    Contact Information
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.contact_person.id_for_label }}" class="form-label">
+                            Contact Person
+                        </label>
+                        {{ form.contact_person }}
+                        <small class="form-text text-muted">Primary contact name</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.contact_email.id_for_label }}" class="form-label">
+                            Contact Email
+                        </label>
+                        {{ form.contact_email }}
+                        <small class="form-text text-muted">For billing/support communications</small>
+                        {% if form.contact_email.errors %}
+                            <div class="text-danger small mt-1">{{ form.contact_email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.contact_phone.id_for_label }}" class="form-label">
+                            Contact Phone
+                        </label>
+                        {{ form.contact_phone }}
+                        <small class="form-text text-muted">Contact phone number</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Internal Notes Section -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-sticky-note"></i>
+                    Internal Notes
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.notes.id_for_label }}" class="form-label">
+                        Notes (Optional)
+                    </label>
+                    {{ form.notes }}
+                    <small class="form-text text-muted">Internal notes about this tenant (not visible to client)</small>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{% url 'systemadmin:system_dashboard' %}" class="btn btn-secondary btn-custom">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-custom" id="submitBtn">
+                    <i class="fas fa-rocket"></i>
+                    Create Tenant & Generate Access Code
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <h6>Creating Tenant...</h6>
+        <p>Setting up schema, migrations, and generating access code</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Subdomain preview
+document.getElementById('{{ form.subdomain.id_for_label }}').addEventListener('input', function(e) {
+    const subdomain = e.target.value.toLowerCase().trim();
+    const preview = document.getElementById('previewText');
+    if (subdomain) {
+        preview.textContent = `${subdomain}.localhost`;
+    } else {
+        preview.textContent = 'subdomain.localhost';
+    }
+});
+
+// Show loading overlay on form submit
+document.getElementById('createTenantForm').addEventListener('submit', function() {
+    document.getElementById('loadingOverlay').classList.add('show');
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+});
+
+// Auto-format subdomain input (lowercase, alphanumeric only)
+document.getElementById('{{ form.subdomain.id_for_label }}').addEventListener('input', function(e) {
+    // Remove any non-alphanumeric characters and convert to lowercase
+    this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+});
+</script>
+{% endblock %}

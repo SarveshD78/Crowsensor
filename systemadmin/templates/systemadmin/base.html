@@ -1,0 +1,644 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}System Admin{% endblock %} - IoT Monitoring</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Toastr CSS for Toast Notifications -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+    <style>
+        /* CSS Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #F2F3F6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        /* Navbar - Z-index: 1000 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #333B4A;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 clamp(10px, 2vw, 20px);
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: clamp(16px, 1.5vw, 20px);
+        }
+        
+        .navbar-brand i {
+            font-size: clamp(24px, 2vw, 28px);
+            color: #3094FF;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: clamp(8px, 1.5vw, 15px);
+        }
+        
+        .time {
+            padding: 6px clamp(8px, 1.5vw, 20px);
+            border-radius: 8px;
+            font-size: clamp(12px, 1vw, 14px);
+            white-space: nowrap;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .user-avatar {
+            background: #3094FF;
+            color: #ffffff;
+            border-radius: 50%;
+            width: clamp(32px, 4vw, 40px);
+            height: clamp(32px, 4vw, 40px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: clamp(14px, 1.5vw, 16px);
+            flex-shrink: 0;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: clamp(14px, 1.2vw, 16px);
+            white-space: nowrap;
+        }
+        
+        /* Mobile Toggle */
+        .mobile-toggle {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            margin-right: 10px;
+            display: none;
+        }
+        
+        .mobile-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Sidebar - Z-index: 999 */
+        .sidebar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            bottom: 0;
+            width: clamp(240px, 20vw, 280px);
+            background: #ffffff;
+            padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow: 4px 0 12px rgba(0,0,0,0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar.collapsed {
+            width: 70px;
+            padding: 20px 8px;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            min-height: 36px;
+            flex-shrink: 0;
+        }
+        
+        .sidebar.collapsed .sidebar-header {
+            justify-content: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: clamp(16px, 1.5vw, 20px);
+            font-weight: 700;
+            color: #4C4C5C;
+            white-space: nowrap;
+        }
+        
+        .sidebar.collapsed .sidebar-header h2 {
+            display: none;
+        }
+        
+        /* Sidebar Toggle */
+        .sidebar-toggle {
+            background: transparent;
+            border: 1px solid rgba(51, 59, 74, 0.2);
+            color: #333B4A;
+            border-radius: 6px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .sidebar:not(.collapsed) .sidebar-toggle {
+            border: none;
+        }
+        
+        .sidebar.collapsed .sidebar-toggle {
+            margin: 0 auto;
+        }
+        
+        .sidebar-toggle:hover {
+            background: rgba(51, 59, 74, 0.08);
+            border-color: rgba(51, 59, 74, 0.3);
+        }
+        
+        /* Sidebar Links Container */
+        .sidebar-links {
+            flex-shrink: 0;
+        }
+        
+        /* Sidebar Links */
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: #333B4A;
+            text-decoration: none;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .sidebar.collapsed a {
+            padding: 12px;
+            justify-content: center;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #E0EFFF;
+            color: #3094FF;
+        }
+        
+        .sidebar i {
+            font-size: 18px;
+            min-width: 24px;
+            margin-right: 10px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sidebar.collapsed i {
+            margin-right: 0;
+            font-size: 20px;
+        }
+        
+        .sidebar-text {
+            font-size: clamp(13px, 1.2vw, 15px);
+            white-space: nowrap;
+        }
+        
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+        
+        /* Sidebar Illustration */
+        .sidebar-illustration {
+            margin-top: auto;
+            padding: 20px 10px 10px 10px;
+            text-align: center;
+        }
+        
+        .sidebar-illustration img {
+            width: 100%;
+            max-width: 180px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            opacity: 0.8;
+        }
+        
+        .sidebar-tagline {
+            font-size: 11px;
+            color: #6c757d;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 12px;
+        }
+        
+        .sidebar.collapsed .sidebar-illustration {
+            display: none;
+        }
+        
+        /* Section Bar */
+        .section-bar {
+            position: fixed;
+            top: 60px;
+            left: clamp(240px, 20vw, 280px);
+            right: 0;
+            height: 60px;
+            background: linear-gradient(180deg, #FFFFFF 0%, #FEFEFE 100%);
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 998;
+        }
+        
+        .section-bar.sidebar-collapsed {
+            left: 70px;
+        }
+        
+        .section-bar h1 {
+            font-size: clamp(18px, 2vw, 24px);
+            font-weight: 700;
+            color: #4C4C5C;
+            margin: 0;
+        }
+        
+        /* Content Container */
+        .content-container {
+            margin-top: 120px;
+            margin-left: clamp(240px, 20vw, 280px);
+            padding: clamp(15px, 2vw, 20px);
+            min-height: calc(100vh - 120px);
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .content-container.sidebar-collapsed {
+            margin-left: 70px;
+        }
+        
+        /* Dynamic Tooltips */
+        .dynamic-tooltip {
+            position: fixed !important;
+            background: #333B4A !important;
+            color: white !important;
+            padding: 8px 14px !important;
+            border-radius: 6px !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            white-space: nowrap !important;
+            z-index: 10002 !important;
+            pointer-events: none !important;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.3) !important;
+        }
+        
+        .dynamic-tooltip::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-right: 6px solid #333B4A;
+        }
+        
+        /* Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 998;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .sidebar-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: block;
+            }
+            
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+                z-index: 1001;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .sidebar-toggle {
+                display: none;
+            }
+            
+            .section-bar {
+                left: 0;
+            }
+            
+            .content-container {
+                margin-left: 0;
+            }
+            
+            .time {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .navbar {
+                padding: 0 10px;
+            }
+            
+            .user-name {
+                display: none;
+            }
+        }
+        
+        /* Custom Scrollbar */
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.1);
+            border-radius: 2px;
+        }
+        </style>
+
+{% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Navbar -->
+<div class="navbar">
+    <div class="d-flex align-items-center">
+        <button class="mobile-toggle" id="mobileToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <a href="{% url 'systemadmin:system_dashboard' %}" class="navbar-brand">
+            <i class="fas fa-shield-alt"></i>
+            <span>System Admin</span>
+        </a>
+    </div>
+    <div class="user-info">
+        <div class="time" id="datetime"></div>
+        <div class="user-avatar">{{ request.user.username|slice:"1"|upper|default:"A" }}</div>
+        <div class="user-name">{{ request.user.username|default:"Admin" }}</div>
+    </div>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h2>Menu</h2>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div class="sidebar-links">
+        <a href="{% url 'systemadmin:system_dashboard' %}" class="{% if 'system/dashboard' in request.path or 'system/tenant' in request.path %}active{% endif %}">
+            <i class="fas fa-building"></i>
+            <span class="sidebar-text">Tenants</span>
+        </a>
+
+        <a href="#" onclick="return false;" style="opacity: 0.5; cursor: not-allowed;">
+            <i class="fas fa-cog"></i>
+            <span class="sidebar-text">System Settings</span>
+        </a>
+
+        <a href="{% url 'systemadmin:system_logout' %}">
+            <i class="fas fa-sign-out-alt"></i>
+            <span class="sidebar-text">Logout</span>
+        </a>
+    </div>
+
+    <!-- Illustration at Bottom -->
+    <div class="sidebar-illustration">
+        <img src="{% static 'systemadmin/images/illu.svg' %}" alt="Illustration">
+        <div class="sidebar-tagline">Sisai Technology</div>
+    </div>
+</div>
+
+<!-- Section Bar -->
+<div class="section-bar" id="sectionBar">
+    <h1>{% block page_heading %}Dashboard{% endblock %}</h1>
+    {% block section_actions %}{% endblock %}
+</div>
+
+<!-- Content Container -->
+<div class="content-container" id="contentContainer">
+    {% block content %}{% endblock %}
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Toastr JS for Toast Notifications -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script>
+// Toastr configuration
+toastr.options = {
+    "closeButton": true,
+    "progressBar": true,
+    "positionClass": "toast-top-right",
+    "timeOut": "4000",
+    "extendedTimeOut": "1000",
+    "showEasing": "swing",
+    "hideEasing": "linear",
+    "showMethod": "fadeIn",
+    "hideMethod": "fadeOut"
+};
+
+// Function to show toast notifications
+window.showToast = function(type, message) {
+    switch(type) {
+        case 'success':
+            toastr.success(message);
+            break;
+        case 'error':
+            toastr.error(message);
+            break;
+        case 'warning':
+            toastr.warning(message);
+            break;
+        case 'info':
+            toastr.info(message);
+            break;
+    }
+}
+
+// Convert Django messages to toasts
+{% if messages %}
+    {% for message in messages %}
+        showToast('{{ message.tags }}', '{{ message|escapejs }}');
+    {% endfor %}
+{% endif %}
+</script>
+
+<script>
+(function() {
+    'use strict';
+    
+    let activeTooltip = null;
+    const el = {
+        sidebar: document.getElementById('sidebar'),
+        sidebarToggle: document.getElementById('sidebarToggle'),
+        mobileToggle: document.getElementById('mobileToggle'),
+        sectionBar: document.getElementById('sectionBar'),
+        contentContainer: document.getElementById('contentContainer'),
+        sidebarOverlay: document.getElementById('sidebarOverlay')
+    };
+    
+    // DateTime
+    function updateDateTime() {
+        const timeEl = document.getElementById('datetime');
+        if (timeEl) {
+            timeEl.textContent = new Date().toLocaleString('en-US', {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+    
+    // Remove tooltip
+    function removeTooltip() {
+        if (activeTooltip) {
+            activeTooltip.remove();
+            activeTooltip = null;
+        }
+    }
+    
+    // Update UI
+    function updateUI(collapsed) {
+        el.sidebar.classList.toggle('collapsed', collapsed);
+        el.sectionBar.classList.toggle('sidebar-collapsed', collapsed);
+        el.contentContainer.classList.toggle('sidebar-collapsed', collapsed);
+        const icon = el.sidebarToggle.querySelector('i');
+        icon.className = collapsed ? 'fas fa-chevron-right' : 'fas fa-times';
+    }
+    
+    // Desktop toggle
+    el.sidebarToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        removeTooltip();
+        const collapsed = !el.sidebar.classList.contains('collapsed');
+        updateUI(collapsed);
+        localStorage.setItem('systemAdminSidebarCollapsed', collapsed);
+    });
+    
+    // Mobile toggle
+    el.mobileToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        el.sidebar.classList.toggle('mobile-open');
+        el.sidebarOverlay.classList.toggle('show');
+        const icon = this.querySelector('i');
+        icon.className = el.sidebar.classList.contains('mobile-open') ? 'fas fa-times' : 'fas fa-bars';
+    });
+    
+    // Overlay close
+    el.sidebarOverlay.addEventListener('click', function() {
+        el.sidebar.classList.remove('mobile-open');
+        el.sidebarOverlay.classList.remove('show');
+        el.mobileToggle.querySelector('i').className = 'fas fa-bars';
+    });
+    
+    // Tooltips for collapsed sidebar
+    document.querySelectorAll('.sidebar a').forEach(link => {
+        const text = link.querySelector('.sidebar-text')?.textContent.trim();
+        if (!text) return;
+        
+        link.addEventListener('mouseenter', function() {
+            if (!el.sidebar.classList.contains('collapsed') || window.innerWidth <= 768) return;
+            
+            removeTooltip();
+            const rect = link.getBoundingClientRect();
+            
+            const tooltip = document.createElement('div');
+            tooltip.className = 'dynamic-tooltip';
+            tooltip.textContent = text;
+            tooltip.style.left = (rect.right + 15) + 'px';
+            tooltip.style.top = (rect.top + rect.height / 2) + 'px';
+            tooltip.style.transform = 'translateY(-50%)';
+            
+            document.body.appendChild(tooltip);
+            activeTooltip = tooltip;
+        });
+        
+        link.addEventListener('mouseleave', removeTooltip);
+    });
+    
+    // Resize handler
+    window.addEventListener('resize', function() {
+        removeTooltip();
+        if (window.innerWidth > 768) {
+            el.sidebar.classList.remove('mobile-open');
+            el.sidebarOverlay.classList.remove('show');
+        }
+    });
+    
+    window.addEventListener('scroll', removeTooltip);
+    
+    // Restore sidebar state
+    if (localStorage.getItem('systemAdminSidebarCollapsed') === 'true' && window.innerWidth > 768) {
+        updateUI(true);
+    }
+})();
+</script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

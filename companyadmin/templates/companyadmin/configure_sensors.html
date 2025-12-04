@@ -1,0 +1,901 @@
+{% extends 'companyadmin/base.html' %}
+
+{% block title %}Configure Sensors - {{ device.display_name }}{% endblock %}
+{% block page_heading %}Configure Sensors - {{ device.display_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Use Barlow font family consistently */
+* {
+    font-family: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Container */
+.config-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Back Button */
+.back-button {
+    background: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 24px;
+    transition: all 0.2s;
+}
+
+.back-button:hover {
+    background: #5a6268;
+    color: white;
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+/* Device Info Card */
+.device-info-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.device-info-card h2 {
+    margin: 0 0 12px 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.device-info-card p {
+    margin: 4px 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* Table Container */
+.table-container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.table-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 20px 24px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.table-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #333B4A;
+}
+
+/* Table Wrapper for Horizontal Scroll */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+/* Sensors Table */
+.sensors-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1200px;
+}
+
+.sensors-table thead {
+    background: #667eea;
+    color: white;
+}
+
+.sensors-table th {
+    padding: 14px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.sensors-table tbody tr {
+    border-bottom: 1px solid #e9ecef;
+    transition: background 0.2s;
+}
+
+.sensors-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.sensors-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.sensors-table td {
+    padding: 14px 12px;
+    font-size: 13px;
+    color: #4C4C5C;
+}
+
+/* Field Name */
+.field-name {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: #333B4A;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.status-badge.configured {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.not-configured {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Type Badge */
+.type-badge {
+    background: #e7f3ff;
+    color: #004085;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Value Display */
+.value-display {
+    font-size: 13px;
+    color: #333B4A;
+    white-space: nowrap;
+}
+
+.value-empty {
+    color: #999;
+    font-style: italic;
+}
+
+/* Graph Type Icons */
+.graph-icons {
+    display: flex;
+    gap: 6px;
+}
+
+.graph-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+}
+
+.graph-icon.enabled {
+    background: #d4edda;
+    color: #155724;
+}
+
+.graph-icon.disabled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.btn-action {
+    padding: 7px 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.btn-add {
+    background: #28a745;
+    color: white;
+}
+
+.btn-add:hover {
+    background: #218838;
+}
+
+.btn-edit {
+    background: #667eea;
+    color: white;
+}
+
+.btn-edit:hover {
+    background: #5568d3;
+}
+
+.btn-reset {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btn-reset:hover {
+    background: #e0a800;
+}
+
+/* Modal Styles */
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.modal-header .modal-title {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4C4C5C;
+    margin-bottom: 6px;
+}
+
+.form-control {
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    padding: 10px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-control[readonly] {
+    background: #f8f9fa;
+    cursor: not-allowed;
+}
+
+.help-text {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+/* Graph Type Checkboxes */
+.graph-types-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.checkbox-item:hover {
+    background: #e9ecef;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-item label {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.checkbox-item input[type="checkbox"]:checked + label {
+    color: #667eea;
+    font-weight: 600;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #e9ecef;
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: #e9ecef;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .config-container {
+        padding: 12px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="config-container">
+
+    <!-- Back Button -->
+    <a href="{% url 'companyadmin:device_list' %}" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Devices
+    </a>
+
+    <!-- Device Info Card -->
+    <div class="device-info-card">
+        <h2><i class="fas fa-microchip me-2"></i>{{ device.display_name }}</h2>
+        <p><strong>Device ID:</strong> {{ device.device_id }}</p>
+        <p><strong>Measurement:</strong> {{ device.measurement_name }}</p>
+        <p><strong>Sensors to Configure:</strong> {{ total_sensors }} (Info/Slave fields excluded)</p>
+    </div>
+
+    {% if sensors %}
+    
+    <!-- Table Container -->
+    <div class="table-container">
+        <div class="table-header">
+            <h3><i class="fas fa-table me-2"></i>Sensor Metadata Configuration</h3>
+        </div>
+        
+        <div class="table-wrapper">
+            <table class="sensors-table">
+                <thead>
+                    <tr>
+                        <th>Field Name</th>
+                        <th>Type</th>
+                        <th>Display Name</th>
+                        <th>Unit</th>
+                        <th>Upper Limit</th>
+                        <th>Lower Limit</th>
+                        <th>Central Line</th>
+                        <th>Time Series</th>
+                        <th>Latest Value</th>
+                        <th>Digital</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sensor in sensors %}
+                    <tr>
+                        <!-- Field Name -->
+                        <td>
+                            <span class="field-name">{{ sensor.field_name }}</span>
+                        </td>
+                        
+                        <!-- Type -->
+                        <td>
+                            <span class="type-badge">{{ sensor.field_type }}</span>
+                        </td>
+                        
+                        <!-- Display Name -->
+                        <td>
+                            {% if sensor.has_metadata and sensor.metadata and sensor.metadata.display_name %}
+                                <span class="value-display">{{ sensor.metadata.display_name }}</span>
+                            {% else %}
+                                <span class="value-empty">—</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Unit -->
+                        <td>
+                            {% if sensor.has_metadata and sensor.metadata and sensor.metadata.unit %}
+                                <span class="value-display">{{ sensor.metadata.unit }}</span>
+                            {% else %}
+                                <span class="value-empty">—</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Upper Limit -->
+                        <td>
+                            {% if sensor.has_metadata and sensor.metadata and sensor.metadata.upper_limit is not None %}
+                                <span class="value-display">{{ sensor.metadata.upper_limit }}</span>
+                            {% else %}
+                                <span class="value-empty">—</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Lower Limit -->
+                        <td>
+                            {% if sensor.has_metadata and sensor.metadata and sensor.metadata.lower_limit is not None %}
+                                <span class="value-display">{{ sensor.metadata.lower_limit }}</span>
+                            {% else %}
+                                <span class="value-empty">—</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Central Line -->
+                        <td>
+                            {% if sensor.has_metadata and sensor.metadata and sensor.metadata.central_line is not None %}
+                                <span class="value-display">{{ sensor.metadata.central_line }}</span>
+                            {% else %}
+                                <span class="value-empty">—</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Time Series -->
+                        <td>
+                            <div class="graph-icons">
+                                {% if sensor.has_metadata and sensor.metadata %}
+                                    <span class="graph-icon {% if sensor.metadata.show_time_series %}enabled{% else %}disabled{% endif %}" title="Time Series">
+                                        <i class="fas fa-{% if sensor.metadata.show_time_series %}check{% else %}times{% endif %}"></i>
+                                    </span>
+                                {% else %}
+                                    <span class="value-empty">—</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        
+                        <!-- Latest Value -->
+                        <td>
+                            <div class="graph-icons">
+                                {% if sensor.has_metadata and sensor.metadata %}
+                                    <span class="graph-icon {% if sensor.metadata.show_latest_value %}enabled{% else %}disabled{% endif %}" title="Latest Value">
+                                        <i class="fas fa-{% if sensor.metadata.show_latest_value %}check{% else %}times{% endif %}"></i>
+                                    </span>
+                                {% else %}
+                                    <span class="value-empty">—</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        
+                        <!-- Digital -->
+                        <td>
+                            <div class="graph-icons">
+                                {% if sensor.has_metadata and sensor.metadata %}
+                                    <span class="graph-icon {% if sensor.metadata.show_digital %}enabled{% else %}disabled{% endif %}" title="Digital Display">
+                                        <i class="fas fa-{% if sensor.metadata.show_digital %}check{% else %}times{% endif %}"></i>
+                                    </span>
+                                {% else %}
+                                    <span class="value-empty">—</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        
+                        <!-- Status -->
+                        <td>
+                            {% if sensor.has_metadata and sensor.metadata %}
+                                {% if sensor.metadata.display_name and sensor.metadata.unit %}
+                                    <span class="status-badge configured">
+                                        <i class="fas fa-check-circle me-1"></i>Configured
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge not-configured">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Incomplete
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="status-badge not-configured">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Not Configured
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Actions -->
+                        <td>
+                            <div class="action-buttons">
+                                {% if sensor.has_metadata and sensor.metadata %}
+                                    <!-- Edit Button -->
+                                    <button type="button" class="btn-action btn-edit" onclick="openMetadataModal({{ sensor.id }}, true)">
+                                        <i class="fas fa-edit"></i>
+                                        Edit
+                                    </button>
+                                    <!-- Reset Button -->
+                                    <button type="button" class="btn-action btn-reset" onclick="resetMetadata({{ sensor.id }}, '{{ sensor.field_name|escapejs }}')">
+                                        <i class="fas fa-undo"></i>
+                                        Reset
+                                    </button>
+                                {% else %}
+                                    <!-- Add Button -->
+                                    <button type="button" class="btn-action btn-add" onclick="openMetadataModal({{ sensor.id }}, false)">
+                                        <i class="fas fa-plus"></i>
+                                        Add
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% else %}
+
+    <!-- Empty State -->
+    <div class="empty-state">
+        <i class="fas fa-chart-line"></i>
+        <h3>No Sensors to Configure</h3>
+        <p>This device has no sensor fields. Only info/slave fields are available (no metadata needed).</p>
+        <a href="{% url 'companyadmin:device_list' %}" class="back-button" style="margin-top: 20px;">
+            <i class="fas fa-arrow-left"></i>
+            Back to Devices
+        </a>
+    </div>
+
+    {% endif %}
+
+</div>
+
+<!-- Add/Edit Metadata Modal -->
+<div class="modal fade" id="metadataModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="fas fa-cog"></i> Add Metadata
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="metadataForm">
+                    <input type="hidden" id="sensor_id">
+                    
+                    <div class="row">
+                        <!-- Field Name (Read-only) -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Field Name</label>
+                            <input type="text" class="form-control" id="field_name" readonly>
+                            <div class="help-text">Original field name from InfluxDB</div>
+                        </div>
+
+                        <!-- Field Type (Read-only) -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Field Type</label>
+                            <input type="text" class="form-control" id="field_type" readonly>
+                            <div class="help-text">Data type from InfluxDB</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Display Name -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Display Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="display_name" placeholder="e.g., Compressor Temperature" required>
+                            <div class="help-text">User-friendly name for graphs</div>
+                        </div>
+
+                        <!-- Unit -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Unit <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="unit" placeholder="e.g., °C, kWh, bar, %" required>
+                            <div class="help-text">Unit of measurement</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Upper Limit -->
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Upper Limit</label>
+                            <input type="number" class="form-control" id="upper_limit" step="0.01" placeholder="e.g., 100">
+                            <div class="help-text">Max threshold (optional)</div>
+                        </div>
+
+                        <!-- Lower Limit -->
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Lower Limit</label>
+                            <input type="number" class="form-control" id="lower_limit" step="0.01" placeholder="e.g., 0">
+                            <div class="help-text">Min threshold (optional)</div>
+                        </div>
+
+                        <!-- Central Line -->
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Central Line</label>
+                            <input type="number" class="form-control" id="central_line" step="0.01" placeholder="e.g., 50">
+                            <div class="help-text">Target value (optional)</div>
+                        </div>
+                    </div>
+
+                    <!-- Graph Types -->
+                    <div class="mb-3">
+                        <label class="form-label">Graph Types to Display</label>
+                        <div class="graph-types-container">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="show_time_series" checked>
+                                <label for="show_time_series">
+                                    <i class="fas fa-chart-line me-2" style="color: #667eea;"></i>
+                                    Time Series Graph
+                                </label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="show_latest_value">
+                                <label for="show_latest_value">
+                                    <i class="fas fa-tachometer-alt me-2" style="color: #28a745;"></i>
+                                    Latest Value Card
+                                </label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="show_digital">
+                                <label for="show_digital">
+                                    <i class="fas fa-toggle-on me-2" style="color: #ffc107;"></i>
+                                    Digital Display (ON/OFF)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveMetadata()">
+                    <i class="fas fa-save"></i> Save Metadata
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// CSRF Token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+// ✅ Show message function (works without toastr)
+function showMessage(message, type = 'success') {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 9999;
+        font-family: 'Barlow', sans-serif;
+        font-weight: 600;
+        animation: slideIn 0.3s ease-out;
+    `;
+    toast.textContent = message;
+    
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Open Add/Edit Metadata Modal
+function openMetadataModal(sensorId, isEdit) {
+    // Update modal title
+    document.getElementById('modalTitle').innerHTML = isEdit 
+        ? '<i class="fas fa-edit"></i> Edit Metadata' 
+        : '<i class="fas fa-plus"></i> Add Metadata';
+    
+    // Fetch sensor data
+    fetch(`/company/sensors/${sensorId}/metadata/`, {
+        method: 'GET',
+        headers: {'X-CSRFToken': csrftoken}
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const sensor = data.sensor;
+            
+            // Populate form
+            document.getElementById('sensor_id').value = sensor.id;
+            document.getElementById('field_name').value = sensor.field_name;
+            document.getElementById('field_type').value = sensor.field_type;
+            document.getElementById('display_name').value = sensor.display_name || '';
+            document.getElementById('unit').value = sensor.unit || '';
+            document.getElementById('upper_limit').value = sensor.upper_limit || '';
+            document.getElementById('lower_limit').value = sensor.lower_limit || '';
+            document.getElementById('central_line').value = sensor.central_line || '';
+            document.getElementById('show_time_series').checked = sensor.show_time_series;
+            document.getElementById('show_latest_value').checked = sensor.show_latest_value;
+            document.getElementById('show_digital').checked = sensor.show_digital;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('metadataModal'));
+            modal.show();
+        } else {
+            showMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('Failed to load sensor data', 'error');
+    });
+}
+
+// Save Metadata
+function saveMetadata() {
+    const sensorId = document.getElementById('sensor_id').value;
+    
+    // ✅ VALIDATION: Check required fields
+    const displayName = document.getElementById('display_name').value.trim();
+    const unit = document.getElementById('unit').value.trim();
+    
+    if (!displayName) {
+        showMessage('Display Name is required', 'error');
+        document.getElementById('display_name').focus();
+        return;
+    }
+    
+    if (!unit) {
+        showMessage('Unit is required', 'error');
+        document.getElementById('unit').focus();
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('display_name', displayName);
+    formData.append('unit', unit);
+    formData.append('upper_limit', document.getElementById('upper_limit').value);
+    formData.append('lower_limit', document.getElementById('lower_limit').value);
+    formData.append('central_line', document.getElementById('central_line').value);
+    formData.append('show_time_series', document.getElementById('show_time_series').checked);
+    formData.append('show_latest_value', document.getElementById('show_latest_value').checked);
+    formData.append('show_digital', document.getElementById('show_digital').checked);
+    
+    fetch(`/company/sensors/${sensorId}/metadata/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken},
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message, 'success');
+            
+            // Close modal
+            const modalElement = document.getElementById('metadataModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+            
+            // ✅ Reload page after 1 second
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('Failed to save metadata', 'error');
+    });
+}
+
+// Reset Metadata
+function resetMetadata(sensorId, fieldName) {
+    if (confirm(`Are you sure you want to reset metadata for "${fieldName}"?\n\nAll configured values will be cleared.`)) {
+        fetch(`/company/sensors/${sensorId}/metadata/reset/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrftoken}
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage(data.message, 'success');
+                
+                // ✅ Reload page after 1 second
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showMessage(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('Failed to reset metadata', 'error');
+        });
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,1270 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Department Admin{% endblock %} - {{ request.tenant.company_name }}</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ========================================
+           CSS VARIABLES - DESIGN SYSTEM
+           ======================================== */
+        :root {
+            /* ===== PRIMARY COLORS (NO GRADIENTS) ===== */
+            --primary-blue: #2563eb;
+            --primary-blue-dark: #1e40af;
+            --primary-blue-light: #3b82f6;
+            
+            /* ===== SEMANTIC COLORS ===== */
+            --success: #10b981;
+            --success-dark: #059669;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            
+            /* ===== NEUTRALS ===== */
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            /* ===== NAVBAR DARK THEME ===== */
+            --navbar-bg: #1e293b;
+            --navbar-border: #334155;
+            --navbar-text: #f1f5f9;
+            --navbar-text-muted: #cbd5e1;
+            
+            /* ===== BACKGROUNDS ===== */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            
+            /* ===== TEXT COLORS ===== */
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --text-tertiary: #6b7280;
+            --text-muted: #9ca3af;
+            
+            /* ===== BORDERS ===== */
+            --border-light: #e5e7eb;
+            --border-medium: #d1d5db;
+            
+            /* ===== TYPOGRAPHY ===== */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --text-xs: 12px;
+            --text-sm: 14px;
+            --text-base: 16px;
+            --text-lg: 18px;
+            --text-xl: 20px;
+            --text-2xl: 24px;
+            --text-3xl: 30px;
+            
+            /* ===== SPACING ===== */
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --space-6: 24px;
+            --space-8: 32px;
+            
+            /* ===== RADIUS ===== */
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-full: 9999px;
+            
+            /* ===== SHADOWS ===== */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            
+            /* ===== LAYOUT DIMENSIONS ===== */
+            --navbar-height: 64px;
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 72px;
+            --mobile-nav-height: 64px;
+        }
+        
+        /* ========================================
+           BASE STYLES
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-family);
+            font-size: var(--text-sm);
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        
+        /* ========================================
+           NAVBAR - DARK PROFESSIONAL
+           ======================================== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--navbar-height);
+            background: var(--navbar-bg);
+            border-bottom: 1px solid var(--navbar-border);
+            color: var(--navbar-text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 var(--space-6);
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            color: var(--navbar-text);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: var(--text-xl);
+            transition: opacity 0.2s ease;
+        }
+
+        .navbar-brand:hover {
+            opacity: 0.9;
+            color: var(--navbar-text);
+        }
+        
+        .navbar-brand i {
+            font-size: var(--text-2xl);
+            color: #60a5fa;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .time {
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-md);
+            font-size: var(--text-xs);
+            font-weight: 500;
+            white-space: nowrap;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--navbar-text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Role Badge - Solid Green */
+        .role-badge {
+            background: var(--success);
+            color: white;
+            font-size: var(--text-xs);
+            font-weight: 600;
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            white-space: nowrap;
+        }
+        
+        /* Department Badge - Better Truncation */
+        .department-badge {
+            background: var(--primary-blue);
+            color: white;
+            font-size: var(--text-xs);
+            font-weight: 600;
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-full);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            max-width: 250px;
+            position: relative;
+        }
+        
+        .department-badge i {
+            font-size: var(--text-xs);
+            flex-shrink: 0;
+        }
+        
+        .department-badge span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+        }
+        
+        .user-avatar {
+            background: var(--primary-blue);
+            color: white;
+            border-radius: var(--radius-full);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: var(--text-sm);
+            flex-shrink: 0;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: var(--text-sm);
+            color: var(--navbar-text);
+            white-space: nowrap;
+        }
+        
+        /* ========================================
+           SIDEBAR - DESKTOP
+           ======================================== */
+        .sidebar {
+            position: fixed;
+            top: var(--navbar-height);
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--bg-primary);
+            padding: var(--space-5);
+            overflow-y: auto;
+            overflow-x: hidden;
+            border-right: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+            padding: var(--space-5) var(--space-2);
+        }
+        
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-5);
+            min-height: 36px;
+            flex-shrink: 0;
+        }
+        
+        .sidebar.collapsed .sidebar-header {
+            justify-content: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: var(--text-lg);
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+        
+        .sidebar.collapsed .sidebar-header h2 {
+            display: none;
+        }
+        
+        .sidebar-toggle {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            border-radius: var(--radius-md);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .sidebar:not(.collapsed) .sidebar-toggle {
+            border: 1px solid var(--border-light);
+        }
+        
+        .sidebar.collapsed .sidebar-toggle {
+            margin: 0 auto;
+        }
+        
+        .sidebar-toggle:hover {
+            background: var(--gray-100);
+            border-color: var(--border-medium);
+            color: var(--text-primary);
+        }
+        
+        .sidebar-links {
+            flex-shrink: 0;
+        }
+        
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-2);
+            transition: all 0.2s ease;
+            position: relative;
+            font-size: var(--text-sm);
+            font-weight: 500;
+        }
+        
+        .sidebar.collapsed a {
+            padding: var(--space-3);
+            justify-content: center;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: var(--gray-100);
+            color: var(--primary-blue);
+        }
+        
+        .sidebar a.active {
+            font-weight: 600;
+        }
+        
+        .sidebar a.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .sidebar i {
+            font-size: 18px;
+            min-width: 24px;
+            margin-right: var(--space-3);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sidebar.collapsed i {
+            margin-right: 0;
+            font-size: 20px;
+        }
+        
+        .sidebar-text {
+            font-size: var(--text-sm);
+            white-space: nowrap;
+        }
+        
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .coming-soon-badge {
+            background: var(--warning);
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: var(--radius-full);
+            margin-left: auto;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .sidebar.collapsed .coming-soon-badge {
+            display: none;
+        }
+        
+        /* Sidebar footer with integrated tagline */
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: var(--space-5);
+            border-top: 1px solid var(--border-light);
+        }
+        
+        .sidebar-illustration {
+            width: 100%;
+            max-width: 180px;
+            margin: 0 auto;
+            display: block;
+            position: relative;
+        }
+        
+        .sidebar-illustration img {
+            width: 100%;
+            height: auto;
+            display: block;
+            opacity: 0.9;
+        }
+        
+        .sidebar-illustration .sidebar-tagline {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            font-weight: 600;
+            text-align: center;
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+            letter-spacing: 0.3px;
+        }
+        
+        .sidebar.collapsed .sidebar-footer {
+            display: none;
+        }
+        
+        /* ========================================
+           SECTION BAR - SOLID DESIGN
+           ======================================== */
+        .section-bar {
+            position: fixed;
+            top: var(--navbar-height);
+            left: var(--sidebar-width);
+            right: 0;
+            height: 60px;
+            background: var(--bg-primary);
+            padding: 0 var(--space-6);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 998;
+        }
+        
+        .section-bar.sidebar-collapsed {
+            left: var(--sidebar-collapsed-width);
+        }
+        
+        .section-bar h1 {
+            font-size: var(--text-2xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        /* ========================================
+           CONTENT CONTAINER
+           ======================================== */
+        .content-container {
+            margin-top: calc(var(--navbar-height) + 60px);
+            margin-left: var(--sidebar-width);
+            padding: var(--space-6);
+            min-height: calc(100vh - var(--navbar-height) - 60px);
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .content-container.sidebar-collapsed {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+        
+        /* ========================================
+           MESSAGES (ALERTS)
+           ======================================== */
+        .messages-container {
+            position: fixed;
+            top: calc(var(--navbar-height) + 10px);
+            right: var(--space-5);
+            z-index: 9999;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .messages-container .alert {
+            margin-bottom: var(--space-2);
+            animation: slideInRight 0.3s ease-out;
+            box-shadow: var(--shadow-lg);
+            border-radius: var(--radius-md);
+            font-size: var(--text-sm);
+            border: 1px solid var(--border-light);
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* ========================================
+           DYNAMIC TOOLTIPS
+           ======================================== */
+        .dynamic-tooltip {
+            position: fixed !important;
+            background: var(--gray-800) !important;
+            color: white !important;
+            padding: var(--space-2) var(--space-4) !important;
+            border-radius: var(--radius-md) !important;
+            font-size: var(--text-xs) !important;
+            font-weight: 500 !important;
+            white-space: nowrap !important;
+            z-index: 10002 !important;
+            pointer-events: none !important;
+            box-shadow: var(--shadow-lg) !important;
+        }
+        
+        .dynamic-tooltip::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-right: 6px solid var(--gray-800);
+        }
+        
+        /* ========================================
+           OVERLAY
+           ======================================== */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1002;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+        
+        /* ========================================
+           CUSTOM SCROLLBAR
+           ======================================== */
+        .sidebar::-webkit-scrollbar,
+        .mobile-menu-sheet::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track,
+        .mobile-menu-sheet::-webkit-scrollbar-track {
+            background: var(--gray-100);
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb,
+        .mobile-menu-sheet::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 3px;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb:hover,
+        .mobile-menu-sheet::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+        
+        /* ========================================
+           MOBILE BOTTOM NAVIGATION BAR (FIXED)
+           ======================================== */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--mobile-nav-height);
+            background: white;
+            border-top: 1px solid var(--border-light);
+            display: none;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 var(--space-3);
+            z-index: 1001;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 10px;
+            font-weight: 500;
+            padding: var(--space-2);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .mobile-nav-item i {
+            font-size: 20px;
+        }
+        
+        .mobile-nav-item.active {
+            color: var(--primary-blue);
+            background: var(--gray-50);
+        }
+        
+        .mobile-nav-item:hover {
+            color: var(--primary-blue);
+        }
+        
+        /* ✅ CENTER BUTTON (HAMBURGER) */
+        .mobile-nav-item.center-btn {
+            position: relative;
+            margin: -20px 0 0 0;
+        }
+        
+        .mobile-nav-item.center-btn button {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 4px solid white;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-nav-item.center-btn button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+        }
+        
+        .mobile-nav-item.center-btn button:active {
+            transform: scale(0.95);
+        }
+        
+        /* ========================================
+           MOBILE MENU BOTTOM SHEET
+           ======================================== */
+        .mobile-menu-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 75vh;
+            max-height: 600px;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1003;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .mobile-menu-sheet.show {
+            transform: translateY(0);
+        }
+        
+        /* Drag handle */
+        .mobile-menu-sheet::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 4px;
+            background: var(--gray-300);
+            border-radius: 2px;
+        }
+        
+        .mobile-menu-header {
+            padding: var(--space-5) var(--space-5) var(--space-3);
+            border-bottom: 1px solid var(--border-light);
+            flex-shrink: 0;
+        }
+        
+        .mobile-menu-header h2 {
+            font-size: var(--text-xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            text-align: center;
+        }
+        
+        .mobile-menu-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-4);
+        }
+        
+        .mobile-menu-content a {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            padding: var(--space-4);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-2);
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .mobile-menu-content a:hover,
+        .mobile-menu-content a.active {
+            background: var(--gray-100);
+            color: var(--primary-blue);
+        }
+        
+        .mobile-menu-content a i {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            color: var(--primary-blue);
+        }
+        
+        .mobile-menu-content a.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        .mobile-menu-content a.disabled .coming-soon-badge {
+            margin-left: auto;
+        }
+        
+        .mobile-menu-footer {
+            padding: var(--space-5);
+            border-top: 1px solid var(--border-light);
+            flex-shrink: 0;
+        }
+        
+        .mobile-menu-illustration {
+            width: 100%;
+            max-width: 120px;
+            margin: 0 auto var(--space-3);
+            display: block;
+        }
+        
+        .mobile-menu-illustration img {
+            width: 100%;
+            height: auto;
+            opacity: 0.8;
+        }
+        
+        .mobile-menu-tagline {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-weight: 600;
+            text-align: center;
+            padding: var(--space-2);
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+        }
+        
+        /* ========================================
+           RESPONSIVE DESIGN
+           ======================================== */
+        
+        /* Tablet (768px) */
+        @media (max-width: 768px) {
+            /* ✅ HIDE desktop sidebar completely */
+            .sidebar {
+                display: none;
+            }
+            
+            /* ✅ SHOW mobile bottom nav */
+            .mobile-nav {
+                display: flex;
+            }
+            
+            /* ✅ FIX navbar layout - Logo left, Department + Avatar right */
+            .navbar {
+                padding: 0 var(--space-3);
+                height: 56px;
+            }
+            
+            .navbar-brand {
+                font-size: var(--text-base);
+            }
+            
+            .navbar-brand span {
+                max-width: 140px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            /* ✅ HIDE time and role badge */
+            .time,
+            .role-badge {
+                display: none;
+            }
+            
+            /* ✅ KEEP department badge and avatar */
+            .department-badge {
+                font-size: 10px;
+                padding: 4px 8px;
+                max-width: 100px;
+            }
+            
+            .user-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 11px;
+            }
+            
+            /* ✅ SHOW username next to avatar on mobile */
+            .user-name {
+                display: block;
+                font-size: 12px;
+                max-width: 80px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            /* ✅ ADJUST section bar */
+            .section-bar {
+                left: 0;
+                height: 50px;
+                padding: 0 var(--space-3);
+            }
+            
+            .section-bar h1 {
+                font-size: var(--text-lg);
+            }
+            
+            /* ✅ ADJUST content */
+            .content-container {
+                margin-left: 0;
+                margin-top: calc(56px + 50px);
+                margin-bottom: var(--mobile-nav-height);
+                padding: var(--space-4);
+                min-height: calc(100vh - 56px - 50px - var(--mobile-nav-height));
+            }
+            
+            .messages-container {
+                top: 66px;
+                right: var(--space-3);
+                left: var(--space-3);
+                max-width: none;
+            }
+        }
+        
+        /* Mobile (576px) */
+        @media (max-width: 576px) {
+            :root {
+                --navbar-height: 56px;
+            }
+            
+            .navbar-brand {
+                font-size: var(--text-sm);
+            }
+            
+            .navbar-brand i {
+                font-size: var(--text-lg);
+            }
+            
+            .navbar-brand span {
+                max-width: 100px;
+            }
+            
+            .department-badge {
+                max-width: 70px;
+                font-size: 9px;
+                padding: 3px 6px;
+            }
+            
+            .user-name {
+                max-width: 60px;
+                font-size: 11px;
+            }
+            
+            .user-avatar {
+                width: 28px;
+                height: 28px;
+                font-size: 10px;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Messages Container -->
+<div class="messages-container" id="messagesContainer">
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<!-- Navbar -->
+<div class="navbar">
+    <!-- ✅ LEFT: Logo only -->
+    <div class="d-flex align-items-center">
+        <a href="{% url 'departmentadmin:dashboard' %}" class="navbar-brand">
+            <i class="fas fa-building"></i>
+            <span>{{ request.tenant.company_name|default:"Company Portal" }}</span>
+        </a>
+    </div>
+    
+    <!-- ✅ RIGHT: Department + Username + Avatar -->
+    <div class="user-info">
+        <div class="time" id="datetime"></div>
+        
+        <div class="role-badge">
+            <i class="fas fa-user-tie"></i>
+            <span>Admin</span>
+        </div>
+        
+        {% if request.user.department_memberships.all %}
+            <div class="department-badge" title="{% for membership in request.user.department_memberships.all %}{% if membership.is_active and membership.department.is_active %}{{ membership.department.name }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}">
+                <i class="fas fa-sitemap"></i>
+                <span>{% for membership in request.user.department_memberships.all %}{% if membership.is_active and membership.department.is_active %}{{ membership.department.name }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}</span>
+            </div>
+        {% endif %}
+        
+        <div class="user-name">{{ request.user.get_full_name_or_username|default:request.user.username }}</div>
+        
+        <div class="user-avatar">
+            {{ request.user.first_name|slice:"1"|upper|default:request.user.username|slice:"1"|upper }}
+        </div>
+    </div>
+</div>
+
+<!-- Desktop Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h2>Menu</h2>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div class="sidebar-links">
+        <a href="{% url 'departmentadmin:dashboard' %}" class="{% if 'dashboard' in request.path %}active{% endif %}">
+            <i class="fas fa-chart-line"></i>
+            <span class="sidebar-text">Dashboard</span>
+        </a>
+
+        <a href="{% url 'departmentadmin:users' %}" class="{% if 'users' in request.path %}active{% endif %}">
+            <i class="fas fa-users"></i>
+            <span class="sidebar-text">Users</span>
+        </a>
+
+        <a href="{% url 'departmentadmin:devices' %}" class="{% if 'devices' in request.path %}active{% endif %}">
+            <i class="fas fa-microchip"></i>
+            <span class="sidebar-text">Devices</span>
+        </a>
+
+        <a href="#" class="disabled">
+            <i class="fas fa-chart-bar"></i>
+            <span class="sidebar-text">Graphs</span>
+            <span class="coming-soon-badge">Soon</span>
+        </a>
+
+        <a href="#" class="disabled">
+            <i class="fas fa-bell"></i>
+            <span class="sidebar-text">Alerts</span>
+            <span class="coming-soon-badge">Soon</span>
+        </a>
+
+        <a href="{% url 'departmentadmin:logout' %}">
+            <i class="fas fa-sign-out-alt"></i>
+            <span class="sidebar-text">Logout</span>
+        </a>
+    </div>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-illustration">
+            <img src="{% static 'systemadmin/images/illu.svg' %}" alt="SmartOps" onerror="this.style.display='none'">
+            <div class="sidebar-tagline">Sisai Technology</div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ MOBILE MENU BOTTOM SHEET -->
+<div class="mobile-menu-sheet" id="mobileMenuSheet">
+    <div class="mobile-menu-header">
+        <h2>Menu</h2>
+    </div>
+    
+    <div class="mobile-menu-content">
+        <a href="{% url 'departmentadmin:dashboard' %}" class="{% if 'dashboard' in request.path %}active{% endif %}">
+            <i class="fas fa-chart-line"></i>
+            <span>Dashboard</span>
+        </a>
+        
+        <a href="{% url 'departmentadmin:users' %}" class="{% if 'users' in request.path %}active{% endif %}">
+            <i class="fas fa-users"></i>
+            <span>Users</span>
+        </a>
+        
+        <a href="{% url 'departmentadmin:devices' %}" class="{% if 'devices' in request.path %}active{% endif %}">
+            <i class="fas fa-microchip"></i>
+            <span>Devices</span>
+        </a>
+        
+        <a href="#" class="disabled">
+            <i class="fas fa-chart-bar"></i>
+            <span>Graphs</span>
+            <span class="coming-soon-badge">Soon</span>
+        </a>
+        
+        <a href="#" class="disabled">
+            <i class="fas fa-bell"></i>
+            <span>Alerts</span>
+            <span class="coming-soon-badge">Soon</span>
+        </a>
+        
+        <a href="{% url 'departmentadmin:logout' %}">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+    
+    <div class="mobile-menu-footer">
+        <div class="mobile-menu-illustration">
+            <img src="{% static 'systemadmin/images/illu.svg' %}" alt="SmartOps" onerror="this.style.display='none'">
+        </div>
+        <div class="mobile-menu-tagline">Sisai Technology</div>
+    </div>
+</div>
+
+<!-- ✅ MOBILE BOTTOM NAVIGATION BAR -->
+<div class="mobile-nav" id="mobileNav">
+    <a href="{% url 'departmentadmin:dashboard' %}" class="mobile-nav-item {% if 'dashboard' in request.path %}active{% endif %}">
+        <i class="fas fa-chart-line"></i>
+        <span>Dashboard</span>
+    </a>
+    
+    <a href="{% url 'departmentadmin:devices' %}" class="mobile-nav-item {% if 'devices' in request.path %}active{% endif %}">
+        <i class="fas fa-microchip"></i>
+        <span>Devices</span>
+    </a>
+    
+    <!-- ✅ CENTER HAMBURGER BUTTON -->
+    <div class="mobile-nav-item center-btn">
+        <button id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+    
+    <a href="{% url 'departmentadmin:users' %}" class="mobile-nav-item {% if 'users' in request.path %}active{% endif %}">
+        <i class="fas fa-users"></i>
+        <span>Users</span>
+    </a>
+    
+    <a href="{% url 'departmentadmin:logout' %}" class="mobile-nav-item">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+    </a>
+</div>
+
+<!-- Section Bar -->
+<div class="section-bar" id="sectionBar">
+    <h1>{% block page_heading %}Dashboard{% endblock %}</h1>
+    {% block section_actions %}{% endblock %}
+</div>
+
+<!-- Content Container -->
+<div class="content-container" id="contentContainer">
+    {% block content %}{% endblock %}
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+(function() {
+    'use strict';
+    
+    // Auto-dismiss alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert-dismissible');
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
+        });
+    });
+    
+    let activeTooltip = null;
+    const el = {
+        sidebar: document.getElementById('sidebar'),
+        sidebarToggle: document.getElementById('sidebarToggle'),
+        sectionBar: document.getElementById('sectionBar'),
+        contentContainer: document.getElementById('contentContainer'),
+        sidebarOverlay: document.getElementById('sidebarOverlay'),
+        mobileMenuBtn: document.getElementById('mobileMenuBtn'),
+        mobileMenuSheet: document.getElementById('mobileMenuSheet')
+    };
+    
+    // DateTime
+    function updateDateTime() {
+        const timeEl = document.getElementById('datetime');
+        if (timeEl) {
+            timeEl.textContent = new Date().toLocaleString('en-US', {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+    
+    // Remove tooltip
+    function removeTooltip() {
+        if (activeTooltip) {
+            activeTooltip.remove();
+            activeTooltip = null;
+        }
+    }
+    
+    // Update UI
+    function updateUI(collapsed) {
+        el.sidebar.classList.toggle('collapsed', collapsed);
+        el.sectionBar.classList.toggle('sidebar-collapsed', collapsed);
+        el.contentContainer.classList.toggle('sidebar-collapsed', collapsed);
+        const icon = el.sidebarToggle.querySelector('i');
+        icon.className = collapsed ? 'fas fa-chevron-right' : 'fas fa-times';
+    }
+    
+    // Desktop toggle
+    if (el.sidebarToggle) {
+        el.sidebarToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            removeTooltip();
+            const collapsed = !el.sidebar.classList.contains('collapsed');
+            updateUI(collapsed);
+            localStorage.setItem('deptAdminSidebarCollapsed', collapsed);
+        });
+    }
+    
+    // ✅ Mobile menu button - Toggle bottom sheet
+    if (el.mobileMenuBtn) {
+        el.mobileMenuBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const isOpen = el.mobileMenuSheet.classList.contains('show');
+            
+            if (isOpen) {
+                // Close
+                el.mobileMenuSheet.classList.remove('show');
+                el.sidebarOverlay.classList.remove('show');
+                this.querySelector('i').className = 'fas fa-bars';
+            } else {
+                // Open
+                el.mobileMenuSheet.classList.add('show');
+                el.sidebarOverlay.classList.add('show');
+                this.querySelector('i').className = 'fas fa-times';
+            }
+        });
+    }
+    
+    // ✅ Close menu when overlay clicked
+    if (el.sidebarOverlay) {
+        el.sidebarOverlay.addEventListener('click', function() {
+            el.mobileMenuSheet.classList.remove('show');
+            el.sidebarOverlay.classList.remove('show');
+            if (el.mobileMenuBtn) {
+                el.mobileMenuBtn.querySelector('i').className = 'fas fa-bars';
+            }
+        });
+    }
+    
+    // ✅ Close menu when any link clicked
+    document.querySelectorAll('.mobile-menu-content a:not(.disabled)').forEach(link => {
+        link.addEventListener('click', function() {
+            el.mobileMenuSheet.classList.remove('show');
+            el.sidebarOverlay.classList.remove('show');
+            if (el.mobileMenuBtn) {
+                el.mobileMenuBtn.querySelector('i').className = 'fas fa-bars';
+            }
+        });
+    });
+    
+    // Tooltips for collapsed sidebar (desktop only)
+    document.querySelectorAll('.sidebar a:not(.disabled)').forEach(link => {
+        const text = link.querySelector('.sidebar-text')?.textContent.trim();
+        if (!text) return;
+        
+        link.addEventListener('mouseenter', function() {
+            if (!el.sidebar.classList.contains('collapsed') || window.innerWidth <= 768) return;
+            
+            removeTooltip();
+            const rect = link.getBoundingClientRect();
+            
+            const tooltip = document.createElement('div');
+            tooltip.className = 'dynamic-tooltip';
+            tooltip.textContent = text;
+            tooltip.style.left = (rect.right + 15) + 'px';
+            tooltip.style.top = (rect.top + rect.height / 2) + 'px';
+            tooltip.style.transform = 'translateY(-50%)';
+            
+            document.body.appendChild(tooltip);
+            activeTooltip = tooltip;
+        });
+        
+        link.addEventListener('mouseleave', removeTooltip);
+    });
+    
+    // Resize handler
+    window.addEventListener('resize', function() {
+        removeTooltip();
+        // Close mobile menu on resize
+        if (window.innerWidth > 768) {
+            el.mobileMenuSheet.classList.remove('show');
+            el.sidebarOverlay.classList.remove('show');
+        }
+    });
+    
+    window.addEventListener('scroll', removeTooltip);
+    
+    // Restore sidebar state (desktop only)
+    if (localStorage.getItem('deptAdminSidebarCollapsed') === 'true' && window.innerWidth > 768) {
+        updateUI(true);
+    }
+})();
+</script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

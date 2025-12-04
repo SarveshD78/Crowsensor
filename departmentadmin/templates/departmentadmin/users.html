@@ -1,0 +1,1043 @@
+{% extends 'departmentadmin/base.html' %}
+
+{% block title %}Users Management{% endblock %}
+{% block page_heading %}Manage Users{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========================================
+   USERS PAGE - PRIMARY BLUE THEME
+   Matches devices.html design exactly
+   ======================================== */
+
+/* ===== CONTAINER ===== */
+.users-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* ===== FLOATING LABEL INPUTS ===== */
+.floating-label-group {
+    position: relative;
+    margin-bottom: var(--space-4);
+}
+
+.floating-label-group input,
+.floating-label-group select,
+.floating-label-group textarea {
+    width: 100%;
+    padding: 16px 12px 8px 12px;
+    font-size: 14px;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+}
+
+.floating-label-group label {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+    padding: 0 4px;
+    font-weight: 500;
+}
+
+.floating-label-group input:focus + label,
+.floating-label-group input:not(:placeholder-shown) + label,
+.floating-label-group select:focus + label,
+.floating-label-group textarea:focus + label,
+.floating-label-group textarea:not(:placeholder-shown) + label {
+    top: 0;
+    transform: translateY(0);
+    font-size: 11px;
+    color: var(--primary-blue);
+    font-weight: 600;
+    left: 10px;
+}
+
+.floating-label-group input:focus,
+.floating-label-group select:focus,
+.floating-label-group textarea:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.floating-label-group label .required-mark {
+    color: var(--danger);
+    margin-left: 2px;
+}
+
+/* ===== WELCOME CARD ===== */
+.welcome-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.welcome-card h3 {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.welcome-card h3 i {
+    color: var(--primary-blue);
+    font-size: var(--text-2xl);
+}
+
+.welcome-card p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.welcome-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.stats-badge {
+    background: var(--bg-primary);
+    border: 2px solid var(--primary-blue);
+    color: var(--primary-blue);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.stats-badge i {
+    color: var(--primary-blue);
+}
+
+/* ===== QUICK ADD FORM CARD ===== */
+.users-add-section {
+    margin-bottom: var(--space-6);
+}
+
+.add-form-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.info-alert {
+    background: var(--gray-50);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-5);
+}
+
+.add-form-title {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.add-form-title i {
+    color: var(--primary-blue);
+    font-size: var(--text-xl);
+}
+
+.dept-assignment-text {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.dept-names-list {
+    font-weight: 600;
+    color: var(--primary-blue);
+}
+
+/* ===== SEARCH BAR ===== */
+.users-search-section {
+    margin-bottom: var(--space-6);
+}
+
+.search-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+}
+
+.search-input-group {
+    position: relative;
+}
+
+.search-input-group .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    font-size: 16px;
+    z-index: 1;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 12px 12px 44px;
+    font-size: 14px;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+    background: white;
+    color: var(--text-primary);
+    height: 48px;
+}
+
+.search-input:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+}
+
+.clear-btn {
+    background: var(--gray-600);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 0;
+    height: 48px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-btn:hover {
+    background: var(--gray-700);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.results-info {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: var(--space-3);
+    font-weight: 500;
+}
+
+.results-info strong {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+/* ===== USER SECTION HEADER ===== */
+.users-section {
+    margin-bottom: var(--space-6);
+}
+
+.section-header {
+    background: var(--bg-primary);
+    border-left: 4px solid var(--primary-blue);
+    border: 1px solid var(--border-light);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.section-title {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0;
+}
+
+.section-title i {
+    color: var(--primary-blue);
+    font-size: var(--text-xl);
+}
+
+.section-badge {
+    background: var(--gray-100);
+    color: var(--text-primary);
+    padding: 4px var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: 600;
+}
+
+/* ===== USER CARDS GRID ===== */
+.users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-4);
+}
+
+/* ===== USER CARD ===== */
+.user-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--primary-blue);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+}
+
+.user-card:hover {
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.user-card-header {
+    background: var(--gray-50);
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.user-title {
+    font-size: var(--text-base);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.user-title i {
+    color: var(--primary-blue);
+    font-size: var(--text-lg);
+}
+
+.username-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: 'Courier New', monospace;
+    background: var(--bg-tertiary);
+    padding: 3px var(--space-2);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+
+.user-card-body {
+    padding: var(--space-4);
+}
+
+/* ===== USER INFO ===== */
+.user-info-compact {
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.user-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--text-sm);
+}
+
+.user-info-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.user-info-label i.fa-user {
+    color: var(--primary-blue);
+    width: 16px;
+    text-align: center;
+}
+
+.user-info-label i.fa-envelope {
+    color: var(--info);
+    width: 16px;
+    text-align: center;
+}
+
+.user-info-label i.fa-building {
+    color: var(--warning);
+    width: 16px;
+    text-align: center;
+}
+
+.user-info-label i.fa-user-tag {
+    color: var(--success);
+    width: 16px;
+    text-align: center;
+}
+
+.user-info-value {
+    font-size: 12px;
+    color: var(--text-primary);
+    text-align: right;
+    max-width: 200px;
+    word-break: break-word;
+}
+
+/* Department names inline */
+.dept-names-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-end;
+    max-width: 200px;
+}
+
+.dept-name-tag {
+    background: rgba(251, 146, 60, 0.1);
+    color: var(--warning);
+    border: 1px solid var(--warning);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* ===== USER BADGES ===== */
+.user-badge {
+    padding: 3px var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.user-badge.role {
+    background: var(--success);
+    color: white;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.user-actions-compact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+}
+
+.user-btn-compact {
+    padding: var(--space-2) var(--space-3);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    text-decoration: none;
+}
+
+.user-btn-compact:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.user-btn-edit {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.user-btn-edit:hover {
+    background: var(--primary-blue-dark);
+    color: white;
+}
+
+.user-btn-edit i {
+    color: white;
+}
+
+.user-btn-delete {
+    background: var(--danger);
+    color: white;
+}
+
+.user-btn-delete:hover {
+    background: rgb(89, 0, 0);
+}
+
+.user-btn-delete i {
+    color: white;
+}
+
+/* ===== SUBMIT BUTTON ===== */
+.btn-primary-submit {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px var(--space-5);
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    cursor: pointer;
+}
+
+.btn-primary-submit:hover {
+    background: var(--primary-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+/* ===== MODAL STYLES ===== */
+.modal-header {
+    background: var(--primary-blue);
+    color: white;
+    border-bottom: none;
+    padding: var(--space-5);
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.modal-header .modal-title {
+    font-weight: 600;
+    font-size: var(--text-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.modal-header .modal-title i {
+    color: white;
+}
+
+.modal-body {
+    padding: var(--space-6);
+}
+
+.modal-footer {
+    padding: var(--space-4) var(--space-6);
+    border-top: 1px solid var(--border-light);
+}
+
+.modal-footer .btn i {
+    color: inherit;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border-medium);
+    grid-column: 1 / -1;
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: var(--gray-400);
+    margin-bottom: var(--space-5);
+    display: block;
+}
+
+.empty-state h3 {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+}
+
+.empty-state p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-bottom: 0;
+}
+
+/* ===== UTILITIES ===== */
+.user-hidden {
+    display: none !important;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .users-container {
+        padding: var(--space-4);
+    }
+    
+    .users-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .welcome-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .welcome-card h3 {
+        font-size: var(--text-xl);
+    }
+    
+    .user-actions-compact {
+        grid-template-columns: 1fr;
+    }
+    
+    .floating-label-group {
+        margin-bottom: var(--space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="users-container">
+
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+        <div class="welcome-card-header">
+            <div>
+                <h3>
+                    <i class="fas fa-users"></i>
+                    Manage Users
+                </h3>
+                <p>Create and manage department users for {{ request.user.department_memberships.first.department.name }}</p>
+            </div>
+            <span class="stats-badge">
+                <i class="fas fa-user-check"></i>
+                {{ total_users|default:0 }} Total Users
+            </span>
+        </div>
+    </div>
+
+    <!-- Quick Add User Section -->
+    <div class="users-add-section">
+        
+        <!-- Add Form Card -->
+        <div class="add-form-card">
+            <div class="info-alert">
+                <h4 class="add-form-title">
+                    <i class="fas fa-user-plus"></i>
+                    Add New User
+                </h4>
+                <p class="dept-assignment-text">
+                    (New users will be automatically assigned to: 
+                    <span class="dept-names-list">
+                        {{ request.user.department_memberships.first.department.name }}
+                    </span>)
+                </p>
+            </div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="add_user" value="1">
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="floating-label-group">
+                            <input type="text" name="first_name" placeholder=" " required>
+                            <label>First Name <span class="required-mark">*</span></label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="floating-label-group">
+                            <input type="text" name="last_name" placeholder=" ">
+                            <label>Last Name</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="floating-label-group">
+                            <input type="text" name="username" placeholder=" " required>
+                            <label>Username <span class="required-mark">*</span></label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="floating-label-group">
+                            <input type="email" name="email" placeholder=" " required>
+                            <label>Email <span class="required-mark">*</span></label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn-primary-submit w-100" style="margin-top: 0;">
+                            <i class="fas fa-plus"></i> Add User
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="users-search-section">
+        <div class="search-card">
+            <div class="row g-3">
+                <div class="col-md-11">
+                    <div class="search-input-group">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" 
+                               id="searchInput" 
+                               class="search-input" 
+                               placeholder="Search by name, username, or email...">
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <button id="clearFilters" class="clear-btn w-100" title="Clear search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="results-info">
+                Showing <strong id="visibleCount">{{ total_users|default:0 }}</strong> of <strong id="totalCount">{{ total_users|default:0 }}</strong> users
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Section -->
+    <div class="users-section">
+        
+        <!-- Section Header -->
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-list"></i>
+                All Users
+            </div>
+            <span class="section-badge">
+                {{ total_users|default:0 }} User{{ total_users|default:0|pluralize }}
+            </span>
+        </div>
+
+        <!-- User Cards Grid -->
+        <div class="users-grid" id="usersGrid">
+            {% for user in users %}
+            <div class="user-card" 
+                 data-user-id="{{ user.id }}"
+                 data-username="{{ user.username|lower }}"
+                 data-first-name="{{ user.first_name|lower }}"
+                 data-last-name="{{ user.last_name|lower }}"
+                 data-email="{{ user.email|lower }}">
+                
+                <!-- Card Header -->
+                <div class="user-card-header">
+                    <h3 class="user-title">
+                        <i class="fas fa-user-circle"></i>
+                        {{ user.first_name }} {{ user.last_name }}
+                    </h3>
+                    <span class="username-label">
+                        @{{ user.username }}
+                    </span>
+                </div>
+
+                <!-- Card Body -->
+                <div class="user-card-body">
+                    
+                    <!-- User Info -->
+                    <div class="user-info-compact">
+                        
+                        <!-- Username Row -->
+                        <div class="user-info-row">
+                            <span class="user-info-label">
+                                <i class="fas fa-user"></i>
+                                Username
+                            </span>
+                            <span class="user-info-value">
+                                {{ user.username }}
+                            </span>
+                        </div>
+
+                        <!-- Email Row -->
+                        <div class="user-info-row">
+                            <span class="user-info-label">
+                                <i class="fas fa-envelope"></i>
+                                Email
+                            </span>
+                            <span class="user-info-value">
+                                {{ user.email|truncatechars:25 }}
+                            </span>
+                        </div>
+
+                        <!-- Departments Row -->
+                        <div class="user-info-row">
+                            <span class="user-info-label">
+                                <i class="fas fa-building"></i>
+                                Departments
+                            </span>
+                            <div class="dept-names-inline">
+                                {% for dept in user.departments %}
+                                <span class="dept-name-tag">{{ dept.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Role Row -->
+                        <div class="user-info-row">
+                            <span class="user-info-label">
+                                <i class="fas fa-user-tag"></i>
+                                Role
+                            </span>
+                            <span class="user-badge role">
+                                {{ user.role_display }}
+                            </span>
+                        </div>
+
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="user-actions-compact">
+                        <!-- Edit Button -->
+                        <button class="user-btn-compact user-btn-edit" 
+                                type="button"
+                                onclick="editUser({{ user.id }}, '{{ user.username|escapejs }}', '{{ user.first_name|escapejs }}', '{{ user.last_name|escapejs }}', '{{ user.email|escapejs }}', '{{ user.phone|default:''|escapejs }}')">
+                            <i class="fas fa-edit"></i>
+                            Edit
+                        </button>
+                        
+                        <!-- Delete Button -->
+                        <form method="POST" class="delete-form" style="margin: 0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_user" value="1">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <button type="submit" class="user-btn-compact user-btn-delete w-100" 
+                                    data-user-name="{{ user.first_name }} {{ user.last_name }}">
+                                <i class="fas fa-trash"></i>
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h3>No Users Yet</h3>
+                <p>Use the form above to create your first user.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- No Results Message -->
+        <div id="noResultsMessage" class="empty-state" style="display: none;">
+            <i class="fas fa-search"></i>
+            <h3>No Users Found</h3>
+            <p>Try adjusting your search criteria.</p>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="userForm">
+                {% csrf_token %}
+                <input type="hidden" name="edit_user" value="1">
+                <input type="hidden" name="user_id" id="modal_user_id">
+                
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        <i class="fas fa-edit"></i>Edit User
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="floating-label-group">
+                        <input type="text" name="first_name" id="modal_first_name" placeholder=" " required>
+                        <label>First Name <span class="required-mark">*</span></label>
+                    </div>
+                    
+                    <div class="floating-label-group">
+                        <input type="text" name="last_name" id="modal_last_name" placeholder=" ">
+                        <label>Last Name</label>
+                    </div>
+                    
+                    <div class="floating-label-group">
+                        <input type="text" name="username" id="modal_username" placeholder=" " required>
+                        <label>Username <span class="required-mark">*</span></label>
+                    </div>
+                    
+                    <div class="floating-label-group">
+                        <input type="email" name="email" id="modal_email" placeholder=" " required>
+                        <label>Email <span class="required-mark">*</span></label>
+                    </div>
+                    
+                    <div class="floating-label-group">
+                        <input type="text" name="phone" id="modal_phone" placeholder=" ">
+                        <label>Phone</label>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn-primary-submit">
+                        <i class="fas fa-save"></i>Update User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ========== EDIT USER FUNCTION ==========
+function editUser(id, username, firstName, lastName, email, phone) {
+    document.getElementById('modal_user_id').value = id;
+    document.getElementById('modal_username').value = username;
+    document.getElementById('modal_first_name').value = firstName;
+    document.getElementById('modal_last_name').value = lastName;
+    document.getElementById('modal_email').value = email;
+    document.getElementById('modal_phone').value = phone || '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('userModal'));
+    modal.show();
+}
+
+// ========== SEARCH & FILTER ==========
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const usersGrid = document.getElementById('usersGrid');
+    const visibleCountEl = document.getElementById('visibleCount');
+    const totalCountEl = document.getElementById('totalCount');
+    const noResultsMsg = document.getElementById('noResultsMessage');
+    const totalUsers = {{ total_users|default:0 }};
+
+    function filterUsers() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const allCards = usersGrid.querySelectorAll('.user-card');
+        let visibleCount = 0;
+
+        allCards.forEach(card => {
+            const username = card.dataset.username || '';
+            const firstName = card.dataset.firstName || '';
+            const lastName = card.dataset.lastName || '';
+            const email = card.dataset.email || '';
+
+            const matchesSearch = !searchTerm || 
+                username.includes(searchTerm) ||
+                firstName.includes(searchTerm) ||
+                lastName.includes(searchTerm) ||
+                email.includes(searchTerm);
+
+            if (matchesSearch) {
+                card.classList.remove('user-hidden');
+                visibleCount++;
+            } else {
+                card.classList.add('user-hidden');
+            }
+        });
+
+        visibleCountEl.textContent = visibleCount;
+        totalCountEl.textContent = totalUsers;
+
+        if (visibleCount === 0 && totalUsers > 0) {
+            usersGrid.style.display = 'none';
+            noResultsMsg.style.display = 'block';
+        } else {
+            usersGrid.style.display = 'grid';
+            noResultsMsg.style.display = 'none';
+        }
+    }
+
+    function clearFilters() {
+        searchInput.value = '';
+        filterUsers();
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterUsers);
+    if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
+
+    filterUsers();
+
+    // ========== FORM SUBMISSION ==========
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn && !btn.disabled) {
+                
+                if (form.classList.contains('delete-form')) {
+                    const userName = btn.getAttribute('data-user-name');
+                    if (!confirm(`Are you sure you want to delete "${userName}"?\n\nThis action cannot be undone.`)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+                
+                btn.disabled = true;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }, 10000);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+

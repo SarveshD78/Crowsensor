@@ -1,0 +1,619 @@
+{% extends 'companyadmin/base.html' %}
+
+{% block title %}Fetch Measurements{% endblock %}
+{% block page_heading %}Fetch Measurements from InfluxDB{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========== FETCH PAGE STYLES ========== */
+
+/* Main Container */
+.fetch-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Fetch Card */
+.fetch-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+}
+
+.fetch-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+    padding: 20px;
+}
+
+.fetch-card-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.fetch-card-body {
+    padding: 24px;
+}
+
+/* Config Info Banner */
+.config-info {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.config-details {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+}
+
+.config-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.config-item i {
+    color: #3094FF;
+    font-size: 16px;
+}
+
+.config-item strong {
+    color: #4C4C5C;
+}
+
+/* Fetch Button */
+.fetch-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.fetch-btn:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #6a3f8c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.fetch-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.fetch-btn i {
+    font-size: 18px;
+}
+
+/* Results Section */
+.results-section {
+    margin-top: 30px;
+}
+
+.results-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.results-header h4 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #333B4A;
+}
+
+.results-header i {
+    color: #667eea;
+    font-size: 28px;
+}
+
+/* Measurement Card */
+.measurement-card {
+    background: #fff;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+}
+
+.measurement-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+}
+
+.measurement-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.measurement-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333B4A;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.measurement-name i {
+    color: #667eea;
+    font-size: 24px;
+}
+
+.measurement-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.measurement-badge i {
+    font-size: 16px;
+}
+
+/* Device List */
+.device-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+/* Device Item */
+.device-item {
+    background: #fff;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.device-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+/* Device Header (Clickable) */
+.device-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.device-header:hover {
+    background: linear-gradient(135deg, #f0f2ff 0%, #ffffff 100%);
+}
+
+.device-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.device-header-left i {
+    color: #28a745;
+    font-size: 20px;
+}
+
+.device-id {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #333B4A;
+}
+
+.device-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sensor-badge {
+    background: #667eea;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.toggle-icon {
+    color: #6c757d;
+    font-size: 16px;
+    transition: transform 0.3s;
+}
+
+.toggle-icon.open {
+    transform: rotate(180deg);
+}
+
+/* Sensor Content (Expandable) */
+.sensor-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: #f8f9fa;
+}
+
+.sensor-content.show {
+    max-height: 2000px;
+    transition: max-height 0.5s ease-in;
+}
+
+.sensor-list {
+    padding: 20px;
+}
+
+.sensor-category {
+    margin-bottom: 20px;
+}
+
+.sensor-category:last-child {
+    margin-bottom: 0;
+}
+
+.sensor-category-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sensor-category-title i {
+    font-size: 16px;
+}
+
+.sensor-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.sensor-field {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.sensor-field-name {
+    font-weight: 600;
+    color: #495057;
+    font-family: 'Courier New', monospace;
+}
+
+.sensor-field-type {
+    font-size: 11px;
+    color: #6c757d;
+    background: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.sensor-field-value {
+    font-size: 12px;
+    color: #28a745;
+    font-weight: 600;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    border: 2px dashed #e9ecef;
+}
+
+.empty-state i {
+    font-size: 80px;
+    color: #e9ecef;
+    margin-bottom: 24px;
+    display: block;
+}
+
+.empty-state h3 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 12px;
+}
+
+.empty-state p {
+    font-size: 16px;
+    color: #6c757d;
+    margin-bottom: 0;
+    line-height: 1.6;
+}
+
+/* No Sensors State */
+.no-sensors {
+    text-align: center;
+    padding: 20px;
+    background: #fff8dc;
+    border: 2px dashed #ffc107;
+    border-radius: 8px;
+    color: #856404;
+    font-style: italic;
+}
+
+.no-sensors i {
+    font-size: 20px;
+    margin-right: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .fetch-container {
+        padding: 12px;
+    }
+    
+    .config-details {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .measurement-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .device-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .fetch-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fetch-container">
+    
+    <!-- Main Fetch Card -->
+    <div class="fetch-card">
+        <div class="fetch-card-header">
+            <h3>
+                <i class="fas fa-cloud-download-alt"></i>
+                Fetch Measurements from InfluxDB
+            </h3>
+        </div>
+        
+        <div class="fetch-card-body">
+            <!-- InfluxDB Configuration Info -->
+            <div class="config-info">
+                <div class="config-details">
+                    <div class="config-item">
+                        <i class="fas fa-database"></i>
+                        <strong>Database:</strong> {{ config.db_name }}
+                    </div>
+                    <div class="config-item">
+                        <i class="fas fa-server"></i>
+                        <strong>API:</strong> {{ config.base_api }}
+                    </div>
+                    <div class="config-item">
+                        <i class="fas fa-{% if config.is_connected %}check-circle text-success{% else %}times-circle text-danger{% endif %}"></i>
+                        <strong>Status:</strong> 
+                        {% if config.is_connected %}
+                            <span class="text-success">Connected</span>
+                        {% else %}
+                            <span class="text-danger">Not Connected</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fetch Button Form -->
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="fetch_measurements" value="1">
+                <button type="submit" class="fetch-btn">
+                    <i class="fas fa-sync-alt"></i>
+                    Fetch Measurements
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    {% if measurements_data %}
+    <div class="results-section">
+        <div class="results-header">
+            <i class="fas fa-list"></i>
+            <h4>Found {{ measurements_data|length }} Measurement{{ measurements_data|length|pluralize }}</h4>
+        </div>
+
+        {% for measurement in measurements_data %}
+        <div class="measurement-card">
+            <div class="measurement-header">
+                <div class="measurement-name">
+                    <i class="fas fa-microchip"></i>
+                    {{ measurement.name }}
+                </div>
+                <span class="measurement-badge">
+                    <i class="fas fa-server"></i>
+                    {{ measurement.count }} Device{{ measurement.count|pluralize }}
+                </span>
+            </div>
+
+            {% if measurement.devices %}
+            <div class="device-list">
+                {% for device in measurement.devices %}
+                <div class="device-item">
+                    <!-- Device Header (Clickable) -->
+                    <div class="device-header" onclick="toggleSensors(this)">
+                        <div class="device-header-left">
+                            <i class="fas fa-microchip"></i>
+                            <span class="device-id">Device ID: {{ device.id }}</span>
+                        </div>
+                        <div class="device-header-right">
+                            <span class="sensor-badge">{{ device.sensors_count }} Sensors</span>
+                            <span class="sensor-badge">{{ device.info_count }} Info</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Sensor Content (Hidden by default) -->
+                    <div class="sensor-content">
+                        <div class="sensor-list">
+                            {% if device.sensors %}
+                                <!-- Sensors Section -->
+                                {% with sensor_fields=device.sensors|dictsort:"type" %}
+                                    {% regroup sensor_fields by type as sensor_groups %}
+                                    
+                                    {% for group in sensor_groups %}
+                                        <div class="sensor-category">
+                                            <div class="sensor-category-title">
+                                                {% if group.grouper == 'sensor' %}
+                                                    <i class="fas fa-chart-line"></i> Sensors ({{ group.list|length }})
+                                                {% else %}
+                                                    <i class="fas fa-info-circle"></i> Info Fields ({{ group.list|length }})
+                                                {% endif %}
+                                            </div>
+                                            <div class="sensor-grid">
+                                                {% for sensor in group.list %}
+                                                <div class="sensor-field">
+                                                    <span class="sensor-field-name">{{ sensor.name }}</span>
+                                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                                        <span class="sensor-field-type">{{ sensor.field_type }}</span>
+                                                        {% if sensor.sample_value != None %}
+                                                        <span class="sensor-field-value">{{ sensor.sample_value }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% endwith %}
+                            {% else %}
+                                <div class="no-sensors">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    No sensors found for this device
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% else %}
+    
+    <!-- Empty State (No Data Yet) -->
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h3>No Data Retrieved Yet</h3>
+        <p>Click the "Fetch Measurements" button above to retrieve data from your InfluxDB database.<br>This will scan all measurements, discover devices, and map their sensors automatically.</p>
+    </div>
+    
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle sensor content visibility
+function toggleSensors(element) {
+    const deviceItem = element.closest('.device-item');
+    const content = deviceItem.querySelector('.sensor-content');
+    const icon = element.querySelector('.toggle-icon');
+    
+    // Toggle show class
+    content.classList.toggle('show');
+    icon.classList.toggle('open');
+}
+
+// Form submission loading state
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const btn = form.querySelector('button[type="submit"]');
+            
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.className = 'fas fa-spinner fa-spin';
+                }
+                
+                const textNode = Array.from(btn.childNodes).find(node => node.nodeType === 3);
+                if (textNode) {
+                    textNode.textContent = ' Fetching...';
+                }
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    if (icon) {
+                        icon.className = 'fas fa-sync-alt';
+                    }
+                    if (textNode) {
+                        textNode.textContent = ' Fetch Measurements';
+                    }
+                }, 30000);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

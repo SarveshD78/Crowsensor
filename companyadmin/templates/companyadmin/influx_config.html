@@ -1,0 +1,882 @@
+{% extends 'companyadmin/base.html' %}
+
+{% block title %}InfluxDB Configuration{% endblock %}
+{% block page_heading %}InfluxDB Configuration{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========== INFLUXDB CONFIG PAGE STYLES ========== */
+
+/* Stats Cards */
+.influx-stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.influx-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.influx-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.influx-stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.influx-stat-icon.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+
+.influx-stat-icon.success {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    color: #1e7e34;
+}
+
+.influx-stat-icon.danger {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: #bd2130;
+}
+
+.influx-stat-content h3 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    color: #333B4A;
+}
+
+.influx-stat-content p {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
+}
+
+/* Main Content Card */
+.influx-config-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+}
+
+.influx-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.influx-card-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.influx-card-header i {
+    font-size: 24px;
+}
+
+.influx-card-body {
+    padding: 24px;
+}
+
+/* Status Display */
+.influx-status-display {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.influx-status-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.influx-status-item:last-child {
+    border-bottom: none;
+}
+
+.influx-status-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4C4C5C;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.influx-status-label i {
+    color: #3094FF;
+    font-size: 16px;
+}
+
+.influx-status-value {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.influx-status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.influx-status-badge.connected {
+    background: #d4edda;
+    color: #155724;
+}
+
+.influx-status-badge.disconnected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.influx-status-badge.not-tested {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+/* Form Styles */
+.influx-form-group {
+    margin-bottom: 20px;
+}
+
+.influx-form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4C4C5C;
+    margin-bottom: 8px;
+}
+
+.influx-form-label .required {
+    color: #dc3545;
+}
+
+.influx-form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.influx-form-input:focus {
+    outline: none;
+    border-color: #3094FF;
+    box-shadow: 0 0 0 4px rgba(48, 148, 255, 0.1);
+}
+
+.influx-form-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.influx-form-help {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 6px;
+}
+
+.influx-form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.influx-form-checkbox:hover {
+    background: #e9ecef;
+}
+
+.influx-form-checkbox input {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.influx-form-checkbox label {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Password Input Wrapper */
+.influx-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.influx-password-input {
+    padding-right: 45px !important;
+}
+
+.influx-password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 8px;
+    font-size: 16px;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.influx-password-toggle:hover {
+    color: #3094FF;
+}
+
+.influx-password-toggle:active {
+    transform: scale(0.95);
+}
+
+/* Buttons */
+.influx-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.influx-btn-primary:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #6a3f8c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.influx-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.influx-btn-secondary {
+    background: #6c757d;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.influx-btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.influx-btn-danger {
+    background: #dc3545;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.influx-btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+.influx-btn-test {
+    background: #28a745;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.influx-btn-test:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+/* Button Group */
+.influx-btn-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.influx-btn-group .influx-btn-primary {
+    flex: 1;
+}
+
+/* Form Row */
+.influx-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .influx-form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Empty State */
+.influx-empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #e9ecef;
+}
+
+.influx-empty-state i {
+    font-size: 64px;
+    color: #e9ecef;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.influx-empty-state h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 12px;
+}
+
+.influx-empty-state p {
+    font-size: 16px;
+    color: #6c757d;
+    margin-bottom: 24px;
+}
+
+/* Action Forms Container */
+.influx-action-forms {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .influx-stats-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .influx-form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .influx-btn-group {
+        flex-direction: column;
+    }
+    
+    .influx-btn-group .influx-btn-primary {
+        width: 100%;
+    }
+    
+    .influx-action-forms {
+        flex-direction: column;
+    }
+    
+    .influx-action-forms form {
+        width: 100%;
+    }
+    
+    .influx-action-forms button {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Stats Row (Only show if config exists) -->
+    {% if has_config %}
+    <div class="influx-stats-cards">
+        <!-- Database Name -->
+        <div class="influx-stat-card">
+            <div class="influx-stat-icon primary">
+                <i class="fas fa-database"></i>
+            </div>
+            <div class="influx-stat-content">
+                <h3>{{ config.db_name }}</h3>
+                <p>Database Name</p>
+            </div>
+        </div>
+
+        <!-- Connection Status -->
+        <div class="influx-stat-card">
+            <div class="influx-stat-icon {% if config.is_connected %}success{% else %}danger{% endif %}">
+                <i class="fas fa-{% if config.is_connected %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+            </div>
+            <div class="influx-stat-content">
+                <h3>{{ config.get_connection_status_display }}</h3>
+                <p>Connection Status</p>
+            </div>
+        </div>
+
+        <!-- Last Test -->
+        <div class="influx-stat-card">
+            <div class="influx-stat-icon primary">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="influx-stat-content">
+                <h3>{% if config.last_tested_at %}{{ config.last_tested_at|date:"M d, Y" }}{% else %}Never{% endif %}</h3>
+                <p>Last Test</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Configuration Card -->
+    {% if has_config %}
+    
+    <!-- ========================================== -->
+    <!-- EDIT CONFIGURATION SECTION -->
+    <!-- ========================================== -->
+    <div class="influx-config-card">
+        <div class="influx-card-header">
+            <h3>
+                <i class="fas fa-edit"></i>
+                Edit Configuration
+            </h3>
+            <span class="influx-status-badge {% if config.is_connected %}connected{% elif config.last_tested_at %}disconnected{% else %}not-tested{% endif %}">
+                <i class="fas fa-circle-notch"></i>
+                {{ config.get_connection_status_display }}
+            </span>
+        </div>
+        
+        <div class="influx-card-body">
+            <!-- Connection Status Display -->
+            <div class="influx-status-display">
+                <div class="influx-status-item">
+                    <div class="influx-status-label">
+                        <i class="fas fa-server"></i>
+                        API Endpoint
+                    </div>
+                    <div class="influx-status-value">
+                        {{ config.base_api }}
+                    </div>
+                </div>
+                
+                <div class="influx-status-item">
+                    <div class="influx-status-label">
+                        <i class="fas fa-user"></i>
+                        Username
+                    </div>
+                    <div class="influx-status-value">
+                        {{ config.api_username }}
+                    </div>
+                </div>
+                
+                <div class="influx-status-item">
+                    <div class="influx-status-label">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </div>
+                    <div class="influx-status-value">
+                        {{ config.get_masked_password }}
+                    </div>
+                </div>
+                
+                {% if config.connection_error %}
+                <div class="influx-status-item">
+                    <div class="influx-status-label">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Last Error
+                    </div>
+                    <div class="influx-status-value text-danger">
+                        {{ config.connection_error|truncatewords:20 }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- EDIT FORM START -->
+            <form method="POST" id="editConfigForm">
+                {% csrf_token %}
+                
+                <!-- ✅ CRITICAL FIX: Hidden inputs for form identification -->
+                <input type="hidden" name="edit_config" value="1">
+                <input type="hidden" name="config_id" value="{{ config.id }}">
+
+                <div class="influx-form-row">
+                    <!-- Database Name -->
+                    <div class="influx-form-group">
+                        <label class="influx-form-label">
+                            Database Name
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" 
+                               name="db_name" 
+                               class="influx-form-input" 
+                               value="{{ config.db_name }}"
+                               placeholder="e.g., production_iot"
+                               required>
+                        <div class="influx-form-help">InfluxDB database name</div>
+                    </div>
+
+                    <!-- Base API -->
+                    <div class="influx-form-group">
+                        <label class="influx-form-label">
+                            Base API URL
+                            <span class="required">*</span>
+                        </label>
+                        <input type="url" 
+                               name="base_api" 
+                               class="influx-form-input" 
+                               value="{{ config.base_api }}"
+                               placeholder="e.g., http://influxdb.company.com:8086"
+                               required>
+                        <div class="influx-form-help">Full API URL with protocol and port</div>
+                    </div>
+                </div>
+
+                <div class="influx-form-row">
+                    <!-- Username -->
+                    <div class="influx-form-group">
+                        <label class="influx-form-label">
+                            Username
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" 
+                               name="api_username" 
+                               class="influx-form-input" 
+                               value="{{ config.api_username }}"
+                               placeholder="Enter InfluxDB username"
+                               required>
+                        <div class="influx-form-help">Username for InfluxDB authentication</div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="influx-form-group">
+                        <label class="influx-form-label">
+                            Password
+                            <span class="text-muted">(Optional)</span>
+                        </label>
+                        <div class="influx-password-wrapper">
+                            <input type="password" 
+                                   name="api_password" 
+                                   class="influx-form-input influx-password-input" 
+                                   id="editPassword"
+                                   placeholder="Leave blank to keep existing">
+                            <button type="button" 
+                                    class="influx-password-toggle" 
+                                    onclick="togglePassword('editPassword')">
+                                <i class="fas fa-eye" id="editPasswordIcon"></i>
+                            </button>
+                        </div>
+                        <div class="influx-form-help">Leave blank to keep existing password</div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="influx-form-group">
+                    <label class="influx-form-label">Notes</label>
+                    <textarea name="notes" 
+                              class="influx-form-input influx-form-textarea"
+                              placeholder="Optional internal notes...">{{ config.notes }}</textarea>
+                    <div class="influx-form-help">Internal notes about this configuration</div>
+                </div>
+
+                <!-- Active Checkbox -->
+                <label class="influx-form-checkbox">
+                    <input type="checkbox" 
+                           name="is_active" 
+                           {% if config.is_active %}checked{% endif %}>
+                    <span>Active Configuration</span>
+                </label>
+
+                <!-- Save Button (NO name attribute - using hidden input above) -->
+                <div class="influx-btn-group">
+                    <button type="submit" class="influx-btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+            <!-- EDIT FORM END -->
+            
+            <!-- Separate Action Forms (Test & Delete) -->
+            <div class="influx-action-forms">
+                <!-- Test Connection Form -->
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="test_connection" value="1">
+                    <input type="hidden" name="config_id" value="{{ config.id }}">
+                    <button type="submit" class="influx-btn-test">
+                        <i class="fas fa-plug"></i>
+                        Test Connection
+                    </button>
+                </form>
+
+                <!-- Delete/Deactivate Form -->
+                <form method="POST" onsubmit="return confirm('Are you sure you want to deactivate this configuration?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="delete_config" value="1">
+                    <input type="hidden" name="config_id" value="{{ config.id }}">
+                    <button type="submit" class="influx-btn-danger">
+                        <i class="fas fa-trash"></i>
+                        Deactivate
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    {% else %}
+
+    <!-- ========================================== -->
+    <!-- CREATE NEW CONFIGURATION SECTION -->
+    <!-- ========================================== -->
+    <div class="influx-config-card">
+        <div class="influx-card-header">
+            <h3>
+                <i class="fas fa-plus-circle"></i>
+                Create InfluxDB Configuration
+            </h3>
+        </div>
+        
+        <div class="influx-card-body">
+            <div class="influx-empty-state">
+                <i class="fas fa-database"></i>
+                <h3>No Configuration Found</h3>
+                <p>Set up your InfluxDB connection to enable data integration</p>
+            </div>
+
+            <!-- CREATE FORM START -->
+            <form method="POST" id="createConfigForm" style="margin-top: 24px;">
+                {% csrf_token %}
+                
+                <!-- ✅ CRITICAL FIX: Hidden input for form identification -->
+                <input type="hidden" name="create_config" value="1">
+
+                <div class="influx-form-row">
+                    <!-- Database Name -->
+                    <div class="influx-form-group">
+                        <label class="influx-form-label">
+                            Database Name
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" 
+                               name="db_name" 
+                               class="influx-form-input" 
+                               placeholder="e.g., production_iot"
+                               autofocus
+                               required>
+                        <div class="influx-form-help">InfluxDB database name</div>
+                    </div>
+
+                    <!-- Base API -->
+                    <div class="influx-form-group">
+                        <label class="influx-form-label">
+                            Base API URL
+                            <span class="required">*</span>
+                        </label>
+                        <input type="url" 
+                               name="base_api" 
+                               class="influx-form-input" 
+                               placeholder="e.g., http://influxdb.company.com:8086"
+                               required>
+                        <div class="influx-form-help">Full API URL with protocol and port</div>
+                    </div>
+                </div>
+
+                <div class="influx-form-row">
+                    <!-- Username -->
+                    <div class="influx-form-group">
+                        <label class="influx-form-label">
+                            Username
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" 
+                               name="api_username" 
+                               class="influx-form-input" 
+                               placeholder="Enter InfluxDB username"
+                               required>
+                        <div class="influx-form-help">Username for InfluxDB authentication</div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="influx-form-group">
+                        <label class="influx-form-label">
+                            Password
+                            <span class="required">*</span>
+                        </label>
+                        <div class="influx-password-wrapper">
+                            <input type="password" 
+                                   name="api_password" 
+                                   class="influx-form-input influx-password-input" 
+                                   id="createPassword"
+                                   placeholder="Enter InfluxDB password"
+                                   required>
+                            <button type="button" 
+                                    class="influx-password-toggle" 
+                                    onclick="togglePassword('createPassword')">
+                                <i class="fas fa-eye" id="createPasswordIcon"></i>
+                            </button>
+                        </div>
+                        <div class="influx-form-help">Password for InfluxDB authentication</div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="influx-form-group">
+                    <label class="influx-form-label">Notes</label>
+                    <textarea name="notes" 
+                              class="influx-form-input influx-form-textarea"
+                              placeholder="Optional internal notes..."></textarea>
+                    <div class="influx-form-help">Internal notes about this configuration</div>
+                </div>
+
+                <!-- Active Checkbox -->
+                <label class="influx-form-checkbox">
+                    <input type="checkbox" 
+                           name="is_active" 
+                           checked>
+                    <span>Set as Active Configuration</span>
+                </label>
+
+                <!-- CREATE Button (NO name attribute - using hidden input above) -->
+                <div class="influx-btn-group">
+                    <button type="submit" class="influx-btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Create Configuration
+                    </button>
+                </div>
+            </form>
+            <!-- CREATE FORM END -->
+            
+        </div>
+    </div>
+
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Password show/hide toggle
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = document.getElementById(fieldId + 'Icon');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// Prevent form submission when clicking toggle button
+document.querySelectorAll('.influx-password-toggle').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+    });
+});
+
+// Form submission loading state - SAFE VERSION
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('form');
+    
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn && !btn.disabled) {
+                // Disable button to prevent double submission
+                btn.disabled = true;
+                
+                // Change icon to spinner WITHOUT touching button name/value
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    // Store original class
+                    icon.dataset.originalClass = icon.className;
+                    icon.className = 'fas fa-spinner fa-spin';
+                }
+                
+                // Reset after 10 seconds as fallback
+                setTimeout(() => {
+                    btn.disabled = false;
+                    if (icon && icon.dataset.originalClass) {
+                        icon.className = icon.dataset.originalClass;
+                    }
+                }, 10000);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

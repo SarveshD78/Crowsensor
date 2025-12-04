@@ -1,0 +1,970 @@
+{% extends 'companyadmin/base.html' %}
+
+{% block title %}Users Management{% endblock %}
+{% block page_heading %}Department Admins{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========================================
+   USERS PAGE - PRIMARY BLUE THEME
+   Matches Department Admin design
+   ======================================== */
+
+/* CONTAINER */
+.users-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* FLOATING LABEL INPUTS (same as departments) */
+.floating-label-group {
+    position: relative;
+    margin-bottom: var(--space-4);
+}
+
+.floating-label-group input,
+.floating-label-group select,
+.floating-label-group textarea {
+    width: 100%;
+    padding: 16px 12px 8px 12px;
+    font-size: 14px;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+}
+
+.floating-label-group label {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+    padding: 0 4px;
+    font-weight: 500;
+}
+
+.floating-label-group input:focus + label,
+.floating-label-group input:not(:placeholder-shown) + label,
+.floating-label-group select:focus + label,
+.floating-label-group textarea:focus + label,
+.floating-label-group textarea:not(:placeholder-shown) + label {
+    top: 0;
+    transform: translateY(0);
+    font-size: 11px;
+    color: var(--primary-blue);
+    font-weight: 600;
+    left: 10px;
+}
+
+.floating-label-group input:focus,
+.floating-label-group select:focus,
+.floating-label-group textarea:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.floating-label-group label .required-mark {
+    color: var(--danger);
+    margin-left: 2px;
+}
+
+/* WELCOME CARD */
+.welcome-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.welcome-card h3 {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.welcome-card h3 i {
+    color: var(--primary-blue);
+    font-size: var(--text-2xl);
+}
+
+.welcome-card p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.welcome-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.stats-badge {
+    background: var(--bg-primary);
+    border: 2px solid var(--primary-blue);
+    color: var(--primary-blue);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* STATS CARDS */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.stat-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-2xl);
+    color: white;
+}
+
+.stat-icon.primary { background: var(--primary-blue); }
+.stat-icon.success { background: var(--success); }
+.stat-icon.warning { background: var(--warning); }
+
+.stat-content h3 {
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-1) 0;
+}
+
+.stat-content p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* QUICK ADD ADMIN SECTION */
+.users-add-section {
+    margin-bottom: var(--space-6);
+}
+
+.add-form-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.info-alert {
+    background: var(--gray-50);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-5);
+}
+
+.add-form-title {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.add-form-subtitle {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* PRIMARY SUBMIT BUTTON (same as departments) */
+.btn-primary-submit {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px var(--space-5);
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    cursor: pointer;
+}
+
+.btn-primary-submit:hover {
+    background: var(--primary-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+/* SEARCH & FILTER CARD (same style family) */
+.users-search-filter-bar {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-6);
+}
+
+/* Search input + select (reusing old users styles) */
+.users-search-input {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.users-search-input:focus {
+    border-color: #3094FF;
+    box-shadow: 0 0 0 3px rgba(48, 148, 255, 0.1);
+    outline: none;
+}
+
+.users-filter-select {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.users-filter-select:focus {
+    border-color: #3094FF;
+    box-shadow: 0 0 0 3px rgba(48, 148, 255, 0.1);
+    outline: none;
+}
+
+.users-clear-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.users-clear-btn:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.users-results-info {
+    color: #6c757d;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+/* USERS SECTION HEADER */
+.users-section {
+    margin-bottom: var(--space-6);
+}
+
+.section-header {
+    background: var(--bg-primary);
+    border-left: 4px solid var(--primary-blue);
+    border: 1px solid var(--border-light);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.section-title {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0;
+}
+
+.section-badge {
+    background: var(--gray-100);
+    color: var(--text-primary);
+    padding: 4px var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: 600;
+}
+
+/* USER CARDS GRID + CARD (unchanged logic, department-style visuals) */
+.users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--space-4);
+}
+
+.users-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--primary-blue);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+}
+
+.users-card:hover {
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.users-card-header {
+    background: var(--gray-50);
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-3);
+}
+
+.users-title {
+    font-size: var(--text-base);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.users-role-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-tertiary);
+    padding: 3px var(--space-2);
+    border-radius: var(--radius-sm);
+}
+
+/* compact info + actions (same as before) */
+.users-card-body { padding: var(--space-4); }
+
+.users-info-compact {
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.users-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--text-sm);
+}
+
+.users-info-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.users-info-label i {
+    color: var(--primary-blue);
+    width: 16px;
+    text-align: center;
+}
+
+.users-info-value {
+    font-size: 12px;
+    color: var(--text-primary);
+    text-align: right;
+    max-width: 220px;
+    word-break: break-word;
+}
+
+.users-badge {
+    padding: 3px var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.users-badge.active { background: var(--success); color: white; }
+.users-badge.warning { background: var(--warning); color: white; }
+
+/* ACTION BUTTONS */
+.users-actions-compact {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+}
+
+.users-btn-compact {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    text-decoration: none;
+    border: none;
+}
+
+.users-btn-compact:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.users-btn-edit { background: var(--primary-blue); color: white; }
+.users-btn-edit:hover { background: var(--primary-blue-dark); }
+
+.users-btn-assign { background: var(--success); color: white; }
+.users-btn-assign:hover { background: var(--success-dark); }
+
+.users-btn-delete { background: var(--danger); color: white; }
+.users-btn-delete:hover { background: rgb(89,0,0); }
+
+/* EMPTY STATE */
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border-medium);
+    grid-column: 1 / -1;
+}
+
+/* HIDDEN CLASS */
+.user-hidden { display: none !important; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .users-container { padding: var(--space-4); }
+    .users-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .users-actions-compact { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="users-container">
+
+    <!-- Welcome -->
+    <div class="welcome-card">
+        <div class="welcome-card-header">
+            <div>
+                <h3><i class="fas fa-users-cog"></i>Department Admins Management</h3>
+                <p>Manage department administrators and their assignments</p>
+            </div>
+            <span class="stats-badge">
+                <i class="fas fa-users"></i>
+                {{ total_dept_admins|default:0 }} Admin{{ total_dept_admins|default:0|pluralize }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon primary"><i class="fas fa-users-cog"></i></div>
+            <div class="stat-content">
+                <h3 id="total-users-count">{{ total_dept_admins }}</h3>
+                <p>Department Admins</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon success"><i class="fas fa-user-check"></i></div>
+            <div class="stat-content">
+                <h3 id="active-users-count">{{ total_dept_admins }}</h3>
+                <p>Active Users</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon warning"><i class="fas fa-building"></i></div>
+            <div class="stat-content">
+                <h3>{{ total_departments }}</h3>
+                <p>Departments</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add New Department Admin (fixed) -->
+    <div class="users-add-section">
+        <div class="add-form-card">
+            <div class="info-alert">
+                <h4 class="add-form-title">
+                    <i class="fas fa-user-plus"></i>
+                    Add New Department Admin
+                </h4>
+                <p class="add-form-subtitle">Create a new admin user for department management</p>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="add_user" value="1">
+
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="floating-label-group">
+                            <input type="text" name="first_name" placeholder=" " required>
+                            <label>First Name <span class="required-mark">*</span></label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="floating-label-group">
+                            <input type="text" name="last_name" placeholder=" ">
+                            <label>Last Name</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="floating-label-group">
+                            <input type="text" name="username" placeholder=" " required>
+                            <label>Username <span class="required-mark">*</span></label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="floating-label-group">
+                            <input type="email" name="email" placeholder=" " required>
+                            <label>Email <span class="required-mark">*</span></label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="floating-label-group">
+                            <input type="text" name="phone" placeholder=" ">
+                            <label>Phone (Optional)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-stretch">
+                        <button type="submit" class="btn-primary-submit w-100">
+                            <i class="fas fa-plus"></i> Add Admin
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search & Filter (fixed) -->
+    <div class="users-search-filter-bar">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text"
+                           id="searchInput"
+                           class="form-control users-search-input border-start-0"
+                           placeholder="Search by name, username, or email">
+                </div>
+            </div>
+            <div class="col-md-5">
+                <select id="departmentFilter" class="form-select users-filter-select">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="text-muted mt-1" style="font-size: 13px;">Filter by Department</div>
+            </div>
+            <div class="col-md-1">
+                <button id="clearFilters" class="users-clear-btn w-100" title="Clear all filters">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="users-results-info">
+            Showing <strong id="visibleCount">{{ total_dept_admins }}</strong> of
+            <strong id="totalCount">{{ total_dept_admins }}</strong> admins
+        </div>
+    </div>
+
+    <!-- Users Section (same logic) -->
+    <div class="users-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-list"></i>
+                All Department Admins
+            </div>
+            <span class="section-badge">
+                {{ total_dept_admins|default:0 }} Admin{{ total_dept_admins|default:0|pluralize }}
+            </span>
+        </div>
+
+        <div class="users-grid" id="usersGrid">
+            {% for user in users %}
+            <div class="users-card"
+                 data-user-id="{{ user.id }}"
+                 data-username="{{ user.username|lower }}"
+                 data-first-name="{{ user.first_name|lower }}"
+                 data-last-name="{{ user.last_name|lower }}"
+                 data-email="{{ user.email|lower }}"
+                 data-department="{{ user.department_id|default:'' }}">
+                
+                <div class="users-card-header">
+                    <h3 class="users-title">
+                        <i class="fas fa-user"></i>
+                        {{ user.first_name }} {{ user.last_name }}
+                    </h3>
+                    <span class="users-role-label">{{ user.role_display }}</span>
+                </div>
+
+                <div class="users-card-body">
+                    <div class="users-info-compact">
+                        <div class="users-info-row">
+                            <span class="users-info-label"><i class="fas fa-user"></i>Username</span>
+                            <span class="users-info-value">{{ user.username }}</span>
+                        </div>
+                        <div class="users-info-row">
+                            <span class="users-info-label"><i class="fas fa-envelope"></i>Email</span>
+                            <span class="users-info-value">{{ user.email|truncatechars:25 }}</span>
+                        </div>
+                        {% if user.phone %}
+                        <div class="users-info-row">
+                            <span class="users-info-label"><i class="fas fa-phone"></i>Phone</span>
+                            <span class="users-info-value">{{ user.phone }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="users-info-row">
+                            <span class="users-info-label"><i class="fas fa-building"></i>Department</span>
+                            <span class="users-info-value">
+                                {% if user.has_department %}
+                                    {{ user.department.name }}
+                                    <span class="users-badge active" style="font-size:10px;">Active</span>
+                                {% else %}
+                                    <span style="color: var(--warning);">Not Assigned</span>
+                                    <span class="users-badge.warning" style="font-size:10px;">Pending</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="users-info-row">
+                            <span class="users-info-label"><i class="fas fa-calendar"></i>Created</span>
+                            <span class="users-info-value">{{ user.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="users-actions-compact">
+                        <button class="users-btn-compact users-btn-edit"
+                                type="button"
+                                onclick="editUser({{ user.id }}, '{{ user.username|escapejs }}', '{{ user.first_name|escapejs }}', '{{ user.last_name|escapejs }}', '{{ user.email|escapejs }}', '{{ user.phone|default:''|escapejs }}')">
+                            <i class="fas fa-edit"></i>Edit
+                        </button>
+                        <button class="users-btn-compact users-btn-assign"
+                                type="button"
+                                onclick="assignDepartment({{ user.id }}, '{{ user.first_name|escapejs }} {{ user.last_name|escapejs }}', {{ user.department_id|default:'null' }})">
+                            <i class="fas fa-building"></i>Assign
+                        </button>
+                        <form method="POST" class="delete-form" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_user" value="1">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <button type="submit" class="users-btn-compact users-btn-delete w-100"
+                                    data-user-name="{{ user.first_name }} {{ user.last_name }}">
+                                <i class="fas fa-trash"></i>Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-users-cog"></i>
+                <h3>No Department Admins Yet</h3>
+                <p>Use the form above to create your first department admin.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="noResultsMessage" class="empty-state" style="display:none;">
+        <i class="fas fa-search"></i>
+        <h3>No Users Found</h3>
+        <p>Try adjusting your search or filter criteria.</p>
+    </div>
+</div>
+
+
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="userForm">
+                {% csrf_token %}
+                <input type="hidden" name="edit_user" value="1">
+                <input type="hidden" name="user_id" id="modal_user_id">
+                
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        <i class="fas fa-edit"></i>Edit Department Admin
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="floating-label-group">
+                        <input type="text" name="first_name" id="modal_first_name" placeholder=" " required>
+                        <label>First Name <span class="required-mark">*</span></label>
+                    </div>
+                    <div class="floating-label-group">
+                        <input type="text" name="last_name" id="modal_last_name" placeholder=" ">
+                        <label>Last Name</label>
+                    </div>
+                    <div class="floating-label-group">
+                        <input type="text" name="username" id="modal_username" placeholder=" " required>
+                        <label>Username <span class="required-mark">*</span></label>
+                    </div>
+                    <div class="floating-label-group">
+                        <input type="email" name="email" id="modal_email" placeholder=" " required>
+                        <label>Email <span class="required-mark">*</span></label>
+                    </div>
+                    <div class="floating-label-group">
+                        <input type="text" name="phone" id="modal_phone" placeholder=" ">
+                        <label>Phone (Optional)</label>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn-primary-submit">
+                        <i class="fas fa-save"></i>Update Admin
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Department Modal -->
+<div class="modal fade" id="assignModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" id="assignForm">
+                {% csrf_token %}
+                <input type="hidden" name="assign_department" value="1">
+                <input type="hidden" name="user_id" id="assign_user_id">
+                
+                <div class="modal-header">
+                    <h6 class="modal-title">
+                        <i class="fas fa-building"></i>Assign Department - <span id="assign_user_name"></span>
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body">
+                    {% if departments %}
+                    <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                        <i class="fas fa-info-circle" style="color: var(--info);"></i>
+                        Select <strong>ONE</strong> department for this admin:
+                    </p>
+                    <div class="dept-radio-list">
+                        {% for dept in departments %}
+                        <div class="dept-radio-item">
+                            <input type="radio" 
+                                   name="department_id" 
+                                   value="{{ dept.id }}" 
+                                   id="dept_{{ dept.id }}"
+                                   class="dept-radio">
+                            <label for="dept_{{ dept.id }}">
+                                <strong>{{ dept.name }}</strong>
+                                <div class="dept-meta">
+                                    <i class="fas fa-tag"></i>{{ dept.department_type }} • 
+                                    <i class="fas fa-map-marker-alt"></i>{{ dept.plant_location }}
+                                </div>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="background: var(--warning-50); border: 1px solid var(--warning); border-radius: var(--radius-md); padding: var(--space-4);">
+                        <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
+                        No departments available. Please create departments first.
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    {% if departments %}
+                    <button type="submit" class="btn-primary-submit">
+                        <i class="fas fa-save"></i>Save Assignment
+                    </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function editUser(id, username, firstName, lastName, email, phone) {
+    document.getElementById('modal_user_id').value = id;
+    document.getElementById('modal_username').value = username;
+    document.getElementById('modal_first_name').value = firstName;
+    document.getElementById('modal_last_name').value = lastName;
+    document.getElementById('modal_email').value = email;
+    document.getElementById('modal_phone').value = phone || '';
+    new bootstrap.Modal(document.getElementById('userModal')).show();
+}
+
+function assignDepartment(userId, userName, currentDeptId) {
+    document.getElementById('assign_user_id').value = userId;
+    document.getElementById('assign_user_name').textContent = userName;
+    document.querySelectorAll('.dept-radio').forEach(r => r.checked = false);
+    if (currentDeptId) {
+        const r = document.getElementById('dept_' + currentDeptId);
+        if (r) r.checked = true;
+    }
+    new bootstrap.Modal(document.getElementById('assignModal')).show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const departmentFilter = document.getElementById('departmentFilter');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const usersGrid = document.getElementById('usersGrid');
+    const visibleCountEl = document.getElementById('visibleCount');
+    const totalCountEl = document.getElementById('totalCount');
+    const noResultsMsg = document.getElementById('noResultsMessage');
+    const totalUsers = {{ total_dept_admins }};
+
+    function filterUsers() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const selectedDept = departmentFilter.value;
+        const cards = usersGrid.querySelectorAll('.users-card');
+        let visible = 0;
+
+        cards.forEach(card => {
+            const username = card.dataset.username || '';
+            const firstName = card.dataset.firstName || '';
+            const lastName = card.dataset.lastName || '';
+            const email = card.dataset.email || '';
+            const dept = card.dataset.department || '';
+
+            const matchesSearch = !searchTerm ||
+                username.includes(searchTerm) ||
+                firstName.includes(searchTerm) ||
+                lastName.includes(searchTerm) ||
+                email.includes(searchTerm);
+
+            const matchesDept = !selectedDept || dept === selectedDept;
+
+            if (matchesSearch && matchesDept) {
+                card.classList.remove('user-hidden');
+                visible++;
+            } else {
+                card.classList.add('user-hidden');
+            }
+        });
+
+        visibleCountEl.textContent = visible;
+        totalCountEl.textContent = totalUsers;
+
+        if (visible === 0 && totalUsers > 0) {
+            usersGrid.style.display = 'none';
+            noResultsMsg.style.display = 'block';
+        } else {
+            usersGrid.style.display = 'grid';
+            noResultsMsg.style.display = 'none';
+        }
+    }
+
+    function clearFilters() {
+        searchInput.value = '';
+        departmentFilter.value = '';
+        filterUsers();
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterUsers);
+    if (departmentFilter) departmentFilter.addEventListener('change', filterUsers);
+    if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
+
+    filterUsers();
+
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const btn = form.querySelector('button[type="submit"]');
+            if (!btn || btn.disabled) return;
+
+            if (form.classList.contains('delete-form')) {
+                const userName = btn.getAttribute('data-user-name');
+                if (!confirm(`Are you sure you want to delete "${userName}"?\n\nThis action cannot be undone.`)) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            btn.disabled = true;
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }, 10000);
+        });
+    });
+});
+</script>
+{% endblock %}

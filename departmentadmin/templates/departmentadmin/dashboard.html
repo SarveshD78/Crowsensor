@@ -1,0 +1,535 @@
+{% extends 'departmentadmin/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========================================
+   DASHBOARD STYLES - REDESIGNED
+   ======================================== */
+
+/* ===== STATS CARDS ===== */
+.deptadmin-stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-5);
+    margin-bottom: var(--space-8);
+}
+
+.deptadmin-stat-card {
+    /* ✅ CHANGED: Solid white background */
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    transition: all 0.2s ease;
+}
+
+.deptadmin-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-blue-light);
+}
+
+.deptadmin-stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+/* ✅ CHANGED: Solid primary blue (NO gradient) */
+.deptadmin-stat-icon.primary {
+    background: var(--primary-blue);
+    color: white;
+}
+
+/* ✅ CHANGED: Solid success green (NO gradient) */
+.deptadmin-stat-icon.success {
+    background: var(--success);
+    color: white;
+}
+
+.deptadmin-stat-content h3 {
+    /* ✅ CHANGED: Consistent font size */
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.deptadmin-stat-content p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 500;
+    margin-top: var(--space-2);
+}
+
+/* ===== WELCOME CARD ===== */
+.welcome-card {
+    /* ✅ CHANGED: Solid white background */
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-6);
+    margin-bottom: var(--space-8);
+}
+
+.welcome-card h5 {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-2);
+    display: flex;
+    align-items: center;
+}
+
+.welcome-card p {
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    margin: 0;
+}
+
+.welcome-card i {
+    color: var(--primary-blue);
+}
+
+.welcome-card strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* ===== DEPARTMENTS LIST ===== */
+.deptadmin-departments-card {
+    /* ✅ CHANGED: Solid white background */
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-6);
+}
+
+.deptadmin-departments-card h4 {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-5);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.deptadmin-departments-card h4 i {
+    color: var(--primary-blue);
+    font-size: var(--text-xl);
+}
+
+.deptadmin-dept-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-5);
+}
+
+.deptadmin-dept-item {
+    /* ✅ CHANGED: Solid gray background */
+    background: var(--gray-50);
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    transition: all 0.2s ease;
+}
+
+.deptadmin-dept-item:hover {
+    /* ✅ CHANGED: Solid blue border on hover */
+    border-color: var(--primary-blue);
+    background: var(--bg-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.deptadmin-dept-name {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.deptadmin-dept-name i {
+    color: var(--primary-blue);
+    font-size: var(--text-xl);
+}
+
+.deptadmin-dept-info {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+    line-height: 1.5;
+}
+
+.deptadmin-dept-info:last-child {
+    margin-bottom: 0;
+}
+
+.deptadmin-dept-info i {
+    color: var(--primary-blue);
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.deptadmin-dept-info strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    /* ✅ CHANGED: Solid gray background */
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border-medium);
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: var(--gray-300);
+    margin-bottom: var(--space-4);
+    display: block;
+}
+
+.empty-state h5 {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+}
+
+.empty-state p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* ===== QUICK ACTIONS ===== */
+.quick-actions {
+    /* ✅ CHANGED: Solid white background */
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-6);
+    margin-top: var(--space-8);
+}
+
+.quick-actions h4 {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-5);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.quick-actions h4 i {
+    color: var(--primary-blue);
+    font-size: var(--text-xl);
+}
+
+.quick-action-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--space-4) var(--space-5);
+    /* ✅ CHANGED: Solid blue border */
+    border: 2px solid var(--primary-blue);
+    border-radius: var(--radius-lg);
+    color: var(--primary-blue);
+    background: var(--bg-primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    font-size: var(--text-sm);
+    gap: var(--space-3);
+}
+
+.quick-action-btn:hover {
+    /* ✅ CHANGED: Solid blue background on hover */
+    background: var(--primary-blue);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.quick-action-btn i {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.quick-action-btn .text-muted {
+    font-size: var(--text-xs);
+    font-weight: 400;
+    color: var(--text-tertiary);
+}
+
+.quick-action-btn:hover .text-muted {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.quick-action-btn.disabled {
+    border-color: var(--border-medium);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
+    background: var(--gray-50);
+}
+
+/* ✅ CHANGED: Solid coming soon badge */
+.quick-action-btn .badge {
+    background: var(--warning);
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: var(--radius-full);
+    margin-left: var(--space-2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.deptadmin-stat-card,
+.welcome-card,
+.deptadmin-departments-card,
+.quick-actions {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.deptadmin-stat-card:nth-child(1) { 
+    animation-delay: 0.05s; 
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.deptadmin-stat-card:nth-child(2) { 
+    animation-delay: 0.1s; 
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.welcome-card {
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.deptadmin-departments-card {
+    animation-delay: 0.15s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.quick-actions {
+    animation-delay: 0.2s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .deptadmin-stats-cards {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+    
+    .deptadmin-dept-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-action-btn {
+        flex-direction: row;
+        text-align: left;
+    }
+    
+    .welcome-card h5 {
+        font-size: var(--text-base);
+    }
+    
+    .deptadmin-stat-content h3 {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    .deptadmin-stat-card {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-3);
+    }
+    
+    .quick-action-btn {
+        padding: var(--space-3) var(--space-4);
+    }
+    
+    .quick-action-btn i {
+        font-size: 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+        <h5>
+            <i class="fas fa-hand-wave me-2"></i>
+            Welcome back, {{ request.user.get_full_name_or_username|default:request.user.username }}!
+        </h5>
+        <p>
+            <i class="fas fa-user-tie me-2"></i>
+            You are managing <strong>{{ total_departments|default:0 }}</strong> department{{ total_departments|pluralize }} with <strong>{{ total_users|default:0 }}</strong> user{{ total_users|pluralize }}.
+        </p>
+    </div>
+
+    <!-- Stats Cards - Only Total Users & Total Departments -->
+    <div class="deptadmin-stats-cards">
+        <div class="deptadmin-stat-card">
+            <div class="deptadmin-stat-icon primary">
+                <i class="fas fa-building"></i>
+            </div>
+            <div class="deptadmin-stat-content">
+                <h3>{{ total_departments|default:0 }}</h3>
+                <p>My Departments</p>
+            </div>
+        </div>
+
+        <div class="deptadmin-stat-card">
+            <div class="deptadmin-stat-icon success">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="deptadmin-stat-content">
+                <h3>{{ total_users|default:0 }}</h3>
+                <p>Total Users</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Departments -->
+    <div class="deptadmin-departments-card">
+        <h4>
+            <i class="fas fa-sitemap"></i>
+            My Departments
+        </h4>
+        
+        {% if user_departments %}
+        <div class="deptadmin-dept-list">
+            {% for membership in user_departments %}
+            <div class="deptadmin-dept-item">
+                <div class="deptadmin-dept-name">
+                    <i class="fas fa-building"></i>
+                    {{ membership.department.name }}
+                </div>
+                {% if membership.department.department_type %}
+                <div class="deptadmin-dept-info">
+                    <i class="fas fa-tag"></i>
+                    <span><strong>Type:</strong> {{ membership.department.department_type }}</span>
+                </div>
+                {% endif %}
+                {% if membership.department.plant_location %}
+                <div class="deptadmin-dept-info">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span><strong>Location:</strong> {{ membership.department.plant_location }}</span>
+                </div>
+                {% endif %}
+                {% if membership.department.email %}
+                <div class="deptadmin-dept-info">
+                    <i class="fas fa-envelope"></i>
+                    <span style="word-break: break-all;">{{ membership.department.email }}</span>
+                </div>
+                {% endif %}
+                {% if membership.department.phone %}
+                <div class="deptadmin-dept-info">
+                    <i class="fas fa-phone"></i>
+                    <span>{{ membership.department.phone }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h5>No Departments Assigned</h5>
+            <p>Contact your company administrator to get department assignments.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h4>
+            <i class="fas fa-bolt"></i>
+            Quick Actions
+        </h4>
+        
+        <div class="row g-3">
+            <div class="col-md-6">
+                <a href="{% url 'departmentadmin:users' %}" class="quick-action-btn">
+                    <i class="fas fa-users"></i>
+                    <div class="flex-grow-1 text-start">
+                        <div>Manage Users</div>
+                        <small class="text-muted">Add & assign users to departments</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <div class="quick-action-btn disabled">
+                    <i class="fas fa-cogs"></i>
+                    <div class="flex-grow-1 text-start">
+                        <div>
+                            Manage Assets 
+                            <span class="badge">Coming Soon</span>
+                        </div>
+                        <small class="text-muted">Configure IoT devices</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
