@@ -44,6 +44,7 @@ def home(request):
     print(f"🔍 DEBUG home() - hostname: {hostname}, parts: {parts}")
     
     # If subdomain detected (more than 1 part and first part is not 'www' or 'localhost')
+    is_ip_address = len(parts) == 4 and all(part.isdigit() for part in parts)
     is_subdomain = len(parts) > 1 and parts[0] not in ['www', 'localhost', '127']
     
     if is_subdomain:
