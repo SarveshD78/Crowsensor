@@ -13,12 +13,15 @@ def system_admin_required(view_func):
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        # STEP 1: Block tenant subdomains (NEW - Add this first)
+        # STEP 1: Block tenant subdomains (but allow IP addresses)
         hostname = request.get_host().split(':')[0]
         parts = hostname.split('.')
         
-        # Check if we're on a subdomain (tenant context)
-        is_subdomain = len(parts) > 1 and parts[0] not in ['www', 'localhost', '127']
+        # Check if it's an IP address (4 numeric parts)
+        is_ip_address = len(parts) == 4 and all(part.isdigit() for part in parts)
+        
+        # Check if we're on a subdomain (tenant context) - but NOT an IP
+        is_subdomain = len(parts) > 1 and not is_ip_address and parts[0] not in ['www', 'localhost', '127']
         
         if is_subdomain:
             # BLOCKED: Tenant subdomain trying to access system admin
@@ -42,16 +45,11 @@ def system_admin_required(view_func):
     return wrapper
 
 
-# NEW: Decorator for views that should be blocked on tenant subdomains but don't require authentication
 def main_domain_only(view_func):
     """
     Decorator to block access from tenant subdomains
     Use for public system admin pages (like login page)
-    
-    Usage:
-        @main_domain_only
-        def system_login_view(request):
-            ...
+    Allows access from IP addresses
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
@@ -59,8 +57,11 @@ def main_domain_only(view_func):
         hostname = request.get_host().split(':')[0]
         parts = hostname.split('.')
         
-        # Check if we're on a subdomain (tenant context)
-        is_subdomain = len(parts) > 1 and parts[0] not in ['www', 'localhost', '127']
+        # Check if it's an IP address (4 numeric parts like 164.52.207.221)
+        is_ip_address = len(parts) == 4 and all(part.isdigit() for part in parts)
+        
+        # Check if we're on a subdomain (tenant context) - but NOT an IP
+        is_subdomain = len(parts) > 1 and not is_ip_address and parts[0] not in ['www', 'localhost', '127']
         
         if is_subdomain:
             # BLOCKED: Tenant subdomain trying to access system admin
@@ -68,7 +69,8 @@ def main_domain_only(view_func):
             messages.error(request, 'System admin is not accessible from this domain.')
             return redirect('accounts:login')  # Redirect to tenant login
         
-        # Allow access from main domain
+        # Allow access from main domain or IP address
+        print(f"✅ ALLOWED: System admin access from: {hostname}")
         return view_func(request, *args, **kwargs)
     
     return wrapper
