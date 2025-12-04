@@ -45,6 +45,7 @@ def home(request):
     
     # Check if it's an IP address (has 4 numeric parts like 164.52.207.221)
     is_ip_address = len(parts) == 4 and all(part.isdigit() for part in parts)
+    is_main_domain = hostname in ['e2e-75-221.ssdcloudindia.net', 'localhost', '127.0.0.1'] or is_ip_address
     
     # Subdomain detection: more than 1 part, NOT an IP address, NOT www/localhost/127
     is_subdomain = len(parts) > 1 and not is_ip_address and parts[0] not in ['www', 'localhost', '127']
