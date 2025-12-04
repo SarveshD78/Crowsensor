@@ -48,7 +48,7 @@ def home(request):
     is_main_domain = hostname in ['e2e-75-221.ssdcloudindia.net', 'localhost', '127.0.0.1'] or is_ip_address
     
     # Subdomain detection: more than 1 part, NOT an IP address, NOT www/localhost/127
-    is_subdomain = len(parts) > 1 and not is_ip_address and parts[0] not in ['www', 'localhost', '127']
+    is_subdomain = len(parts) > 3 and not is_main_domain
     
     if is_subdomain:
         # We're on a tenant subdomain - redirect immediately to tenant login
