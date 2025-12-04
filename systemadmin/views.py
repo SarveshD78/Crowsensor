@@ -28,8 +28,8 @@ from .models import Tenant, Domain
 def home(request):
     """
     Landing page with company code access portal
-    - Main domain (localhost) → Shows landing page with company code form
-    - Subdomain (limeedu.localhost) → Auto-redirect to tenant login
+    - Main domain (localhost/IP) → Shows landing page with company code form
+    - Subdomain (tenant.localhost) → Auto-redirect to tenant login
     """
     
     # STEP 1: Check if system admin is already logged in
@@ -43,16 +43,18 @@ def home(request):
     
     print(f"🔍 DEBUG home() - hostname: {hostname}, parts: {parts}")
     
-    # If subdomain detected (more than 1 part and first part is not 'www' or 'localhost')
+    # Check if it's an IP address (has 4 numeric parts like 164.52.207.221)
     is_ip_address = len(parts) == 4 and all(part.isdigit() for part in parts)
-    is_subdomain = len(parts) > 1 and parts[0] not in ['www', 'localhost', '127']
+    
+    # Subdomain detection: more than 1 part, NOT an IP address, NOT www/localhost/127
+    is_subdomain = len(parts) > 1 and not is_ip_address and parts[0] not in ['www', 'localhost', '127']
     
     if is_subdomain:
         # We're on a tenant subdomain - redirect immediately to tenant login
         print(f"🔄 Subdomain detected: {parts[0]} - Redirecting to /accounts/login/")
         return redirect('accounts:login')
     
-    # STEP 3: We're on MAIN domain (localhost) - handle company code form
+    # STEP 3: We're on MAIN domain (localhost or IP) - handle company code form
     print(f"🏠 Main domain detected - Showing landing page")
     
     if request.method == 'POST':
@@ -104,8 +106,13 @@ def home(request):
             
             # Redirect to tenant login
             protocol = 'https' if request.is_secure() else 'http'
-            port = ':8000' if 'localhost' in primary_domain.domain else ''
-            redirect_url = f"{protocol}://{primary_domain.domain}{port}/accounts/login/"
+            
+            # Use IP with port for IP-based domains, otherwise use the domain as-is
+            if is_ip_address:
+                redirect_url = f"{protocol}://{primary_domain.domain}:8000/accounts/login/"
+            else:
+                port = ':8000' if 'localhost' in primary_domain.domain else ''
+                redirect_url = f"{protocol}://{primary_domain.domain}{port}/accounts/login/"
             
             print(f"🚀 DEBUG: Redirecting to: {redirect_url}")
             print("=" * 80)
@@ -131,8 +138,6 @@ def home(request):
         'page_title': 'Welcome to Crowsensor - IoT Monitoring Platform',
     }
     return render(request, 'systemadmin/landing.html', context)
-
-
 
 
 @main_domain_only
