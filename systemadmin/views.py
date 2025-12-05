@@ -335,7 +335,8 @@ def tenant_create_view(request):
                     tenant.save()
                     print(f"✅ Tenant record created (ID: {tenant.id})")
                     
-                    domain_name = f"{subdomain}.localhost"
+                    domain_name = f"{subdomain}.e2e-76-221.ssdcloudindia.net"
+                    #domain_name = f"{subdomain}.localhost"
                     Domain.objects.create(
                         tenant=tenant,
                         domain=domain_name,
@@ -379,7 +380,7 @@ def tenant_create_view(request):
                         request,
                         f'🎉 Tenant "{tenant.company_name}" created successfully!\n\n'
                         f'🎫 Tenant Access Code: {tenant_code}\n'
-                        f'🌐 Login URL: http://{subdomain}.localhost:8000/company/login/\n'
+                        f'🌐 Login URL: https://{subdomain}.e2e-76-221.ssdcloudindia.net/company/login/\n'
                         f'👤 Username: {username}\n'
                         f'🔐 Password: {admin_password}\n\n'
                         f'⚠️ Save these credentials - they cannot be viewed again!'
