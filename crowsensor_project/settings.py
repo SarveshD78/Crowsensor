@@ -15,10 +15,13 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-temporary-key-change-in-pr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS','e2e-75-221.ssdcloudindia.net,.ssdcloudindia.net,164.52.207.221,localhost,127.0.0.1,.localhost,*').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS','technologymatters.in,.technologymatters.in,e2e-75-221.ssdcloudindia.net,e2e-76-221.ssdcloudindia.net,.ssdcloudindia.net,164.52.207.221,localhost,127.0.0.1,.localhost,*').split(',')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = [
+    'https://technologymatters.in',
+    'https://*.technologymatters.in',
     'https://e2e-76-221.ssdcloudindia.net',
+    'https://e2e-75-221.ssdcloudindia.net',
     'https://*.ssdcloudindia.net'
 ]
 # Application definition
