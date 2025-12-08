@@ -1111,6 +1111,7 @@ def influx_fetch_measurements_view(request):
 
 
 # companyadmin/views.py
+# companyadmin/views.py
 
 import sys
 import json
@@ -1469,16 +1470,96 @@ def device_setup_wizard_view(request):
         
         if request.method == 'POST' and 'fetch_measurements' in request.POST:
             debug_print(f"Action: Fetching measurements", 0)
+            debug_print(f"{'='*100}", 0)
+            debug_print(f"[FETCH MEASUREMENTS REQUEST]", 0)
+            debug_print(f"{'='*100}", 0)
+            
             try:
-                response = requests.get(base_url, params={'db': config.db_name, 'q': 'SHOW MEASUREMENTS'}, auth=auth,verify=False, timeout=10)
-                data = response.json()
-                measurements = [row[0] for row in data['results'][0]['series'][0]['values']]
-                wizard_data['measurements'] = measurements
-                request.session.modified = True
-                debug_print(f"✅ Found {len(measurements)} measurements", 0)
-                messages.success(request, f'✅ Found {len(measurements)} measurements')
+                query = 'SHOW MEASUREMENTS'
+                debug_print(f"Query: {query}", 1)
+                debug_print(f"Database: {config.db_name}", 1)
+                debug_print(f"Base URL: {base_url}", 1)
+                
+                response = requests.get(
+                    base_url, 
+                    params={'db': config.db_name, 'q': query}, 
+                    auth=auth,
+                    verify=False, 
+                    timeout=10
+                )
+                
+                debug_print(f"\n[RESPONSE]", 0)
+                debug_print(f"Status Code: {response.status_code}", 1)
+                
+                if response.status_code != 200:
+                    debug_print(f"❌ Bad status code: {response.status_code}", 1)
+                    debug_print(f"Response text: {response.text[:500]}", 1)
+                    messages.error(request, f'⛔ InfluxDB returned status {response.status_code}')
+                    debug_print(f"{'='*100}\n", 0)
+                else:
+                    data = response.json()
+                    debug_print(f"✅ JSON parsed", 1)
+                    debug_print(f"Top-level keys: {list(data.keys())}", 1)
+                    
+                    # Step-by-step validation
+                    if 'results' not in data:
+                        debug_print(f"❌ Missing 'results' key", 1)
+                        debug_print(f"Full response: {json.dumps(data, indent=2)[:1000]}", 1)
+                        messages.error(request, '⛔ Invalid response: missing results')
+                        debug_print(f"{'='*100}\n", 0)
+                        
+                    elif not data['results']:
+                        debug_print(f"❌ Empty results array", 1)
+                        messages.error(request, '⛔ No results from InfluxDB')
+                        debug_print(f"{'='*100}\n", 0)
+                        
+                    elif not isinstance(data['results'], list):
+                        debug_print(f"❌ results is not a list: {type(data['results'])}", 1)
+                        messages.error(request, '⛔ Invalid results format')
+                        debug_print(f"{'='*100}\n", 0)
+                        
+                    else:
+                        debug_print(f"✅ results key found, length: {len(data['results'])}", 1)
+                        debug_print(f"results[0] keys: {list(data['results'][0].keys())}", 1)
+                        
+                        if 'series' not in data['results'][0]:
+                            debug_print(f"❌ Missing 'series' in results[0]", 1)
+                            debug_print(f"results[0]: {json.dumps(data['results'][0], indent=2)[:1000]}", 1)
+                            messages.error(request, '⛔ No measurements found in database')
+                            debug_print(f"{'='*100}\n", 0)
+                            
+                        elif not data['results'][0]['series']:
+                            debug_print(f"❌ Empty series array - no measurements in database", 1)
+                            messages.info(request, 'ℹ️ Database has no measurements yet')
+                            wizard_data['measurements'] = []
+                            request.session.modified = True
+                            debug_print(f"{'='*100}\n", 0)
+                            
+                        else:
+                            debug_print(f"✅ series found, length: {len(data['results'][0]['series'])}", 1)
+                            series = data['results'][0]['series'][0]
+                            debug_print(f"series[0] keys: {list(series.keys())}", 1)
+                            debug_print(f"values length: {len(series.get('values', []))}", 1)
+                            
+                            measurements = [row[0] for row in series['values']]
+                            wizard_data['measurements'] = measurements
+                            request.session.modified = True
+                            
+                            debug_print(f"✅ Found {len(measurements)} measurements", 1)
+                            debug_print(f"Measurements: {measurements}", 1)
+                            debug_print(f"{'='*100}\n", 0)
+                            
+                            messages.success(request, f'✅ Found {len(measurements)} measurements')
+                            
             except Exception as e:
-                debug_print(f"❌ Error: {e}", 0)
+                debug_print(f"\n❌ EXCEPTION", 0)
+                debug_print(f"Type: {type(e).__name__}", 1)
+                debug_print(f"Message: {str(e)}", 1)
+                debug_print(f"Traceback:", 1)
+                import traceback
+                for line in traceback.format_exc().split('\n'):
+                    debug_print(line, 2)
+                debug_print(f"{'='*100}\n", 0)
                 messages.error(request, f'⛔ Error: {str(e)}')
         
         elif request.method == 'POST' and 'select_measurements' in request.POST:
@@ -1521,7 +1602,7 @@ def device_setup_wizard_view(request):
             for measurement in wizard_data['selected_measurements']:
                 try:
                     sample_query = f'SELECT * FROM "{measurement}" LIMIT 100'
-                    response = requests.get(base_url, params={'db': config.db_name, 'q': sample_query}, auth=auth,verify=False, timeout=30)
+                    response = requests.get(base_url, params={'db': config.db_name, 'q': sample_query}, auth=auth, verify=False, timeout=30)
                     
                     if response.status_code == 200:
                         data = response.json()
@@ -1576,7 +1657,7 @@ def device_setup_wizard_view(request):
                 # Get device IDs
                 try:
                     tag_query = f'SHOW TAG VALUES FROM "{measurement}" WITH KEY = "{device_column}"'
-                    response = requests.get(base_url, params={'db': config.db_name, 'q': tag_query}, auth=auth,verify=False, timeout=10)
+                    response = requests.get(base_url, params={'db': config.db_name, 'q': tag_query}, auth=auth, verify=False, timeout=10)
                     
                     device_ids = set()
                     if response.status_code == 200:
@@ -1643,16 +1724,15 @@ def device_setup_wizard_view(request):
                         debug_print(f"Device [{idx}/{len(all_device_ids)}]: ID = {device_id}", 0)
                         debug_print(f"{'─'*80}", 0)
                         
-                        # ✅ UPDATED: Create device with metadata containing influx_measurement_id
                         device, created = Device.objects.get_or_create(
-                            measurement_name=measurement,  # Human-readable (for display)
+                            measurement_name=measurement,
                             device_id=str(device_id),
                             defaults={
                                 'display_name': f"{measurement} - Device {device_id}",
                                 'is_active': True,
                                 'metadata': {
-                                    'influx_measurement_id': measurement,  # ✅ Real InfluxDB measurement name
-                                    'device_column': device_column,         # ✅ Tag key for querying
+                                    'influx_measurement_id': measurement,
+                                    'device_column': device_column,
                                     'auto_discovered': True,
                                     'discovered_at': timezone.now().isoformat()
                                 }
@@ -1666,7 +1746,6 @@ def device_setup_wizard_view(request):
                         else:
                             debug_print(f"ℹ️  Device EXISTS (DB ID: {device.id})", 1)
                             
-                            # ✅ Update existing device metadata if missing fields
                             updated = False
                             if 'influx_measurement_id' not in device.metadata:
                                 device.metadata['influx_measurement_id'] = measurement
@@ -1683,7 +1762,6 @@ def device_setup_wizard_view(request):
                                 devices_updated += 1
                                 debug_print(f"   ✅ Metadata updated: {device.metadata}", 2)
                         
-                        # Get sensors
                         debug_print(f"\nCalling analyze_device_sensors_from_influx...", 1)
                         
                         sensors = analyze_device_sensors_from_influx(
@@ -1701,7 +1779,6 @@ def device_setup_wizard_view(request):
                             debug_print(f"⚠️  No sensors to save for this device", 1)
                             continue
                         
-                        # Save sensors
                         device_sensor_count = 0
                         debug_print(f"\nSaving {len(sensors)} sensors to database...", 1)
                         
@@ -1765,6 +1842,45 @@ def device_setup_wizard_view(request):
     }
     
     return render(request, 'companyadmin/device_setup_wizard.html', context)
+
+
+@require_company_admin
+def device_list_view(request):
+    """
+    Display all devices grouped by measurement with complete info
+    """
+    from .models import Device
+    
+    devices = Device.objects.all().prefetch_related('departments', 'sensors').order_by('measurement_name', 'device_id')
+    config = AssetConfig.get_active_config()
+    
+    measurements = {}
+    for device in devices:
+        measurement_name = device.measurement_name
+        if measurement_name not in measurements:
+            measurements[measurement_name] = []
+        
+        device.total_sensors_only = device.sensors.filter(category='sensor').count()
+        device.sensor_breakdown = {
+            'sensors': device.sensors.filter(category='sensor').count(),
+            'slaves': device.sensors.filter(category='slave').count(),
+            'info': device.sensors.filter(category='info').count(),
+        }
+        device.device_column = device.metadata.get('device_column', 'N/A')
+        device.auto_discovered = device.metadata.get('auto_discovered', False)
+        
+        measurements[measurement_name].append(device)
+    
+    context = {
+        'measurements': measurements,
+        'total_devices': devices.count(),
+        'total_measurements': len(measurements),
+        'has_config': config is not None,
+        'config': config,
+        'page_title': 'Device Management',
+    }
+    
+    return render(request, 'companyadmin/device_list.html', context)
 
 @require_company_admin
 def device_list_view(request):
