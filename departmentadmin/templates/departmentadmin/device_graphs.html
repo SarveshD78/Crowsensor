@@ -466,53 +466,14 @@
         background: var(--gray-50);
         border-bottom: 1px solid var(--border-light);
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
+        flex-direction: column;
         gap: var(--space-3);
     }
     
-    /* DROPDOWN ON LEFT */
-    .chart-controls {
-        display: flex;
-        gap: var(--space-3);
-        align-items: center;
-        order: 1;
-    }
-    
-    .chart-type-selector {
-        padding: 6px 12px;
-        border: 2px solid var(--border-light);
-        border-radius: var(--radius-md);
-        background: white;
-        color: var(--text-primary);
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    
-    .chart-type-selector:hover {
-        border-color: var(--primary-blue);
-    }
-    
-    .chart-type-selector:focus {
-        outline: none;
-        border-color: var(--primary-blue);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-    
-    /* TITLE AND BADGES ON RIGHT */
-    .chart-title-section {
-        display: flex;
-        align-items: center;
-        gap: var(--space-3);
-        order: 2;
-    }
-    
+    /* TITLE ON TOP */
     .chart-title {
         margin: 0;
-        font-size: 1rem;
+        font-size: 1.125rem;
         font-weight: 700;
         color: var(--text-primary);
         display: flex;
@@ -524,16 +485,28 @@
         color: var(--primary-blue);
     }
     
+    /* CONTROLS ROW: Unit | Points | Dropdown */
+    .chart-controls-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+        flex-wrap: wrap;
+    }
+    
     .chart-meta {
         display: flex;
         gap: var(--space-2);
+        align-items: center;
     }
     
     .chart-meta .badge {
-        font-size: 11px;
-        padding: 4px var(--space-3);
-        border-radius: 0.25rem;
+        font-size: 12px;
+        padding: 5px var(--space-3);
+        border-radius: 0.375rem;
         font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
     
     .badge.bg-light {
@@ -544,6 +517,29 @@
     .badge.bg-info {
         background: var(--info) !important;
         color: white;
+    }
+    
+    .chart-type-selector {
+        padding: 6px 14px;
+        border: 2px solid var(--border-light);
+        border-radius: var(--radius-md);
+        background: white;
+        color: var(--text-primary);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: auto;
+    }
+    
+    .chart-type-selector:hover {
+        border-color: var(--primary-blue);
+    }
+    
+    .chart-type-selector:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
     
     .chart-body {
@@ -616,20 +612,15 @@
             text-align: center;
         }
         
-        .chart-header {
+        .chart-controls-row {
             flex-direction: column;
             align-items: flex-start;
-        }
-        
-        .chart-controls {
-            order: 1;
             width: 100%;
         }
         
-        .chart-title-section {
-            order: 2;
+        .chart-type-selector {
+            margin-left: 0;
             width: 100%;
-            flex-wrap: wrap;
         }
     }
     
@@ -907,6 +898,9 @@ function renderGraphs(data) {
     let hasDigital = false;
     let hasCharts = false;
     
+    // CRITICAL FIX: Track actual chart array index
+    let chartCounter = 0;
+    
     sensors.forEach((sensor, index) => {
         if (!sensor.values || !Array.isArray(sensor.values)) return;
         
@@ -934,11 +928,15 @@ function renderGraphs(data) {
                 hasDigital = true;
             }
             if (sensor.metadata.show_time_series === true) {
-                renderIndustrialChart(sensor, timestamps, index);
+                // Use chartCounter instead of index
+                renderIndustrialChart(sensor, timestamps, chartCounter);
+                chartCounter++; // Increment only when chart is created
                 hasCharts = true;
             }
         } else {
-            renderIndustrialChart(sensor, timestamps, index);
+            // Use chartCounter instead of index
+            renderIndustrialChart(sensor, timestamps, chartCounter);
+            chartCounter++; // Increment only when chart is created
             hasCharts = true;
         }
     });
@@ -1076,16 +1074,13 @@ function renderHorizontalDigital(sensor) {
 }
 
 /* ============================================================================
-   TIME SERIES CHART (UNCHANGED)
-   ============================================================================ */
-/* ============================================================================
    TIME SERIES CHART WITH CHART TYPE SELECTOR (5 TYPES)
    ============================================================================ */
-   function renderIndustrialChart(sensor, timestamps, index) {
+function renderIndustrialChart(sensor, timestamps, chartArrayIndex) {
     const container = document.getElementById('charts-container');
-    const chartId = `chart-${index}`;
-    const canvasId = `canvas-${index}`;
-    const selectorId = `chart-type-${index}`;
+    const chartId = `chart-${chartArrayIndex}`;
+    const canvasId = `canvas-${chartArrayIndex}`;
+    const selectorId = `chart-type-${chartArrayIndex}`;
     
     const chartHtml = `
         <div class="chart-card" id="${chartId}">
@@ -1094,20 +1089,20 @@ function renderHorizontalDigital(sensor) {
                     <i class="fas fa-chart-line"></i>
                     ${sensor.display_name}
                 </h5>
-                <div class="chart-controls">
-                    <select class="chart-type-selector" id="${selectorId}" data-chart-index="${index}">
-                        <option value="line" selected>Line</option>
-                        <option value="area">Area</option>
-                        <option value="step">Step</option>
-                        <option value="bar">Bar</option>
-                        <option value="comparison">Last 2 Compare</option>
-                    </select>
+                <div class="chart-controls-row">
                     <div class="chart-meta">
+                        ${sensor.unit ? `<span class="badge bg-info"><i class="fas fa-tag"></i> ${sensor.unit}</span>` : ''}
                         <span class="badge bg-light">
-                            <i class="fas fa-clock me-1"></i>${timestamps.length} Points
+                            <i class="fas fa-clock"></i> ${timestamps.length} Points
                         </span>
-                        ${sensor.unit ? `<span class="badge bg-info">${sensor.unit}</span>` : ''}
                     </div>
+                    <select class="chart-type-selector" id="${selectorId}" data-chart-index="${chartArrayIndex}">
+                        <option value="line" selected>Line Chart</option>
+                        <option value="area">Area Chart</option>
+                        <option value="step">Step Chart</option>
+                        <option value="bar">Bar Chart</option>
+                        <option value="comparison">Compare Last 2</option>
+                    </select>
                 </div>
             </div>
             <div class="chart-body">
@@ -1126,7 +1121,7 @@ function renderHorizontalDigital(sensor) {
             sensor: sensor,
             timestamps: timestamps,
             canvasId: canvasId,
-            index: index
+            index: chartArrayIndex
         });
     }
     
@@ -1143,7 +1138,10 @@ function renderHorizontalDigital(sensor) {
    ============================================================================ */
 function updateChartType(chartIndex, chartType) {
     const chartData = chartInstances[chartIndex];
-    if (!chartData) return;
+    if (!chartData) {
+        console.error('Chart not found at index:', chartIndex);
+        return;
+    }
     
     // Destroy old chart
     if (chartData.chart) {
@@ -1447,38 +1445,38 @@ function createComparisonChart(ctx, sensor) {
                 }
             },
             scales: {
-    y: {
-        beginAtZero: false,
-        title: {
-            display: true,
-            text: sensor.unit ? `Value (${sensor.unit})` : 'Value',
-            color: '#6b7280',
-            font: { size: 12, weight: 'bold' }
-        },
-        grid: {
-            display: true,
-            color: 'rgba(0, 0, 0, 0.1)'
-        },
-        ticks: {
-            color: '#6b7280',
-            callback: function(value) {
-                return value.toFixed(1);
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: sensor.unit ? `Value (${sensor.unit})` : 'Value',
+                        color: '#6b7280',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        callback: function(value) {
+                            return value.toFixed(1);
+                        }
+                    },
+                    grace: '15%',
+                    suggestedMin: Math.min(secondLastValue, lastValue) * 0.9,
+                    suggestedMax: Math.max(secondLastValue, lastValue) * 1.1
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        font: { size: 14, weight: 'bold' }
+                    }
+                }
             }
-        },
-        grace: '15%', /* Add 15% padding above and below */
-        suggestedMin: Math.min(secondLastValue, lastValue) * 0.9, /* Show 10% below lowest */
-        suggestedMax: Math.max(secondLastValue, lastValue) * 1.1  /* Show 10% above highest */
-    },
-    x: {
-        grid: {
-            display: false
-        },
-        ticks: {
-            color: '#6b7280',
-            font: { size: 14, weight: 'bold' }
-        }
-    }
-}
         }
     };
     
