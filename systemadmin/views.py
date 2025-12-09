@@ -335,8 +335,8 @@ def tenant_create_view(request):
                     tenant.save()
                     print(f"✅ Tenant record created (ID: {tenant.id})")
                     
-                    domain_name = f"{subdomain}.technologymatters.in"
-                    #domain_name = f"{subdomain}.localhost"
+                    #domain_name = f"{subdomain}.technologymatters.in"
+                    domain_name = f"{subdomain}.localhost"
                     Domain.objects.create(
                         tenant=tenant,
                         domain=domain_name,

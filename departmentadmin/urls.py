@@ -22,4 +22,9 @@ urlpatterns = [
     
     # Logout
     path('logout/', views.logout_view, name='logout'),
+    # Alerts
+    path('alerts/', views.alerts_view, name='alerts'),
+    
+    # Reports
+    path('reports/', views.reports_view, name='reports'),
 ]

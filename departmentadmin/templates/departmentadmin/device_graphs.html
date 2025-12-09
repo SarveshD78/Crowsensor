@@ -6,586 +6,640 @@
 
 {% block extra_css %}
 <style>
-/* ============================================================================
-   PROFESSIONAL INDUSTRIAL IoT DASHBOARD - REFERENCE IMAGE STYLE
-   ============================================================================ */
-
-/* ===== ROOT VARIABLES ===== */
-:root {
-    /* Primary Colors */
-    --primary-blue: #2563eb;
-    --primary-blue-dark: #1d4ed8;
+    /* ============================================================================
+       PROFESSIONAL INDUSTRIAL IoT DASHBOARD - REFERENCE IMAGE STYLE
+       ============================================================================ */
     
-    /* Status Colors */
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --info: #3b82f6;
-    
-    /* Neutral Colors */
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-500: #6b7280;
-    --gray-700: #374151;
-    --gray-900: #111827;
-    
-    /* Text Colors */
-    --text-primary: #111827;
-    --text-secondary: #6b7280;
-    --text-tertiary: #9ca3af;
-    
-    /* Background */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f9fafb;
-    
-    /* Borders */
-    --border-light: #e5e7eb;
-    
-    /* Spacing */
-    --space-2: 0.5rem;
-    --space-3: 0.75rem;
-    --space-4: 1rem;
-    --space-5: 1.25rem;
-    --space-6: 1.5rem;
-    
-    /* Radius */
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* ===== CONTAINER ===== */
-.graphs-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: var(--space-6);
-    background: var(--bg-secondary);
-}
-
-/* ===== MINIMAL TOP HEADER ===== */
-.minimal-header {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4) var(--space-6);
-    margin-bottom: var(--space-6);
-    box-shadow: var(--shadow-sm);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--space-4);
-}
-
-.header-device-id {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    font-family: 'Courier New', monospace;
-}
-
-.header-last-update {
-    background: var(--success);
-    color: white;
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-md);
-    font-size: 0.875rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-}
-
-/* ===== TIME RANGE SELECTOR ===== */
-.time-range-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: var(--space-5);
-    margin-bottom: var(--space-6);
-    box-shadow: var(--shadow-sm);
-}
-
-.time-range-card h5 {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 var(--space-4) 0;
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-}
-
-.time-range-card h5 i {
-    color: var(--primary-blue);
-}
-
-.time-range-buttons {
-    display: flex;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-}
-
-.time-range-btn {
-    padding: var(--space-3) var(--space-5);
-    border: 2px solid var(--border-light);
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-}
-
-.time-range-btn:hover {
-    border-color: var(--primary-blue);
-    color: var(--primary-blue);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-.time-range-btn.active {
-    background: var(--primary-blue);
-    color: white;
-    border-color: var(--primary-blue);
-    box-shadow: var(--shadow-md);
-}
-
-/* ===== LOADING & ERROR STATES ===== */
-.loading-state,
-.error-state {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: 2.5rem;
-    text-align: center;
-    box-shadow: var(--shadow-sm);
-}
-
-.loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-4);
-}
-
-.spinner {
-    border: 4px solid var(--gray-200);
-    border-top: 4px solid var(--primary-blue);
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.loading-state h5 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.loading-state p {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin: 0;
-}
-
-.error-state {
-    border-color: var(--danger);
-    background: rgba(239, 68, 68, 0.05);
-}
-
-.error-state i {
-    font-size: 64px;
-    color: var(--danger);
-    margin-bottom: var(--space-4);
-    display: block;
-}
-
-.error-state h4 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--danger);
-    margin: 0 0 var(--space-3) 0;
-}
-
-.error-state p {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin-bottom: 1.25rem;
-}
-
-.error-state .btn {
-    background: var(--danger);
-    color: white;
-    border: none;
-    padding: var(--space-3) var(--space-6);
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.error-state .btn:hover {
-    background: #dc2626;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-/* ===== SECTION CARDS ===== */
-.section-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--space-6);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-}
-
-.section-header {
-    background: var(--gray-50);
-    border-left: 4px solid var(--primary-blue);
-    padding: var(--space-4) var(--space-5);
-    border-bottom: 1px solid var(--border-light);
-}
-
-.section-header h4 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-}
-
-.section-header h4 i {
-    color: var(--primary-blue);
-}
-
-.section-body {
-    padding: var(--space-6);
-}
-
-/* ============================================================================
-   GAUGE SECTION - REFERENCE IMAGE STYLE (4 PER ROW)
-   ============================================================================ */
-.gauge-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: var(--space-5);
-}
-
-.gauge-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: var(--space-5);
-    position: relative;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
-}
-
-.gauge-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
-.gauge-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-4);
-}
-
-.gauge-sensor-name {
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--text-primary);
-}
-
-.gauge-menu-icon {
-    color: var(--text-tertiary);
-    cursor: pointer;
-    font-size: 1.25rem;
-}
-
-.gauge-menu-icon:hover {
-    color: var(--text-primary);
-}
-
-.gauge-chart-wrapper {
-    position: relative;
-    height: 200px;
-    margin: var(--space-4) 0;
-}
-
-.gauge-value-display {
-    position: absolute;
-    top: 65%;
-    left: 40%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-}
-
-.gauge-current-value {
-
-    font-weight: 1000;
-    color: var(--text-primary);
-    line-height: 1;
-}
-
-.gauge-unit-label {
-
-    color: var(--text-secondary);
-    margin-top: var(--space-2);
-}
-
-/* ============================================================================
-   DIGITAL STATUS - HORIZONTAL LAYOUT (3 PER ROW)
-   ============================================================================ */
-.digital-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--space-5);
-}
-
-.digital-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: var(--space-5);
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
-}
-
-.digital-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
-/* HORIZONTAL LAYOUT */
-.digital-content {
-    display: flex;
-    align-items: center;
-    gap: var(--space-5);
-}
-
-.digital-indicator-wrapper {
-    flex-shrink: 0;
-}
-
-.digital-indicator {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    transition: all 0.3s ease;
-}
-
-.digital-indicator.on {
-    background: var(--success);
-    color: white;
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
-}
-
-.digital-indicator.off {
-    background: var(--gray-200);
-    color: var(--gray-500);
-}
-
-.digital-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.digital-name {
-    font-weight: 700;
-    font-size: 1.125rem;
-    color: var(--text-primary);
-    margin-bottom: var(--space-2);
-}
-
-.digital-status-label {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: var(--space-2);
-}
-
-.digital-status-label.on {
-    color: var(--success);
-}
-
-.digital-status-label.off {
-    color: var(--gray-500);
-}
-
-.digital-timestamp {
-    font-size: 0.75rem;
-    color: var(--text-tertiary);
-}
-
-/* ============================================================================
-   TIME SERIES CHARTS (3 PER ROW) - UNCHANGED
-   ============================================================================ */
-.charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap: var(--space-5);
-}
-
-.chart-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--primary-blue);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
-}
-
-.chart-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
-.chart-header {
-    padding: var(--space-4) var(--space-5);
-    background: var(--gray-50);
-    border-bottom: 1px solid var(--border-light);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.chart-title {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-}
-
-.chart-title i {
-    color: var(--primary-blue);
-}
-
-.chart-meta {
-    display: flex;
-    gap: var(--space-2);
-}
-
-.chart-meta .badge {
-    font-size: 11px;
-    padding: 4px var(--space-3);
-    border-radius: 0.25rem;
-    font-weight: 600;
-}
-
-.badge.bg-light {
-    background: var(--gray-200) !important;
-    color: var(--text-primary);
-}
-
-.badge.bg-info {
-    background: var(--info) !important;
-    color: white;
-}
-
-.chart-body {
-    padding: var(--space-5);
-    position: relative;
-    height: 320px;
-    background: var(--bg-primary);
-}
-
-.chart-body canvas {
-    width: 100% !important;
-    height: 100% !important;
-}
-
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 1400px) {
-    .gauge-grid {
-        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    }
-}
-
-@media (max-width: 1200px) {
-    .gauge-grid {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    /* ===== ROOT VARIABLES ===== */
+    :root {
+        /* Primary Colors */
+        --primary-blue: #2563eb;
+        --primary-blue-dark: #1d4ed8;
+        
+        /* Status Colors */
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        
+        /* Neutral Colors */
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-500: #6b7280;
+        --gray-700: #374151;
+        --gray-900: #111827;
+        
+        /* Text Colors */
+        --text-primary: #111827;
+        --text-secondary: #6b7280;
+        --text-tertiary: #9ca3af;
+        
+        /* Background */
+        --bg-primary: #ffffff;
+        --bg-secondary: #f9fafb;
+        
+        /* Borders */
+        --border-light: #e5e7eb;
+        
+        /* Spacing */
+        --space-2: 0.5rem;
+        --space-3: 0.75rem;
+        --space-4: 1rem;
+        --space-5: 1.25rem;
+        --space-6: 1.5rem;
+        
+        /* Radius */
+        --radius-md: 0.5rem;
+        --radius-lg: 0.75rem;
+        
+        /* Shadows */
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     
-    .digital-grid {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
-    
-    .charts-grid {
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    }
-}
-
-@media (max-width: 992px) {
+    /* ===== CONTAINER ===== */
     .graphs-container {
-        padding: var(--space-4);
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: var(--space-6);
+        background: var(--bg-secondary);
     }
     
+    /* ===== MINIMAL TOP HEADER ===== */
+    .minimal-header {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4) var(--space-6);
+        margin-bottom: var(--space-6);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--space-4);
+    }
+    
+    .header-device-id {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        font-family: 'Courier New', monospace;
+    }
+    
+    .header-last-update {
+        background: var(--success);
+        color: white;
+        padding: var(--space-2) var(--space-4);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+    
+    /* ===== TIME RANGE SELECTOR ===== */
+    .time-range-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: var(--space-5);
+        margin-bottom: var(--space-6);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .time-range-card h5 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 var(--space-4) 0;
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+    
+    .time-range-card h5 i {
+        color: var(--primary-blue);
+    }
+    
+    .time-range-buttons {
+        display: flex;
+        gap: var(--space-2);
+        flex-wrap: wrap;
+    }
+    
+    .time-range-btn {
+        padding: var(--space-3) var(--space-5);
+        border: 2px solid var(--border-light);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+    
+    .time-range-btn:hover {
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .time-range-btn.active {
+        background: var(--primary-blue);
+        color: white;
+        border-color: var(--primary-blue);
+        box-shadow: var(--shadow-md);
+    }
+    
+    /* ===== LOADING & ERROR STATES ===== */
+    .loading-state,
+    .error-state {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 2.5rem;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-4);
+    }
+    
+    .spinner {
+        border: 4px solid var(--gray-200);
+        border-top: 4px solid var(--primary-blue);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .loading-state h5 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
+    
+    .loading-state p {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+    
+    .error-state {
+        border-color: var(--danger);
+        background: rgba(239, 68, 68, 0.05);
+    }
+    
+    .error-state i {
+        font-size: 64px;
+        color: var(--danger);
+        margin-bottom: var(--space-4);
+        display: block;
+    }
+    
+    .error-state h4 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--danger);
+        margin: 0 0 var(--space-3) 0;
+    }
+    
+    .error-state p {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-bottom: 1.25rem;
+    }
+    
+    .error-state .btn {
+        background: var(--danger);
+        color: white;
+        border: none;
+        padding: var(--space-3) var(--space-6);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .error-state .btn:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    /* ===== SECTION CARDS ===== */
+    .section-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--space-6);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+    
+    .section-header {
+        background: var(--gray-50);
+        border-left: 4px solid var(--primary-blue);
+        padding: var(--space-4) var(--space-5);
+        border-bottom: 1px solid var(--border-light);
+    }
+    
+    .section-header h4 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+    }
+    
+    .section-header h4 i {
+        color: var(--primary-blue);
+    }
+    
+    .section-body {
+        padding: var(--space-6);
+    }
+    
+    /* ============================================================================
+       GAUGE SECTION - REFERENCE IMAGE STYLE (4 PER ROW)
+       ============================================================================ */
     .gauge-grid {
-        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: var(--space-5);
     }
     
+    .gauge-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: var(--space-5);
+        position: relative;
+        transition: all 0.2s ease;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .gauge-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+    
+    .gauge-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-4);
+    }
+    
+    .gauge-sensor-name {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--text-primary);
+    }
+    
+    .gauge-menu-icon {
+        color: var(--text-tertiary);
+        cursor: pointer;
+        font-size: 1.25rem;
+    }
+    
+    .gauge-menu-icon:hover {
+        color: var(--text-primary);
+    }
+    
+    .gauge-chart-wrapper {
+        position: relative;
+        height: 200px;
+        margin: var(--space-4) 0;
+    }
+    
+    .gauge-value-display {
+        position: absolute;
+        top: 65%;
+        left: 40%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    
+    .gauge-current-value {
+        font-weight: 1000;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    
+    .gauge-unit-label {
+        color: var(--text-secondary);
+        margin-top: var(--space-2);
+    }
+    
+    /* ============================================================================
+       DIGITAL STATUS - HORIZONTAL LAYOUT (3 PER ROW)
+       ============================================================================ */
     .digital-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: var(--space-5);
     }
     
+    .digital-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: var(--space-5);
+        transition: all 0.2s ease;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .digital-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+    
+    /* HORIZONTAL LAYOUT */
+    .digital-content {
+        display: flex;
+        align-items: center;
+        gap: var(--space-5);
+    }
+    
+    .digital-indicator-wrapper {
+        flex-shrink: 0;
+    }
+    
+    .digital-indicator {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        transition: all 0.3s ease;
+    }
+    
+    .digital-indicator.on {
+        background: var(--success);
+        color: white;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+    }
+    
+    .digital-indicator.off {
+        background: var(--gray-200);
+        color: var(--gray-500);
+    }
+    
+    .digital-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .digital-name {
+        font-weight: 700;
+        font-size: 1.125rem;
+        color: var(--text-primary);
+        margin-bottom: var(--space-2);
+    }
+    
+    .digital-status-label {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: var(--space-2);
+    }
+    
+    .digital-status-label.on {
+        color: var(--success);
+    }
+    
+    .digital-status-label.off {
+        color: var(--gray-500);
+    }
+    
+    .digital-timestamp {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+    }
+    
+    /* ============================================================================
+       TIME SERIES CHARTS (3 PER ROW) - DROPDOWN LEFT, TITLE RIGHT
+       ============================================================================ */
     .charts-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: var(--space-5);
+    }
+    
+    .chart-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--primary-blue);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: all 0.2s ease;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .chart-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+    
+    .chart-header {
+        padding: var(--space-4) var(--space-5);
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+    }
+    
+    /* DROPDOWN ON LEFT */
+    .chart-controls {
+        display: flex;
+        gap: var(--space-3);
+        align-items: center;
+        order: 1;
+    }
+    
+    .chart-type-selector {
+        padding: 6px 12px;
+        border: 2px solid var(--border-light);
+        border-radius: var(--radius-md);
+        background: white;
+        color: var(--text-primary);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .chart-type-selector:hover {
+        border-color: var(--primary-blue);
+    }
+    
+    .chart-type-selector:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    /* TITLE AND BADGES ON RIGHT */
+    .chart-title-section {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        order: 2;
+    }
+    
+    .chart-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+    
+    .chart-title i {
+        color: var(--primary-blue);
+    }
+    
+    .chart-meta {
+        display: flex;
+        gap: var(--space-2);
+    }
+    
+    .chart-meta .badge {
+        font-size: 11px;
+        padding: 4px var(--space-3);
+        border-radius: 0.25rem;
+        font-weight: 600;
+    }
+    
+    .badge.bg-light {
+        background: var(--gray-200) !important;
+        color: var(--text-primary);
+    }
+    
+    .badge.bg-info {
+        background: var(--info) !important;
+        color: white;
     }
     
     .chart-body {
-        height: 280px;
-    }
-}
-
-@media (max-width: 768px) {
-    .minimal-header {
-        flex-direction: column;
-        align-items: flex-start;
+        padding: var(--space-5);
+        position: relative;
+        height: 320px;
+        background: var(--bg-primary);
     }
     
-    .gauge-grid {
-        grid-template-columns: 1fr;
+    .chart-body canvas {
+        width: 100% !important;
+        height: 100% !important;
     }
     
-    .digital-content {
-        flex-direction: column;
-        text-align: center;
+    /* ===== RESPONSIVE DESIGN ===== */
+    @media (max-width: 1400px) {
+        .gauge-grid {
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        }
     }
-}
-
-@media (max-width: 576px) {
-    .time-range-buttons {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
+    
+    @media (max-width: 1200px) {
+        .gauge-grid {
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        }
+        
+        .digital-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+        
+        .charts-grid {
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        }
     }
-}
-</style>
+    
+    @media (max-width: 992px) {
+        .graphs-container {
+            padding: var(--space-4);
+        }
+        
+        .gauge-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .digital-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-body {
+            height: 280px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .minimal-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .gauge-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .digital-content {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .chart-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .chart-controls {
+            order: 1;
+            width: 100%;
+        }
+        
+        .chart-title-section {
+            order: 2;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .time-range-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -1024,10 +1078,14 @@ function renderHorizontalDigital(sensor) {
 /* ============================================================================
    TIME SERIES CHART (UNCHANGED)
    ============================================================================ */
-function renderIndustrialChart(sensor, timestamps, index) {
+/* ============================================================================
+   TIME SERIES CHART WITH CHART TYPE SELECTOR (5 TYPES)
+   ============================================================================ */
+   function renderIndustrialChart(sensor, timestamps, index) {
     const container = document.getElementById('charts-container');
     const chartId = `chart-${index}`;
     const canvasId = `canvas-${index}`;
+    const selectorId = `chart-type-${index}`;
     
     const chartHtml = `
         <div class="chart-card" id="${chartId}">
@@ -1036,11 +1094,20 @@ function renderIndustrialChart(sensor, timestamps, index) {
                     <i class="fas fa-chart-line"></i>
                     ${sensor.display_name}
                 </h5>
-                <div class="chart-meta">
-                    <span class="badge bg-light">
-                        <i class="fas fa-clock me-1"></i>${timestamps.length} Points
-                    </span>
-                    ${sensor.unit ? `<span class="badge bg-info">${sensor.unit}</span>` : ''}
+                <div class="chart-controls">
+                    <select class="chart-type-selector" id="${selectorId}" data-chart-index="${index}">
+                        <option value="line" selected>Line</option>
+                        <option value="area">Area</option>
+                        <option value="step">Step</option>
+                        <option value="bar">Bar</option>
+                        <option value="comparison">Last 2 Compare</option>
+                    </select>
+                    <div class="chart-meta">
+                        <span class="badge bg-light">
+                            <i class="fas fa-clock me-1"></i>${timestamps.length} Points
+                        </span>
+                        ${sensor.unit ? `<span class="badge bg-info">${sensor.unit}</span>` : ''}
+                    </div>
                 </div>
             </div>
             <div class="chart-body">
@@ -1051,8 +1118,54 @@ function renderIndustrialChart(sensor, timestamps, index) {
     
     container.insertAdjacentHTML('beforeend', chartHtml);
     
+    // Create initial chart (default: line)
+    const chart = createChart(canvasId, sensor, timestamps, 'line');
+    if (chart) {
+        chartInstances.push({
+            chart: chart,
+            sensor: sensor,
+            timestamps: timestamps,
+            canvasId: canvasId,
+            index: index
+        });
+    }
+    
+    // Add change event listener
+    document.getElementById(selectorId).addEventListener('change', function() {
+        const chartType = this.value;
+        const chartIndex = parseInt(this.dataset.chartIndex);
+        updateChartType(chartIndex, chartType);
+    });
+}
+
+/* ============================================================================
+   UPDATE CHART TYPE
+   ============================================================================ */
+function updateChartType(chartIndex, chartType) {
+    const chartData = chartInstances[chartIndex];
+    if (!chartData) return;
+    
+    // Destroy old chart
+    if (chartData.chart) {
+        chartData.chart.destroy();
+    }
+    
+    // Create new chart with selected type
+    const newChart = createChart(chartData.canvasId, chartData.sensor, chartData.timestamps, chartType);
+    chartData.chart = newChart;
+}
+
+/* ============================================================================
+   CREATE CHART BASED ON TYPE
+   ============================================================================ */
+function createChart(canvasId, sensor, timestamps, chartType) {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return null;
+    
+    // Handle comparison chart (special case)
+    if (chartType === 'comparison') {
+        return createComparisonChart(ctx, sensor);
+    }
     
     const labels = timestamps.map(ts => {
         const date = new Date(ts);
@@ -1063,8 +1176,33 @@ function renderIndustrialChart(sensor, timestamps, index) {
         });
     });
     
+    // Configure chart based on type
+    let type = 'line';
+    let stepped = false;
+    let fill = false;
+    let pointRadius = 4;
+    let tension = 0.4;
+    
+    switch(chartType) {
+        case 'bar':
+            type = 'bar';
+            pointRadius = 0;
+            break;
+        case 'step':
+            stepped = true;
+            tension = 0;
+            break;
+        case 'area':
+            fill = true;
+            break;
+        case 'line':
+        default:
+            // Default line chart settings
+            break;
+    }
+    
     const config = {
-        type: 'line',
+        type: type,
         data: {
             labels: labels,
             datasets: [{
@@ -1072,14 +1210,15 @@ function renderIndustrialChart(sensor, timestamps, index) {
                 data: sensor.values,
                 borderColor: '#2563eb',
                 borderWidth: 3,
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                fill: true,
-                pointRadius: 4,
+                backgroundColor: fill ? 'rgba(37, 99, 235, 0.3)' : (type === 'bar' ? '#2563eb' : 'rgba(37, 99, 235, 0.1)'),
+                fill: fill,
+                stepped: stepped,
+                pointRadius: pointRadius,
                 pointHoverRadius: 8,
                 pointBackgroundColor: '#2563eb',
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: 2,
-                tension: 0.4,
+                tension: tension,
                 spanGaps: true,
             }]
         },
@@ -1226,7 +1365,6 @@ function renderIndustrialChart(sensor, timestamps, index) {
     
     try {
         const chart = new Chart(ctx, config);
-        chartInstances.push(chart);
         return chart;
     } catch (error) {
         console.error('Chart error:', error);
@@ -1234,6 +1372,124 @@ function renderIndustrialChart(sensor, timestamps, index) {
     }
 }
 
+/* ============================================================================
+   LAST 2 POINTS COMPARISON CHART
+   ============================================================================ */
+function createComparisonChart(ctx, sensor) {
+    const values = sensor.values.filter(v => v !== null && v !== undefined);
+    
+    if (values.length < 2) {
+        // Not enough data - show message
+        ctx.getContext('2d').font = '16px Arial';
+        ctx.getContext('2d').fillStyle = '#6b7280';
+        ctx.getContext('2d').textAlign = 'center';
+        ctx.getContext('2d').fillText('Not enough data for comparison', ctx.width / 2, ctx.height / 2);
+        return null;
+    }
+    
+    const lastValue = values[values.length - 1];
+    const secondLastValue = values[values.length - 2];
+    const difference = lastValue - secondLastValue;
+    const percentChange = ((difference / secondLastValue) * 100).toFixed(2);
+    
+    const config = {
+        type: 'bar',
+        data: {
+            labels: ['Previous', 'Current'],
+            datasets: [{
+                label: sensor.display_name || sensor.sensor_name,
+                data: [secondLastValue, lastValue],
+                backgroundColor: [
+                    difference < 0 ? '#ef4444' : '#10b981',
+                    difference >= 0 ? '#10b981' : '#ef4444'
+                ],
+                borderColor: [
+                    difference < 0 ? '#dc2626' : '#059669',
+                    difference >= 0 ? '#059669' : '#dc2626'
+                ],
+                borderWidth: 2,
+                barThickness: 80
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            label += context.parsed.y.toFixed(2);
+                            if (sensor.unit) label += ' ' + sensor.unit;
+                            return label;
+                        },
+                        afterLabel: function(context) {
+                            if (context.dataIndex === 1) {
+                                return `Change: ${difference >= 0 ? '+' : ''}${difference.toFixed(2)} (${percentChange}%)`;
+                            }
+                            return '';
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: `Change: ${difference >= 0 ? '+' : ''}${difference.toFixed(2)} ${sensor.unit || ''} (${percentChange}%)`,
+                    color: difference >= 0 ? '#10b981' : '#ef4444',
+                    font: {
+                        size: 16,
+                        weight: 'bold'
+                    }
+                }
+            },
+            scales: {
+    y: {
+        beginAtZero: false,
+        title: {
+            display: true,
+            text: sensor.unit ? `Value (${sensor.unit})` : 'Value',
+            color: '#6b7280',
+            font: { size: 12, weight: 'bold' }
+        },
+        grid: {
+            display: true,
+            color: 'rgba(0, 0, 0, 0.1)'
+        },
+        ticks: {
+            color: '#6b7280',
+            callback: function(value) {
+                return value.toFixed(1);
+            }
+        },
+        grace: '15%', /* Add 15% padding above and below */
+        suggestedMin: Math.min(secondLastValue, lastValue) * 0.9, /* Show 10% below lowest */
+        suggestedMax: Math.max(secondLastValue, lastValue) * 1.1  /* Show 10% above highest */
+    },
+    x: {
+        grid: {
+            display: false
+        },
+        ticks: {
+            color: '#6b7280',
+            font: { size: 14, weight: 'bold' }
+        }
+    }
+}
+        }
+    };
+    
+    try {
+        const chart = new Chart(ctx, config);
+        return chart;
+    } catch (error) {
+        console.error('Comparison chart error:', error);
+        return null;
+    }
+}
 // Load on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadGraphData();

@@ -614,3 +614,26 @@ def device_graphs_view(request, device_id):
             'success': False,
             'message': f'An error occurred: {str(e)}'
         }, status=500)
+    
+
+
+@require_department_admin
+def alerts_view(request):
+    """
+    Alerts landing page - Coming Soon
+    """
+    context = {
+        'page_title': 'Alerts',
+    }
+    return render(request, 'departmentadmin/alerts.html', context)
+
+
+@require_department_admin
+def reports_view(request):
+    """
+    Reports landing page - Coming Soon
+    """
+    context = {
+        'page_title': 'Reports',
+    }
+    return render(request, 'departmentadmin/reports.html', context)

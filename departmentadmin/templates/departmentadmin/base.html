@@ -990,16 +990,14 @@
             <span class="sidebar-text">Devices</span>
         </a>
 
-        <a href="#" class="disabled">
-            <i class="fas fa-chart-bar"></i>
-            <span class="sidebar-text">Graphs</span>
-            <span class="coming-soon-badge">Soon</span>
-        </a>
-
-        <a href="#" class="disabled">
+        <a href="{% url 'departmentadmin:alerts' %}" class="{% if request.resolver_match.url_name == 'alerts' %}active{% endif %}">
             <i class="fas fa-bell"></i>
             <span class="sidebar-text">Alerts</span>
-            <span class="coming-soon-badge">Soon</span>
+        </a>
+        
+        <a href="{% url 'departmentadmin:reports' %}" class="{% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+            <i class="fas fa-file-alt"></i>
+            <span class="sidebar-text">Reports</span>
         </a>
 
         <a href="{% url 'departmentadmin:logout' %}">
@@ -1011,7 +1009,7 @@
     <div class="sidebar-footer">
         <div class="sidebar-illustration">
             <img src="{% static 'systemadmin/images/illu.svg' %}" alt="SmartOps" onerror="this.style.display='none'">
-            <div class="sidebar-tagline">Sisai Technology</div>
+            <div class="sidebar-tagline">Sisai Technologies</div>
         </div>
     </div>
 </div>
@@ -1060,7 +1058,7 @@
         <div class="mobile-menu-illustration">
             <img src="{% static 'systemadmin/images/illu.svg' %}" alt="SmartOps" onerror="this.style.display='none'">
         </div>
-        <div class="mobile-menu-tagline">Sisai Technology</div>
+        <div class="mobile-menu-tagline">Sisai Technologies</div>
     </div>
 </div>
 

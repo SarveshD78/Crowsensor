@@ -1,0 +1,451 @@
+{% extends 'departmentadmin/base.html' %}
+{% load static %}
+
+{% block title %}Alerts - Department Admin{% endblock %}
+{% block page_heading %}Alerts{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== ALERTS PAGE STYLES ===== */
+.alerts-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* Stats Cards */
+.alert-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-5);
+    margin-bottom: var(--space-6);
+}
+
+.alert-stat-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    transition: all 0.2s ease;
+}
+
+.alert-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.alert-stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.alert-stat-icon.critical {
+    background: var(--danger);
+    color: white;
+}
+
+.alert-stat-icon.warning {
+    background: var(--warning);
+    color: white;
+}
+
+.alert-stat-icon.info {
+    background: var(--info);
+    color: white;
+}
+
+.alert-stat-icon.success {
+    background: var(--success);
+    color: white;
+}
+
+.alert-stat-content h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1;
+}
+
+.alert-stat-content p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: var(--space-2) 0 0 0;
+    font-weight: 500;
+}
+
+/* Alert List */
+.alerts-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.alerts-header {
+    background: var(--gray-50);
+    border-left: 4px solid var(--primary-blue);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.alerts-header h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.alerts-header h4 i {
+    color: var(--primary-blue);
+}
+
+.alerts-body {
+    padding: var(--space-5);
+}
+
+.alert-item {
+    background: var(--gray-50);
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-4);
+    transition: all 0.2s ease;
+    display: flex;
+    gap: var(--space-5);
+}
+
+.alert-item:last-child {
+    margin-bottom: 0;
+}
+
+.alert-item:hover {
+    border-color: var(--primary-blue);
+    background: var(--bg-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.alert-icon-wrapper {
+    flex-shrink: 0;
+}
+
+.alert-icon-large {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+}
+
+.alert-icon-large.critical {
+    background: var(--danger);
+    color: white;
+}
+
+.alert-icon-large.warning {
+    background: var(--warning);
+    color: white;
+}
+
+.alert-icon-large.info {
+    background: var(--info);
+    color: white;
+}
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.alert-badge {
+    padding: 4px 10px;
+    border-radius: var(--radius-md);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.alert-badge.critical {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+}
+
+.alert-badge.warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+}
+
+.alert-badge.info {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--info);
+}
+
+.alert-description {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+    line-height: 1.6;
+}
+
+.alert-meta {
+    display: flex;
+    gap: var(--space-5);
+    flex-wrap: wrap;
+}
+
+.alert-meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+
+.alert-meta-item i {
+    color: var(--primary-blue);
+    font-size: 14px;
+}
+
+.alert-meta-item strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Empty State */
+.empty-alerts {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-alerts i {
+    font-size: 80px;
+    color: var(--gray-300);
+    margin-bottom: var(--space-5);
+}
+
+.empty-alerts h5 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+}
+
+.empty-alerts p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="alerts-container">
+
+    <!-- Stats Cards -->
+    <div class="alert-stats-grid">
+        <div class="alert-stat-card">
+            <div class="alert-stat-icon critical">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="alert-stat-content">
+                <h3>3</h3>
+                <p>Critical Alerts</p>
+            </div>
+        </div>
+
+        <div class="alert-stat-card">
+            <div class="alert-stat-icon warning">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="alert-stat-content">
+                <h3>7</h3>
+                <p>Warnings</p>
+            </div>
+        </div>
+
+        <div class="alert-stat-card">
+            <div class="alert-stat-icon info">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="alert-stat-content">
+                <h3>12</h3>
+                <p>Info Alerts</p>
+            </div>
+        </div>
+
+        <div class="alert-stat-card">
+            <div class="alert-stat-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="alert-stat-content">
+                <h3>48</h3>
+                <p>Resolved</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Alerts -->
+    <div class="alerts-card">
+        <div class="alerts-header">
+            <h4>
+                <i class="fas fa-bell"></i>
+                Active Alerts
+            </h4>
+        </div>
+        <div class="alerts-body">
+            
+            <!-- Alert 1: Critical -->
+            <div class="alert-item">
+                <div class="alert-icon-wrapper">
+                    <div class="alert-icon-large critical">
+                        <i class="fas fa-temperature-high"></i>
+                    </div>
+                </div>
+                <div class="alert-content">
+                    <div class="alert-title">
+                        Temperature Exceeded Upper Limit
+                        <span class="alert-badge critical">Critical</span>
+                    </div>
+                    <div class="alert-description">
+                        Sensor AI1 on device chiller_a0hex001 has exceeded the upper limit threshold of 85°C. Current reading: 92.5°C
+                    </div>
+                    <div class="alert-meta">
+                        <div class="alert-meta-item">
+                            <i class="fas fa-microchip"></i>
+                            <span><strong>Device:</strong> chiller_a0hex001</span>
+                        </div>
+                        <div class="alert-meta-item">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span><strong>Sensor:</strong> AI1 (Temperature)</span>
+                        </div>
+                        <div class="alert-meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span><strong>Time:</strong> 2 minutes ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert 2: Critical -->
+            <div class="alert-item">
+                <div class="alert-icon-wrapper">
+                    <div class="alert-icon-large critical">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                </div>
+                <div class="alert-content">
+                    <div class="alert-title">
+                        Power Consumption Spike Detected
+                        <span class="alert-badge critical">Critical</span>
+                    </div>
+                    <div class="alert-description">
+                        Energy meter energy_a0hex002 shows abnormal power consumption of 1250W, exceeding normal range by 45%
+                    </div>
+                    <div class="alert-meta">
+                        <div class="alert-meta-item">
+                            <i class="fas fa-microchip"></i>
+                            <span><strong>Device:</strong> energy_a0hex002</span>
+                        </div>
+                        <div class="alert-meta-item">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span><strong>Sensor:</strong> Power (W)</span>
+                        </div>
+                        <div class="alert-meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span><strong>Time:</strong> 15 minutes ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert 3: Warning -->
+            <div class="alert-item">
+                <div class="alert-icon-wrapper">
+                    <div class="alert-icon-large warning">
+                        <i class="fas fa-water"></i>
+                    </div>
+                </div>
+                <div class="alert-content">
+                    <div class="alert-title">
+                        Flow Rate Below Normal
+                        <span class="alert-badge warning">Warning</span>
+                    </div>
+                    <div class="alert-description">
+                        Flow sensor flow_a0hex001 reading 12.5 L/min, which is 20% below the expected flow rate of 15 L/min
+                    </div>
+                    <div class="alert-meta">
+                        <div class="alert-meta-item">
+                            <i class="fas fa-microchip"></i>
+                            <span><strong>Device:</strong> flow_a0hex001</span>
+                        </div>
+                        <div class="alert-meta-item">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span><strong>Sensor:</strong> Flow Rate (L/min)</span>
+                        </div>
+                        <div class="alert-meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span><strong>Time:</strong> 1 hour ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert 4: Info -->
+            <div class="alert-item">
+                <div class="alert-icon-wrapper">
+                    <div class="alert-icon-large info">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                </div>
+                <div class="alert-content">
+                    <div class="alert-title">
+                        Device Connection Restored
+                        <span class="alert-badge info">Info</span>
+                    </div>
+                    <div class="alert-description">
+                        PLC device plc-1_a0hex001 has reconnected successfully after 5 minutes of downtime
+                    </div>
+                    <div class="alert-meta">
+                        <div class="alert-meta-item">
+                            <i class="fas fa-microchip"></i>
+                            <span><strong>Device:</strong> plc-1_a0hex001</span>
+                        </div>
+                        <div class="alert-meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span><strong>Time:</strong> 2 hours ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

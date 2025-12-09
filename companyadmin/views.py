@@ -27,57 +27,76 @@ def company_logout_view(request):
     return redirect('accounts:login')
 
 
-# =============================================================================
-# DASHBOARD
-# =============================================================================
 @require_company_admin
 def dashboard_view(request):
     """
-    Company Admin Dashboard with REAL data only
+    Company Admin Dashboard with REAL data and working InfluxDB status
     """
     from .models import Device, Sensor, SensorMetadata, AssetConfig
     from django.utils import timezone
     from datetime import timedelta
+    import requests
+    from requests.auth import HTTPBasicAuth
     
-    # Get stats (schema-scoped automatically)
+    # ========== USER STATS ==========
     total_users = User.objects.filter(is_active=True).exclude(role='company_admin').count()
     total_dept_admins = User.objects.filter(is_active=True, role='department_admin').count()
     total_read_only_users = User.objects.filter(is_active=True, role='user').count()
     total_departments = Department.objects.filter(is_active=True).count()
     
-    # ✅ DEVICE & SENSOR STATS
+    # ========== DEVICE & SENSOR STATS ==========
     total_devices = Device.objects.count()
     total_sensors = Sensor.objects.filter(category='sensor').count()
     
-    # ✅ Calculate configured sensors (has metadata with display_name AND unit)
+    # Calculate configured sensors (has metadata with display_name AND unit)
     configured_sensors = SensorMetadata.objects.filter(
         display_name__isnull=False,
         unit__isnull=False
     ).exclude(display_name='').exclude(unit='').count()
     
-    # ✅ INFLUXDB STATUS
+    # ========== INFLUXDB STATUS (FIXED) ==========
     influx_config = AssetConfig.get_active_config()
     influx_status = 'offline'
     influx_last_checked = None
     
     if influx_config:
-        # Test connection
+        # Test connection with /ping endpoint (same as config page)
         try:
-            from .utils import get_influx_client
-            client = get_influx_client(influx_config)
-            # Try a simple query to verify connection
-            client.query("SHOW DATABASES")
-            influx_status = 'online'
+            ping_url = f"{influx_config.base_api}/ping"
+            
+            response = requests.get(
+                ping_url,
+                auth=HTTPBasicAuth(influx_config.api_username, influx_config.api_password),
+                verify=False,
+                timeout=5
+            )
+            
+            if response.status_code == 204:
+                influx_status = 'online'
+                # Update is_connected if it was false
+                if not influx_config.is_connected:
+                    influx_config.is_connected = True
+                    influx_config.save()
+            else:
+                influx_status = 'offline'
+                
             influx_last_checked = timezone.now()
+            
         except Exception as e:
+            print(f"❌ InfluxDB connection test failed: {e}")
             influx_status = 'offline'
             influx_last_checked = timezone.now()
+            
+            # Update is_connected to false if connection failed
+            if influx_config.is_connected:
+                influx_config.is_connected = False
+                influx_config.save()
     
-    # ✅ RECENT ACTIVITY (last 10 activities from last 7 days)
+    # ========== RECENT ACTIVITY (Last 7 days) ==========
     recent_activities = []
     seven_days_ago = timezone.now() - timedelta(days=7)
     
-    # Get recent users (last 7 days)
+    # Get recent users
     recent_users = User.objects.filter(
         date_joined__gte=seven_days_ago
     ).exclude(role='company_admin').order_by('-date_joined')[:5]
@@ -93,23 +112,24 @@ def dashboard_view(request):
             'time': user.date_joined
         })
     
-    # Get recent devices (last 7 days)
+    # Get recent devices
     recent_devices = Device.objects.filter(
         created_at__gte=seven_days_ago
     ).order_by('-created_at')[:5]
     
     for device in recent_devices:
+        sensor_count = device.sensors.count()
         recent_activities.append({
             'type': 'device_added',
             'icon': 'fa-microchip',
             'color': '#d1ecf1',
             'icon_color': '#0c5460',
             'title': 'Device configured',
-            'description': f'{device.display_name} added to system',
+            'description': f'{device.display_name} with {sensor_count} sensors',
             'time': device.created_at
         })
     
-    # Get recent departments (last 7 days)
+    # Get recent departments
     recent_departments = Department.objects.filter(
         created_at__gte=seven_days_ago
     ).order_by('-created_at')[:5]
@@ -125,7 +145,7 @@ def dashboard_view(request):
             'time': dept.created_at
         })
     
-    # Get recent metadata updates (last 7 days)
+    # Get recent metadata updates
     recent_metadata = SensorMetadata.objects.filter(
         updated_at__gte=seven_days_ago
     ).select_related('sensor', 'sensor__device').order_by('-updated_at')[:5]
@@ -137,14 +157,15 @@ def dashboard_view(request):
             'color': '#e7f3ff',
             'icon_color': '#004085',
             'title': 'Sensor metadata updated',
-            'description': f'{metadata.sensor.field_name} on {metadata.sensor.device.display_name}',
+            'description': f'{metadata.display_name or metadata.sensor.field_name} on {metadata.sensor.device.display_name}',
             'time': metadata.updated_at
         })
     
-    # ✅ Sort all activities by time and take top 10
+    # Sort all activities by time and take top 10
     recent_activities.sort(key=lambda x: x['time'], reverse=True)
     recent_activities = recent_activities[:10]
     
+    # ========== CONTEXT ==========
     context = {
         'total_users': total_users,
         'total_dept_admins': total_dept_admins,
