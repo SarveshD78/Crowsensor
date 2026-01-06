@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -483,3 +484,119 @@ def system_logout_view(request):
     logout(request)
     messages.success(request, '👋 You have been logged out successfully.')
     return redirect('systemadmin:system_login')
+
+
+# ==========================================
+# TENANT DELETION
+# ==========================================
+@system_admin_required
+def tenant_delete_view(request, tenant_id):
+    """
+    Permanently delete tenant, schema, and all associated data
+    
+    Security:
+    - POST request required
+    - Company name confirmation required
+    - Cannot delete 'public' schema
+    - Terminates all active connections before schema drop
+    """
+    tenant = get_object_or_404(Tenant, id=tenant_id)
+    
+    # Security: Prevent deletion of public schema
+    if tenant.schema_name == 'public':
+        messages.error(request, '❌ Cannot delete the public schema!')
+        return redirect('systemadmin:system_dashboard')
+    
+    # Only allow POST requests
+    if request.method != 'POST':
+        messages.error(request, '❌ Invalid request method')
+        return redirect('systemadmin:tenant_detail', tenant_id=tenant_id)
+    
+    # Verify company name confirmation
+    confirmed_name = request.POST.get('confirm_company_name', '').strip()
+    if confirmed_name != tenant.company_name:
+        messages.error(
+            request, 
+            f'❌ Company name confirmation failed. Please type "{tenant.company_name}" exactly.'
+        )
+        return redirect('systemadmin:tenant_detail', tenant_id=tenant_id)
+    
+    # Store details for success message
+    company_name = tenant.company_name
+    schema_name = tenant.schema_name
+    subdomain = tenant.subdomain
+    
+    try:
+        with transaction.atomic():
+            print(f"\n{'='*60}")
+            print(f"🗑️  DELETING TENANT: {company_name}")
+            print(f"{'='*60}")
+            
+            # Step 1: Drop PostgreSQL schema (if enabled)
+            if tenant.auto_drop_schema:
+                print(f"  📍 Dropping schema: {schema_name}")
+                
+                with connection.cursor() as cursor:
+                    # Terminate all active connections to this schema
+                    print(f"  🔌 Terminating active connections...")
+                    cursor.execute(f"""
+                        SELECT pg_terminate_backend(pg_stat_activity.pid)
+                        FROM pg_stat_activity
+                        WHERE pg_stat_activity.datname = current_database()
+                          AND pg_stat_activity.pid <> pg_backend_pid()
+                          AND pg_stat_activity.query LIKE '%{schema_name}%';
+                    """)
+                    
+                    # Drop the schema with CASCADE
+                    print(f"  🗑️  Executing: DROP SCHEMA {schema_name} CASCADE")
+                    cursor.execute(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE")
+                    
+                print(f"  ✅ Schema dropped successfully")
+            else:
+                print(f"  ⚠️  Schema NOT dropped (auto_drop_schema=False)")
+                print(f"      Manual cleanup required for schema: {schema_name}")
+            
+            # Step 2: Delete associated domains
+            domain_count = tenant.domains.count()
+            domain_list = list(tenant.domains.values_list('domain', flat=True))
+            tenant.domains.all().delete()
+            print(f"  ✅ Deleted {domain_count} domain(s): {', '.join(domain_list)}")
+            
+            # Step 3: Delete tenant record from database
+            tenant.delete()
+            print(f"  ✅ Tenant record deleted from database")
+            
+            print(f"\n{'='*60}")
+            print(f"✅ DELETION COMPLETE!")
+            print(f"{'='*60}\n")
+            
+            # Success message
+            messages.success(
+                request,
+                f'✅ Tenant "{company_name}" has been permanently deleted!\n\n'
+                f'Details:\n'
+                f'• Schema: {schema_name}\n'
+                f'• Subdomain: {subdomain}\n'
+                f'• Domains: {", ".join(domain_list)}'
+            )
+            
+            return redirect('systemadmin:system_dashboard')
+            
+    except Exception as e:
+        error_msg = str(e)
+        print(f"\n{'='*60}")
+        print(f"❌ DELETION FAILED!")
+        print(f"{'='*60}")
+        print(f"Error: {error_msg}")
+        print(f"\nFull traceback:")
+        import traceback
+        print(traceback.format_exc())
+        print(f"{'='*60}\n")
+        
+        messages.error(
+            request, 
+            f'❌ Failed to delete tenant "{company_name}"!\n\n'
+            f'Error: {error_msg}\n\n'
+            f'Please check server logs for details.'
+        )
+        return redirect('systemadmin:tenant_detail', tenant_id=tenant_id)

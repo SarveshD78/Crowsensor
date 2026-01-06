@@ -18,19 +18,19 @@
            CSS VARIABLES - DESIGN SYSTEM
            ======================================== */
         :root {
-            /* ===== PRIMARY COLORS (NO GRADIENTS) ===== */
+            /* Primary Colors */
             --primary-blue: #2563eb;
             --primary-blue-dark: #1e40af;
             --primary-blue-light: #3b82f6;
             
-            /* ===== SEMANTIC COLORS ===== */
+            /* Semantic Colors */
             --success: #10b981;
             --success-dark: #059669;
             --warning: #f59e0b;
             --danger: #ef4444;
             --info: #3b82f6;
             
-            /* ===== NEUTRALS ===== */
+            /* Neutrals */
             --gray-50: #f9fafb;
             --gray-100: #f3f4f6;
             --gray-200: #e5e7eb;
@@ -42,28 +42,28 @@
             --gray-800: #1f2937;
             --gray-900: #111827;
             
-            /* ===== NAVBAR DARK THEME ===== */
+            /* Navbar Dark Theme */
             --navbar-bg: #1e293b;
             --navbar-border: #334155;
             --navbar-text: #f1f5f9;
             --navbar-text-muted: #cbd5e1;
             
-            /* ===== BACKGROUNDS ===== */
+            /* Backgrounds */
             --bg-primary: #ffffff;
             --bg-secondary: #f9fafb;
             --bg-tertiary: #f3f4f6;
             
-            /* ===== TEXT COLORS ===== */
+            /* Text Colors */
             --text-primary: #111827;
             --text-secondary: #4b5563;
             --text-tertiary: #6b7280;
             --text-muted: #9ca3af;
             
-            /* ===== BORDERS ===== */
+            /* Borders */
             --border-light: #e5e7eb;
             --border-medium: #d1d5db;
             
-            /* ===== TYPOGRAPHY ===== */
+            /* Typography */
             --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             --text-xs: 12px;
             --text-sm: 14px;
@@ -73,7 +73,7 @@
             --text-2xl: 24px;
             --text-3xl: 30px;
             
-            /* ===== SPACING ===== */
+            /* Spacing */
             --space-2: 8px;
             --space-3: 12px;
             --space-4: 16px;
@@ -81,18 +81,18 @@
             --space-6: 24px;
             --space-8: 32px;
             
-            /* ===== RADIUS ===== */
+            /* Radius */
             --radius-sm: 6px;
             --radius-md: 8px;
             --radius-lg: 12px;
             --radius-full: 9999px;
             
-            /* ===== SHADOWS ===== */
+            /* Shadows */
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             
-            /* ===== LAYOUT DIMENSIONS ===== */
+            /* Layout Dimensions */
             --navbar-height: 64px;
             --sidebar-width: 260px;
             --sidebar-collapsed-width: 72px;
@@ -190,7 +190,9 @@
             white-space: nowrap;
         }
         
-        /* Department Badge - Better Truncation */
+        /* ========================================
+           DEPARTMENT BADGE & DROPDOWN - FIXED
+           ======================================== */
         .department-badge {
             background: var(--primary-blue);
             color: white;
@@ -203,6 +205,8 @@
             gap: var(--space-2);
             max-width: 250px;
             position: relative;
+            border: none;
+            cursor: default;
         }
         
         .department-badge i {
@@ -216,7 +220,152 @@
             text-overflow: ellipsis;
             display: inline-block;
         }
+
+        /* Department Dropdown Container */
+        .dept-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Department Dropdown Button - Clickable */
+        .dept-dropdown-btn {
+            background: var(--primary-blue);
+            color: white;
+            font-size: var(--text-xs);
+            font-weight: 600;
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-full);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            max-width: 250px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dept-dropdown-btn:hover {
+            background: var(--primary-blue-dark);
+            transform: translateY(-1px);
+        }
+
+        .dept-dropdown-btn::after {
+            content: '';
+            margin-left: 6px;
+            border-top: 5px solid white;
+            border-right: 5px solid transparent;
+            border-left: 5px solid transparent;
+            transition: transform 0.2s ease;
+        }
+
+        .dept-dropdown.open .dept-dropdown-btn::after {
+            transform: rotate(180deg);
+        }
+
+        .dept-dropdown-btn i {
+            font-size: var(--text-xs);
+            flex-shrink: 0;
+        }
+
+        .dept-dropdown-btn span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+            max-width: 180px;
+        }
+
+        /* Department Dropdown Menu */
+        .dept-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 280px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            display: none;
+            padding: var(--space-2);
+        }
+
+        .dept-dropdown.open .dept-dropdown-menu {
+            display: block;
+            animation: dropdownFadeIn 0.2s ease;
+        }
+
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dept-dropdown-header {
+            font-size: var(--text-xs);
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: var(--space-2) var(--space-4);
+            margin-bottom: 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .dept-dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
+            font-size: var(--text-sm);
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            margin: 2px 0;
+        }
+
+        .dept-dropdown-item:hover {
+            background: var(--gray-100);
+            color: var(--primary-blue);
+        }
+
+        .dept-dropdown-item.active {
+            background: var(--primary-blue);
+            color: white;
+            font-weight: 600;
+        }
+
+        .dept-dropdown-item.active:hover {
+            background: var(--primary-blue-dark);
+        }
+
+        .dept-dropdown-item i {
+            color: inherit;
+        }
+
+        .dept-dropdown-item .fa-check {
+            font-size: var(--text-sm);
+            color: #10b981;
+        }
+
+        .dept-dropdown-item.active .fa-check {
+            color: white;
+        }
         
+        /* User Avatar */
         .user-avatar {
             background: var(--primary-blue);
             color: white;
@@ -236,6 +385,47 @@
             font-size: var(--text-sm);
             color: var(--navbar-text);
             white-space: nowrap;
+        }
+        
+        /* ========================================
+           DEBUG SECTION - REMOVE IN PRODUCTION
+           ======================================== */
+        .debug-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1e1e1e;
+            color: #00ff00;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 8px 16px;
+            z-index: 99999;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .debug-bar span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .debug-bar .label {
+            color: #888;
+        }
+
+        .debug-bar .value {
+            color: #00ff00;
+        }
+
+        .debug-bar .value.error {
+            color: #ff4444;
+        }
+
+        .debug-bar .value.success {
+            color: #44ff44;
         }
         
         /* ========================================
@@ -397,7 +587,7 @@
             display: none;
         }
         
-        /* Sidebar footer with integrated tagline */
+        /* Sidebar footer */
         .sidebar-footer {
             margin-top: auto;
             padding-top: var(--space-5);
@@ -436,7 +626,7 @@
         }
         
         /* ========================================
-           SECTION BAR - SOLID DESIGN
+           SECTION BAR
            ======================================== */
         .section-bar {
             position: fixed;
@@ -584,7 +774,7 @@
         }
         
         /* ========================================
-           MOBILE BOTTOM NAVIGATION BAR (FIXED)
+           MOBILE BOTTOM NAVIGATION BAR
            ======================================== */
         .mobile-nav {
             position: fixed;
@@ -632,7 +822,7 @@
             color: var(--primary-blue);
         }
         
-        /* ✅ CENTER BUTTON (HAMBURGER) */
+        /* Center Button (Hamburger) */
         .mobile-nav-item.center-btn {
             position: relative;
             margin: -20px 0 0 0;
@@ -791,17 +981,14 @@
         
         /* Tablet (768px) */
         @media (max-width: 768px) {
-            /* ✅ HIDE desktop sidebar completely */
             .sidebar {
                 display: none;
             }
             
-            /* ✅ SHOW mobile bottom nav */
             .mobile-nav {
                 display: flex;
             }
             
-            /* ✅ FIX navbar layout - Logo left, Department + Avatar right */
             .navbar {
                 padding: 0 var(--space-3);
                 height: 56px;
@@ -818,17 +1005,20 @@
                 white-space: nowrap;
             }
             
-            /* ✅ HIDE time and role badge */
             .time,
             .role-badge {
                 display: none;
             }
             
-            /* ✅ KEEP department badge and avatar */
-            .department-badge {
+            .department-badge,
+            .dept-dropdown-btn {
                 font-size: 10px;
                 padding: 4px 8px;
                 max-width: 100px;
+            }
+            
+            .dept-dropdown-btn span {
+                max-width: 60px;
             }
             
             .user-avatar {
@@ -837,7 +1027,6 @@
                 font-size: 11px;
             }
             
-            /* ✅ SHOW username next to avatar on mobile */
             .user-name {
                 display: block;
                 font-size: 12px;
@@ -846,7 +1035,6 @@
                 text-overflow: ellipsis;
             }
             
-            /* ✅ ADJUST section bar */
             .section-bar {
                 left: 0;
                 height: 50px;
@@ -857,7 +1045,6 @@
                 font-size: var(--text-lg);
             }
             
-            /* ✅ ADJUST content */
             .content-container {
                 margin-left: 0;
                 margin-top: calc(56px + 50px);
@@ -871,6 +1058,16 @@
                 right: var(--space-3);
                 left: var(--space-3);
                 max-width: none;
+            }
+
+            .dept-dropdown-menu {
+                min-width: 220px;
+                right: -10px;
+            }
+
+            /* Hide debug bar on mobile */
+            .debug-bar {
+                display: none;
             }
         }
         
@@ -892,7 +1089,8 @@
                 max-width: 100px;
             }
             
-            .department-badge {
+            .department-badge,
+            .dept-dropdown-btn {
                 max-width: 70px;
                 font-size: 9px;
                 padding: 3px 6px;
@@ -931,9 +1129,11 @@
     {% endif %}
 </div>
 
-<!-- Navbar -->
+<!-- ========================================
+     NAVBAR
+     ======================================== -->
 <div class="navbar">
-    <!-- ✅ LEFT: Logo only -->
+    <!-- LEFT: Logo -->
     <div class="d-flex align-items-center">
         <a href="{% url 'departmentadmin:dashboard' %}" class="navbar-brand">
             <i class="fas fa-building"></i>
@@ -941,31 +1141,76 @@
         </a>
     </div>
     
-    <!-- ✅ RIGHT: Department + Username + Avatar -->
+    <!-- RIGHT: Time + Role + Department + Username + Avatar -->
     <div class="user-info">
+        <!-- Time -->
         <div class="time" id="datetime"></div>
         
+        <!-- Role Badge -->
         <div class="role-badge">
             <i class="fas fa-user-tie"></i>
             <span>Admin</span>
         </div>
         
-        {% if request.user.department_memberships.all %}
-            <div class="department-badge" title="{% for membership in request.user.department_memberships.all %}{% if membership.is_active and membership.department.is_active %}{{ membership.department.name }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}">
+        <!-- ========================================
+             🌍 DEPARTMENT SWITCHER - CUSTOM DROPDOWN
+             ======================================== -->
+        {% if show_department_switcher and all_departments %}
+            <!-- Multi-Department: Show Custom Dropdown -->
+            <div class="dept-dropdown" id="deptDropdown">
+                <button type="button" class="dept-dropdown-btn" id="deptDropdownBtn">
+                    <i class="fas fa-sitemap"></i>
+                    <span>{{ department.name|default:"Select Dept" }}</span>
+                </button>
+                <div class="dept-dropdown-menu" id="deptDropdownMenu">
+                    <div class="dept-dropdown-header">
+                        <i class="fas fa-exchange-alt me-2"></i>
+                        Switch Department
+                    </div>
+                    {% for dept in all_departments %}
+                        <form method="POST" action="{% url 'departmentadmin:switch_department' %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="department_id" value="{{ dept.id }}">
+                            <button type="submit" class="dept-dropdown-item {% if department and dept.id == department.id %}active{% endif %}">
+                                <span>
+                                    <i class="fas fa-building me-2"></i>
+                                    {{ dept.name }}
+                                </span>
+                                {% if department and dept.id == department.id %}
+                                    <i class="fas fa-check"></i>
+                                {% endif %}
+                            </button>
+                        </form>
+                    {% endfor %}
+                </div>
+            </div>
+        {% elif department %}
+            <!-- Single Department: Show Simple Badge -->
+            <div class="department-badge" title="{{ department.name }}">
                 <i class="fas fa-sitemap"></i>
-                <span>{% for membership in request.user.department_memberships.all %}{% if membership.is_active and membership.department.is_active %}{{ membership.department.name }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}</span>
+                <span>{{ department.name }}</span>
+            </div>
+        {% else %}
+            <!-- No Department: Show Warning Badge -->
+            <div class="department-badge" style="background: var(--warning);" title="No department assigned">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>No Dept</span>
             </div>
         {% endif %}
         
-        <div class="user-name">{{ request.user.get_full_name_or_username|default:request.user.username }}</div>
+        <!-- Username -->
+        <div class="user-name">{{ request.user.first_name|default:request.user.username }}</div>
         
+        <!-- Avatar -->
         <div class="user-avatar">
             {{ request.user.first_name|slice:"1"|upper|default:request.user.username|slice:"1"|upper }}
         </div>
     </div>
 </div>
 
-<!-- Desktop Sidebar -->
+<!-- ========================================
+     DESKTOP SIDEBAR
+     ======================================== -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <h2>Menu</h2>
@@ -975,17 +1220,17 @@
     </div>
 
     <div class="sidebar-links">
-        <a href="{% url 'departmentadmin:dashboard' %}" class="{% if 'dashboard' in request.path %}active{% endif %}">
+        <a href="{% url 'departmentadmin:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
             <i class="fas fa-chart-line"></i>
             <span class="sidebar-text">Dashboard</span>
         </a>
 
-        <a href="{% url 'departmentadmin:users' %}" class="{% if 'users' in request.path %}active{% endif %}">
+        <a href="{% url 'departmentadmin:users' %}" class="{% if request.resolver_match.url_name == 'users' %}active{% endif %}">
             <i class="fas fa-users"></i>
             <span class="sidebar-text">Users</span>
         </a>
 
-        <a href="{% url 'departmentadmin:devices' %}" class="{% if 'devices' in request.path %}active{% endif %}">
+        <a href="{% url 'departmentadmin:devices' %}" class="{% if request.resolver_match.url_name == 'devices' or 'device' in request.path %}active{% endif %}">
             <i class="fas fa-microchip"></i>
             <span class="sidebar-text">Devices</span>
         </a>
@@ -1014,38 +1259,38 @@
     </div>
 </div>
 
-<!-- ✅ MOBILE MENU BOTTOM SHEET -->
+<!-- ========================================
+     MOBILE MENU BOTTOM SHEET
+     ======================================== -->
 <div class="mobile-menu-sheet" id="mobileMenuSheet">
     <div class="mobile-menu-header">
         <h2>Menu</h2>
     </div>
     
     <div class="mobile-menu-content">
-        <a href="{% url 'departmentadmin:dashboard' %}" class="{% if 'dashboard' in request.path %}active{% endif %}">
+        <a href="{% url 'departmentadmin:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
             <i class="fas fa-chart-line"></i>
             <span>Dashboard</span>
         </a>
         
-        <a href="{% url 'departmentadmin:users' %}" class="{% if 'users' in request.path %}active{% endif %}">
+        <a href="{% url 'departmentadmin:users' %}" class="{% if request.resolver_match.url_name == 'users' %}active{% endif %}">
             <i class="fas fa-users"></i>
             <span>Users</span>
         </a>
         
-        <a href="{% url 'departmentadmin:devices' %}" class="{% if 'devices' in request.path %}active{% endif %}">
+        <a href="{% url 'departmentadmin:devices' %}" class="{% if request.resolver_match.url_name == 'devices' %}active{% endif %}">
             <i class="fas fa-microchip"></i>
             <span>Devices</span>
         </a>
         
-        <a href="#" class="disabled">
-            <i class="fas fa-chart-bar"></i>
-            <span>Graphs</span>
-            <span class="coming-soon-badge">Soon</span>
-        </a>
-        
-        <a href="#" class="disabled">
+        <a href="{% url 'departmentadmin:alerts' %}" class="{% if request.resolver_match.url_name == 'alerts' %}active{% endif %}">
             <i class="fas fa-bell"></i>
             <span>Alerts</span>
-            <span class="coming-soon-badge">Soon</span>
+        </a>
+        
+        <a href="{% url 'departmentadmin:reports' %}" class="{% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+            <i class="fas fa-file-alt"></i>
+            <span>Reports</span>
         </a>
         
         <a href="{% url 'departmentadmin:logout' %}">
@@ -1062,9 +1307,11 @@
     </div>
 </div>
 
-<!-- ✅ MOBILE BOTTOM NAVIGATION BAR -->
+<!-- ========================================
+     MOBILE BOTTOM NAVIGATION BAR
+     ======================================== -->
 <div class="mobile-nav" id="mobileNav">
-    <a href="{% url 'departmentadmin:dashboard' %}" class="mobile-nav-item {% if 'dashboard' in request.path %}active{% endif %}">
+    <a href="{% url 'departmentadmin:dashboard' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
         <i class="fas fa-chart-line"></i>
         <span>Dashboard</span>
     </a>
@@ -1074,7 +1321,7 @@
         <span>Devices</span>
     </a>
     
-    <!-- ✅ CENTER HAMBURGER BUTTON -->
+    <!-- Center Hamburger Button -->
     <div class="mobile-nav-item center-btn">
         <button id="mobileMenuBtn">
             <i class="fas fa-bars"></i>
@@ -1103,6 +1350,35 @@
     {% block content %}{% endblock %}
 </div>
 
+<!-- ========================================
+     🔧 DEBUG BAR - Shows Context Variables
+     REMOVE THIS IN PRODUCTION!
+     ======================================== -->
+<div class="debug-bar">
+    <span>
+        <span class="label">department:</span>
+        <span class="value {% if department %}success{% else %}error{% endif %}">
+            {% if department %}{{ department.name }} (ID:{{ department.id }}){% else %}NOT SET{% endif %}
+        </span>
+    </span>
+    <span>
+        <span class="label">all_departments:</span>
+        <span class="value {% if all_departments %}success{% else %}error{% endif %}">
+            {% if all_departments %}{{ all_departments|length }} depts{% else %}NOT SET{% endif %}
+        </span>
+    </span>
+    <span>
+        <span class="label">show_department_switcher:</span>
+        <span class="value {% if show_department_switcher %}success{% else %}error{% endif %}">
+            {{ show_department_switcher|default:"NOT SET" }}
+        </span>
+    </span>
+    <span>
+        <span class="label">session_dept_id:</span>
+        <span class="value">{{ request.session.selected_department_id|default:"NOT SET" }}</span>
+    </span>
+</div>
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -1110,7 +1386,9 @@
 (function() {
     'use strict';
     
-    // Auto-dismiss alerts after 5 seconds
+    // ========================================
+    // AUTO-DISMISS ALERTS
+    // ========================================
     document.addEventListener('DOMContentLoaded', function() {
         const alerts = document.querySelectorAll('.alert-dismissible');
         alerts.forEach(function(alert) {
@@ -1129,10 +1407,15 @@
         contentContainer: document.getElementById('contentContainer'),
         sidebarOverlay: document.getElementById('sidebarOverlay'),
         mobileMenuBtn: document.getElementById('mobileMenuBtn'),
-        mobileMenuSheet: document.getElementById('mobileMenuSheet')
+        mobileMenuSheet: document.getElementById('mobileMenuSheet'),
+        deptDropdown: document.getElementById('deptDropdown'),
+        deptDropdownBtn: document.getElementById('deptDropdownBtn'),
+        deptDropdownMenu: document.getElementById('deptDropdownMenu')
     };
     
-    // DateTime
+    // ========================================
+    // DATETIME UPDATER
+    // ========================================
     function updateDateTime() {
         const timeEl = document.getElementById('datetime');
         if (timeEl) {
@@ -1148,7 +1431,35 @@
     updateDateTime();
     setInterval(updateDateTime, 60000);
     
-    // Remove tooltip
+    // ========================================
+    // DEPARTMENT DROPDOWN - CUSTOM TOGGLE
+    // ========================================
+    if (el.deptDropdownBtn && el.deptDropdown) {
+        // Toggle dropdown on button click
+        el.deptDropdownBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            el.deptDropdown.classList.toggle('open');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (el.deptDropdown && !el.deptDropdown.contains(e.target)) {
+                el.deptDropdown.classList.remove('open');
+            }
+        });
+        
+        // Close dropdown on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && el.deptDropdown) {
+                el.deptDropdown.classList.remove('open');
+            }
+        });
+    }
+    
+    // ========================================
+    // TOOLTIP MANAGEMENT
+    // ========================================
     function removeTooltip() {
         if (activeTooltip) {
             activeTooltip.remove();
@@ -1156,7 +1467,9 @@
         }
     }
     
-    // Update UI
+    // ========================================
+    // SIDEBAR UI UPDATE
+    // ========================================
     function updateUI(collapsed) {
         el.sidebar.classList.toggle('collapsed', collapsed);
         el.sectionBar.classList.toggle('sidebar-collapsed', collapsed);
@@ -1176,19 +1489,19 @@
         });
     }
     
-    // ✅ Mobile menu button - Toggle bottom sheet
+    // ========================================
+    // MOBILE MENU - BOTTOM SHEET
+    // ========================================
     if (el.mobileMenuBtn) {
         el.mobileMenuBtn.addEventListener('click', function(e) {
             e.preventDefault();
             const isOpen = el.mobileMenuSheet.classList.contains('show');
             
             if (isOpen) {
-                // Close
                 el.mobileMenuSheet.classList.remove('show');
                 el.sidebarOverlay.classList.remove('show');
                 this.querySelector('i').className = 'fas fa-bars';
             } else {
-                // Open
                 el.mobileMenuSheet.classList.add('show');
                 el.sidebarOverlay.classList.add('show');
                 this.querySelector('i').className = 'fas fa-times';
@@ -1196,7 +1509,7 @@
         });
     }
     
-    // ✅ Close menu when overlay clicked
+    // Close menu when overlay clicked
     if (el.sidebarOverlay) {
         el.sidebarOverlay.addEventListener('click', function() {
             el.mobileMenuSheet.classList.remove('show');
@@ -1204,10 +1517,14 @@
             if (el.mobileMenuBtn) {
                 el.mobileMenuBtn.querySelector('i').className = 'fas fa-bars';
             }
+            // Also close dept dropdown
+            if (el.deptDropdown) {
+                el.deptDropdown.classList.remove('open');
+            }
         });
     }
     
-    // ✅ Close menu when any link clicked
+    // Close menu when any link clicked
     document.querySelectorAll('.mobile-menu-content a:not(.disabled)').forEach(link => {
         link.addEventListener('click', function() {
             el.mobileMenuSheet.classList.remove('show');
@@ -1218,7 +1535,9 @@
         });
     });
     
-    // Tooltips for collapsed sidebar (desktop only)
+    // ========================================
+    // SIDEBAR TOOLTIPS (Desktop collapsed)
+    // ========================================
     document.querySelectorAll('.sidebar a:not(.disabled)').forEach(link => {
         const text = link.querySelector('.sidebar-text')?.textContent.trim();
         if (!text) return;
@@ -1243,17 +1562,28 @@
         link.addEventListener('mouseleave', removeTooltip);
     });
     
-    // Resize handler
+    // ========================================
+    // RESIZE HANDLER
+    // ========================================
     window.addEventListener('resize', function() {
         removeTooltip();
-        // Close mobile menu on resize
         if (window.innerWidth > 768) {
             el.mobileMenuSheet.classList.remove('show');
             el.sidebarOverlay.classList.remove('show');
         }
+        // Close dept dropdown on resize
+        if (el.deptDropdown) {
+            el.deptDropdown.classList.remove('open');
+        }
     });
     
-    window.addEventListener('scroll', removeTooltip);
+    window.addEventListener('scroll', function() {
+        removeTooltip();
+        // Close dept dropdown on scroll
+        if (el.deptDropdown) {
+            el.deptDropdown.classList.remove('open');
+        }
+    });
     
     // Restore sidebar state (desktop only)
     if (localStorage.getItem('deptAdminSidebarCollapsed') === 'true' && window.innerWidth > 768) {

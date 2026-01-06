@@ -190,26 +190,31 @@ def fetch_sensor_data_from_influx(device, sensors, config, time_range='now() - 2
             # Extract values for this sensor
             sensor_values = [row[column_index] for row in values]
             
-            # Get metadata if exists
+            # ✅ FIXED: Get metadata if exists - use correct field names
             metadata_dict = {}
-            if hasattr(sensor, 'metadata_config'):
+            try:
                 metadata = sensor.metadata_config
+                
+                # ✅ FIXED: Convert data_types list to individual flags
+                data_types = metadata.data_types or []
+                
                 metadata_dict = {
                     'upper_limit': metadata.upper_limit,
                     'lower_limit': metadata.lower_limit,
-                    'central_line': metadata.central_line,
-                    'show_time_series': metadata.show_time_series,
-                    'show_latest_value': metadata.show_latest_value,
-                    'show_digital': metadata.show_digital,
+                    'center_line': metadata.center_line,  # ✅ FIXED: was 'central_line'
+                    'show_time_series': 'trend' in data_types,  # ✅ FIXED: convert from data_types
+                    'show_latest_value': 'latest_value' in data_types,  # ✅ FIXED: convert from data_types
+                    'show_digital': 'digital' in data_types,  # ✅ FIXED: convert from data_types
                     'display_name': metadata.display_name or sensor.display_name,
                     'unit': metadata.unit or ''
                 }
-            else:
+            except Exception:
+                # No metadata configured - use defaults
                 metadata_dict = {
                     'upper_limit': None,
                     'lower_limit': None,
-                    'central_line': None,
-                    'show_time_series': False,
+                    'center_line': None,  # ✅ FIXED: was 'central_line'
+                    'show_time_series': True,  # ✅ Default to True for unconfigured sensors
                     'show_latest_value': False,
                     'show_digital': False,
                     'display_name': sensor.display_name or sensor.field_name,

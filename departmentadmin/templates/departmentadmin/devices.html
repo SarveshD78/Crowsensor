@@ -1,13 +1,13 @@
 {% extends 'departmentadmin/base.html' %}
 
-{% block title %}My Devices{% endblock %}
+{% block title %}My Devices - {{ department.name }}{% endblock %}
 {% block page_heading %}My Devices{% endblock %}
 
 {% block extra_css %}
 <style>
 /* ========================================
    DEVICES PAGE - PROFESSIONAL SAAS STYLE
-   All devices in single grid (no grouping)
+   With User Assignment Feature
    ======================================== */
 
 /* ===== CONTAINER ===== */
@@ -46,6 +46,10 @@
     font-size: var(--text-sm);
     color: var(--text-secondary);
     margin: 0;
+}
+
+.welcome-card p strong {
+    color: var(--primary-blue);
 }
 
 .welcome-card-header {
@@ -238,22 +242,29 @@
     gap: var(--space-2);
 }
 
-.device-info-label i.fa-power-off {
-    color: var(--success);
+.device-info-label i {
     width: 16px;
     text-align: center;
+}
+
+.device-info-label i.fa-power-off {
+    color: var(--success);
+}
+
+.device-info-label i.fa-tag {
+    color: var(--warning);
 }
 
 .device-info-label i.fa-database {
     color: var(--info);
-    width: 16px;
-    text-align: center;
 }
 
 .device-info-label i.fa-chart-line {
     color: var(--warning);
-    width: 16px;
-    text-align: center;
+}
+
+.device-info-label i.fa-users {
+    color: var(--primary-blue);
 }
 
 /* ===== DEVICE BADGES ===== */
@@ -279,27 +290,63 @@
     color: white;
 }
 
-/* ===== ACTION BUTTONS ===== */
+.device-badge.user-count {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.device-badge.no-users {
+    background: var(--gray-400);
+    color: white;
+}
+
+/* ===== DEVICE TYPE BADGES ===== */
+.device-type-badge {
+    padding: 4px var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.device-type-badge.industrial_sensor {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.device-type-badge.asset_tracking {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.device-type-badge.not-set {
+    background: var(--gray-200);
+    color: var(--text-muted);
+}
+
+/* ===== ACTION BUTTONS - 3 COLUMNS ===== */
 .device-actions-compact {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: var(--space-2);
     padding-top: var(--space-3);
     border-top: 1px solid var(--border-light);
 }
 
 .device-btn-compact {
-    padding: var(--space-2) var(--space-3);
+    padding: var(--space-2) var(--space-2);
     border: none;
     border-radius: var(--radius-md);
     font-weight: 600;
-    font-size: 11px;
+    font-size: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-2);
+    gap: 4px;
     text-decoration: none;
 }
 
@@ -329,13 +376,28 @@
 
 .device-btn-sensors:hover {
     background: var(--primary-blue-dark);
+    color: white;
 }
 
 .device-btn-sensors i {
     color: white;
 }
 
-/* Disabled buttons for inactive devices */
+.device-btn-assign {
+    background: var(--success);
+    color: white;
+}
+
+.device-btn-assign:hover {
+    background: #059669;
+    color: white;
+}
+
+.device-btn-assign i {
+    color: white;
+}
+
+/* Disabled buttons */
 .device-btn-compact:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -352,6 +414,10 @@
     color: white;
     border-bottom: none;
     padding: var(--space-5);
+}
+
+.modal-header.assign-header {
+    background: var(--success);
 }
 
 .modal-header .btn-close {
@@ -385,6 +451,135 @@
 
 .modal-footer .btn i {
     color: inherit;
+}
+
+/* ===== ASSIGNMENT MODAL SPECIFIC ===== */
+.assign-info {
+    background: var(--gray-50);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-5);
+}
+
+.assign-info p {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+}
+
+.assign-info strong {
+    color: var(--text-primary);
+}
+
+.users-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+}
+
+.user-checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.2s ease;
+}
+
+.user-checkbox-item:last-child {
+    border-bottom: none;
+}
+
+.user-checkbox-item:hover {
+    background: var(--gray-50);
+}
+
+.user-checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: var(--space-3);
+    cursor: pointer;
+    accent-color: var(--success);
+}
+
+.user-checkbox-item label {
+    flex: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.user-checkbox-item .user-avatar {
+    width: 36px;
+    height: 36px;
+    background: var(--primary-blue);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.user-checkbox-item .user-details {
+    flex: 1;
+}
+
+.user-checkbox-item .user-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+}
+
+.user-checkbox-item .user-email {
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+.user-checkbox-item.assigned {
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.no-users-message {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+.no-users-message i {
+    font-size: 48px;
+    color: var(--gray-400);
+    margin-bottom: var(--space-3);
+    display: block;
+}
+
+.select-all-container {
+    padding: var(--space-3) var(--space-4);
+    background: var(--gray-100);
+    border-bottom: 2px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.select-all-container label {
+    font-weight: 600;
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.assignment-count {
+    margin-left: auto;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+}
+
+.assignment-count strong {
+    color: var(--success);
 }
 
 /* ===== METADATA TABLE ===== */
@@ -576,6 +771,38 @@
     display: block;
 }
 
+/* ===== BUTTON STYLES ===== */
+.btn-success-submit {
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 10px var(--space-5);
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    cursor: pointer;
+}
+
+.btn-success-submit:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-success-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-success-submit:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
     .device-container {
@@ -583,6 +810,10 @@
     }
     
     .device-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .device-actions-compact {
         grid-template-columns: 1fr;
     }
     
@@ -606,10 +837,6 @@
 }
 
 @media (max-width: 480px) {
-    .device-actions-compact {
-        grid-template-columns: 1fr;
-    }
-    
     .stats-badges {
         width: 100%;
     }
@@ -620,7 +847,9 @@
 {% block content %}
 <div class="device-container">
 
-    <!-- Welcome Card -->
+    <!-- ==========================================
+         WELCOME CARD
+         ========================================== -->
     <div class="welcome-card">
         <div class="welcome-card-header">
             <div>
@@ -628,7 +857,7 @@
                     <i class="fas fa-microchip"></i>
                     My Devices
                 </h3>
-                <p>View and manage all IoT devices assigned to {{ department.name }}</p>
+                <p>View and manage all IoT devices assigned to <strong>{{ department.name }}</strong></p>
             </div>
             <div class="stats-badges">
                 <span class="stats-badge">
@@ -647,7 +876,9 @@
         </div>
     </div>
 
-    <!-- Devices Section -->
+    <!-- ==========================================
+         DEVICES SECTION
+         ========================================== -->
     {% if devices %}
     
     <div class="devices-section">
@@ -656,17 +887,19 @@
         <div class="section-header">
             <div class="section-title">
                 <i class="fas fa-list"></i>
-                All Devices
+                All Devices in {{ department.name }}
             </div>
             <span class="section-badge">
                 {{ total_devices }} Device{{ total_devices|pluralize }}
             </span>
         </div>
 
-        <!-- Device Cards Grid (ALL DEVICES - NO GROUPING) -->
+        <!-- Device Cards Grid -->
         <div class="device-grid">
             {% for device in devices %}
-            <div class="device-card {% if not device.is_active %}inactive{% endif %}">
+            <div class="device-card {% if not device.is_active %}inactive{% endif %}"
+                 data-device-id="{{ device.id }}"
+                 data-assigned-users="{{ device.assigned_user_ids|join:',' }}">
                 
                 <!-- Card Header -->
                 <div class="device-card-header {% if not device.is_active %}inactive{% endif %}">
@@ -696,6 +929,27 @@
                             </span>
                         </div>
 
+                        <!-- Device Type -->
+                        <div class="device-info-row">
+                            <span class="device-info-label">
+                                <i class="fas fa-tag"></i>
+                                Type
+                            </span>
+                            {% if device.device_type == 'industrial_sensor' %}
+                                <span class="device-type-badge industrial_sensor">
+                                    🏭 Industrial
+                                </span>
+                            {% elif device.device_type == 'asset_tracking' %}
+                                <span class="device-type-badge asset_tracking">
+                                    📍 Asset
+                                </span>
+                            {% else %}
+                                <span class="device-type-badge not-set">
+                                    ❓ Not Set
+                                </span>
+                            {% endif %}
+                        </div>
+
                         <!-- Measurement -->
                         <div class="device-info-row">
                             <span class="device-info-label">
@@ -703,7 +957,7 @@
                                 Measurement
                             </span>
                             <span style="font-size: 11px; font-family: monospace; color: var(--text-tertiary);">
-                                {{ device.measurement_name|truncatechars:20 }}
+                                {{ device.measurement_name|truncatechars:15 }}
                             </span>
                         </div>
 
@@ -718,16 +972,33 @@
                             </span>
                         </div>
 
+                        <!-- Assigned Users -->
+                        <div class="device-info-row">
+                            <span class="device-info-label">
+                                <i class="fas fa-users"></i>
+                                Assigned
+                            </span>
+                            <span class="device-badge {% if device.assigned_users_count > 0 %}user-count{% else %}no-users{% endif %}"
+                                  id="assigned-count-{{ device.id }}">
+                                {{ device.assigned_users_count }} User{{ device.assigned_users_count|pluralize }}
+                            </span>
+                        </div>
+
                     </div>
 
-                    <!-- Action Buttons -->
+                    <!-- Action Buttons (3 columns) -->
                     <div class="device-actions-compact">
-                        <!-- Graphs Button -->
-                        <a href="{% url 'departmentadmin:device_graphs_page' device.id %}" 
+                        <!-- Graphs/Map Button -->
+                        <a href="{% url 'departmentadmin:device_visualization' device.id %}" 
                            class="device-btn-compact device-btn-graph-active"
                            {% if not device.is_active %}style="pointer-events: none; opacity: 0.5;"{% endif %}>
-                            <i class="fas fa-chart-line"></i>
-                            Graphs
+                            {% if device.device_type == 'asset_tracking' %}
+                                <i class="fas fa-map-marked-alt"></i>
+                                Map
+                            {% else %}
+                                <i class="fas fa-chart-line"></i>
+                                Graphs
+                            {% endif %}
                         </a>
                         
                         <!-- Sensors Button -->
@@ -737,6 +1008,15 @@
                                 {% if not device.is_active %}disabled{% endif %}>
                             <i class="fas fa-sliders-h"></i>
                             Sensors
+                        </button>
+                        
+                        <!-- Assign Button -->
+                        <button type="button" 
+                                class="device-btn-compact device-btn-assign" 
+                                onclick="openAssignModal({{ device.id }}, '{{ device.display_name|escapejs }}')"
+                                {% if not device.is_active %}disabled{% endif %}>
+                            <i class="fas fa-user-plus"></i>
+                            Assign
                         </button>
                     </div>
 
@@ -749,18 +1029,20 @@
 
     {% else %}
 
-        <!-- Empty State -->
-        <div class="empty-state">
-            <i class="fas fa-microchip"></i>
-            <h3>No Devices Assigned</h3>
-            <p>No devices have been assigned to {{ department.name }} yet.</p>
-        </div>
+    <!-- Empty State -->
+    <div class="empty-state">
+        <i class="fas fa-microchip"></i>
+        <h3>No Devices in {{ department.name }}</h3>
+        <p>No devices have been assigned to this department yet.</p>
+    </div>
 
     {% endif %}
 
 </div>
 
-<!-- Sensors Metadata Modal -->
+<!-- ==========================================
+     SENSORS METADATA MODAL
+     ========================================== -->
 <div class="modal fade" id="sensorsModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -790,11 +1072,63 @@
     </div>
 </div>
 
+<!-- ==========================================
+     ASSIGN USERS MODAL
+     ========================================== -->
+<div class="modal fade" id="assignModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="assignForm" method="POST">
+                {% csrf_token %}
+                
+                <div class="modal-header assign-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus"></i> 
+                        <span id="assign-modal-title">Assign Users to Device</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <!-- Info Box -->
+                    <div class="assign-info">
+                        <p>
+                            <strong>Device:</strong> <span id="assign-device-name">—</span><br>
+                            <strong>Department:</strong> {{ department.name }}
+                        </p>
+                    </div>
+                    
+                    <!-- Users List -->
+                    <div id="assign-users-content">
+                        <div class="loading-spinner">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p>Loading users...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn-success-submit" id="saveAssignBtn">
+                        <i class="fas fa-save"></i> Save Assignments
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// CSRF Token
+// ==========================================
+// CSRF TOKEN
+// ==========================================
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -811,9 +1145,10 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-// Open Sensors Metadata Modal
+// ==========================================
+// SENSORS MODAL
+// ==========================================
 function openSensorsModal(deviceId) {
-    // Show loading state
     document.getElementById('sensors-content').innerHTML = `
         <div class="loading-spinner">
             <div class="spinner-border" role="status">
@@ -823,98 +1158,50 @@ function openSensorsModal(deviceId) {
         </div>
     `;
     
-    // Open modal
     const modal = new bootstrap.Modal(document.getElementById('sensorsModal'));
     modal.show();
     
-    // Fetch sensor data
-    fetch(`/department/devices/sensors/${deviceId}/`, {
+    fetch(`/department/devices/${deviceId}/sensors/`, {
         method: 'GET',
         headers: {'X-CSRFToken': csrftoken}
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update modal title
             document.getElementById('modal-device-name').textContent = 
                 `${data.device.display_name} - Sensor Metadata`;
             
-            // Build table HTML
             let html = '<div class="table-wrapper">';
             html += '<table class="metadata-table">';
-            html += '<thead>';
-            html += '<tr>';
-            html += '<th>Field Name</th>';
-            html += '<th>Display Name</th>';
-            html += '<th>Type</th>';
-            html += '<th>Category</th>';
-            html += '<th>Unit</th>';
-            html += '<th>Upper Limit</th>';
-            html += '<th>Lower Limit</th>';
-            html += '<th>Central Line</th>';
-            html += '<th>Graph Types</th>';
-            html += '</tr>';
-            html += '</thead>';
-            html += '<tbody>';
+            html += '<thead><tr>';
+            html += '<th>Field Name</th><th>Display Name</th><th>Type</th><th>Category</th>';
+            html += '<th>Unit</th><th>Upper</th><th>Lower</th><th>Center</th><th>Graphs</th>';
+            html += '</tr></thead><tbody>';
             
             if (data.sensors.length === 0) {
-                html += '<tr>';
-                html += '<td colspan="9" style="text-align: center; padding: 40px; color: var(--text-secondary);">';
-                html += '<i class="fas fa-exclamation-circle" style="font-size: 48px; color: var(--border-medium); display: block; margin-bottom: 10px;"></i>';
-                html += 'No sensors found for this device';
-                html += '</td>';
-                html += '</tr>';
+                html += '<tr><td colspan="9" style="text-align: center; padding: 40px;">';
+                html += '<i class="fas fa-exclamation-circle" style="font-size: 48px; color: var(--gray-400);"></i>';
+                html += '<p>No sensors found</p></td></tr>';
             } else {
                 data.sensors.forEach(sensor => {
                     html += '<tr>';
-                    
-                    // Field Name
                     html += `<td class="field-name-col">${sensor.field_name}</td>`;
-                    
-                    // Display Name
                     html += `<td>${sensor.display_name || '<span class="empty-value">—</span>'}</td>`;
-                    
-                    // Type
                     html += `<td><span class="type-badge">${sensor.field_type}</span></td>`;
-                    
-                    // Category
                     html += `<td><span class="category-badge ${sensor.category}">${sensor.category}</span></td>`;
-                    
-                    // Unit
                     html += `<td>${sensor.unit || '<span class="empty-value">—</span>'}</td>`;
-                    
-                    // Upper Limit
-                    html += `<td>${sensor.upper_limit !== null && sensor.upper_limit !== undefined ? sensor.upper_limit : '<span class="empty-value">—</span>'}</td>`;
-                    
-                    // Lower Limit
-                    html += `<td>${sensor.lower_limit !== null && sensor.lower_limit !== undefined ? sensor.lower_limit : '<span class="empty-value">—</span>'}</td>`;
-                    
-                    // Central Line
-                    html += `<td>${sensor.central_line !== null && sensor.central_line !== undefined ? sensor.central_line : '<span class="empty-value">—</span>'}</td>`;
-                    
-                    // Graph Types (Icons)
-                    html += '<td>';
-                    html += '<div class="graph-type-icons">';
-                    html += `<span class="graph-icon ${sensor.show_time_series ? 'enabled' : 'disabled'}" title="Time Series">`;
-                    html += `<i class="fas fa-${sensor.show_time_series ? 'check' : 'times'}"></i>`;
-                    html += '</span>';
-                    html += `<span class="graph-icon ${sensor.show_latest_value ? 'enabled' : 'disabled'}" title="Latest Value">`;
-                    html += `<i class="fas fa-${sensor.show_latest_value ? 'check' : 'times'}"></i>`;
-                    html += '</span>';
-                    html += `<span class="graph-icon ${sensor.show_digital ? 'enabled' : 'disabled'}" title="Digital Display">`;
-                    html += `<i class="fas fa-${sensor.show_digital ? 'check' : 'times'}"></i>`;
-                    html += '</span>';
-                    html += '</div>';
-                    html += '</td>';
-                    
-                    html += '</tr>';
+                    html += `<td>${sensor.upper_limit ?? '<span class="empty-value">—</span>'}</td>`;
+                    html += `<td>${sensor.lower_limit ?? '<span class="empty-value">—</span>'}</td>`;
+                    html += `<td>${sensor.central_line ?? '<span class="empty-value">—</span>'}</td>`;
+                    html += '<td><div class="graph-type-icons">';
+                    html += `<span class="graph-icon ${sensor.show_time_series ? 'enabled' : 'disabled'}" title="Trend"><i class="fas fa-${sensor.show_time_series ? 'check' : 'times'}"></i></span>`;
+                    html += `<span class="graph-icon ${sensor.show_latest_value ? 'enabled' : 'disabled'}" title="Gauge"><i class="fas fa-${sensor.show_latest_value ? 'check' : 'times'}"></i></span>`;
+                    html += `<span class="graph-icon ${sensor.show_digital ? 'enabled' : 'disabled'}" title="Digital"><i class="fas fa-${sensor.show_digital ? 'check' : 'times'}"></i></span>`;
+                    html += '</div></td></tr>';
                 });
             }
             
-            html += '</tbody>';
-            html += '</table>';
-            html += '</div>';
-            
+            html += '</tbody></table></div>';
             document.getElementById('sensors-content').innerHTML = html;
         } else {
             document.getElementById('sensors-content').innerHTML = `
@@ -934,6 +1221,271 @@ function openSensorsModal(deviceId) {
             </div>
         `;
     });
+}
+
+// ==========================================
+// ASSIGN USERS MODAL
+// ==========================================
+let currentAssignDeviceId = null;
+
+function openAssignModal(deviceId, deviceName) {
+    currentAssignDeviceId = deviceId;
+    
+    document.getElementById('assign-device-name').textContent = deviceName;
+    document.getElementById('assign-modal-title').textContent = `Assign Users to "${deviceName}"`;
+    document.getElementById('assignForm').action = `/department/devices/${deviceId}/assign/`;
+    
+    document.getElementById('assign-users-content').innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading users...</p>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('assignModal'));
+    modal.show();
+    
+    // Fetch current assignments
+    fetch(`/department/devices/${deviceId}/assign/`, {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            renderUsersList(data.users, data.assigned_count);
+        } else {
+            document.getElementById('assign-users-content').innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>${data.message}</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('assign-users-content').innerHTML = `
+            <div class="error-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Failed to load users</p>
+            </div>
+        `;
+    });
+}
+
+function renderUsersList(users, assignedCount) {
+    if (users.length === 0) {
+        document.getElementById('assign-users-content').innerHTML = `
+            <div class="no-users-message">
+                <i class="fas fa-users-slash"></i>
+                <p>No users available in this department.</p>
+                <p>Create users first to assign devices.</p>
+            </div>
+        `;
+        document.getElementById('saveAssignBtn').disabled = true;
+        return;
+    }
+    
+    document.getElementById('saveAssignBtn').disabled = false;
+    
+    let html = '<div class="users-list">';
+    
+    // Select All row
+    html += '<div class="select-all-container">';
+    html += '<input type="checkbox" id="selectAllUsers" onclick="toggleSelectAll()">';
+    html += '<label for="selectAllUsers">Select All Users</label>';
+    html += `<span class="assignment-count"><strong id="selectedCount">${assignedCount}</strong> of ${users.length} selected</span>`;
+    html += '</div>';
+    
+    // Users list
+    users.forEach(user => {
+        const initials = (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase() || user.username.charAt(0).toUpperCase();
+        const isChecked = user.is_assigned ? 'checked' : '';
+        const assignedClass = user.is_assigned ? 'assigned' : '';
+        
+        html += `<div class="user-checkbox-item ${assignedClass}">`;
+        html += `<input type="checkbox" name="user_ids" value="${user.id}" id="user_${user.id}" ${isChecked} onchange="updateSelectedCount()">`;
+        html += `<label for="user_${user.id}">`;
+        html += `<span class="user-avatar">${initials}</span>`;
+        html += '<span class="user-details">';
+        html += `<span class="user-name">${user.full_name}</span>`;
+        html += `<span class="user-email">${user.email}</span>`;
+        html += '</span>';
+        html += '</label>';
+        html += '</div>';
+    });
+    
+    html += '</div>';
+    
+    document.getElementById('assign-users-content').innerHTML = html;
+    
+    // Check if all are selected
+    updateSelectAllState();
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAllUsers');
+    const checkboxes = document.querySelectorAll('input[name="user_ids"]');
+    
+    checkboxes.forEach(cb => {
+        cb.checked = selectAll.checked;
+        const item = cb.closest('.user-checkbox-item');
+        if (selectAll.checked) {
+            item.classList.add('assigned');
+        } else {
+            item.classList.remove('assigned');
+        }
+    });
+    
+    updateSelectedCount();
+}
+
+function updateSelectAllState() {
+    const checkboxes = document.querySelectorAll('input[name="user_ids"]');
+    const selectAll = document.getElementById('selectAllUsers');
+    
+    if (checkboxes.length === 0) return;
+    
+    const checkedCount = document.querySelectorAll('input[name="user_ids"]:checked').length;
+    selectAll.checked = checkedCount === checkboxes.length;
+    selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+}
+
+function updateSelectedCount() {
+    const checkedCount = document.querySelectorAll('input[name="user_ids"]:checked').length;
+    const countEl = document.getElementById('selectedCount');
+    if (countEl) {
+        countEl.textContent = checkedCount;
+    }
+    
+    // Update item styling
+    document.querySelectorAll('input[name="user_ids"]').forEach(cb => {
+        const item = cb.closest('.user-checkbox-item');
+        if (cb.checked) {
+            item.classList.add('assigned');
+        } else {
+            item.classList.remove('assigned');
+        }
+    });
+    
+    updateSelectAllState();
+}
+
+// ==========================================
+// FORM SUBMISSION
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Assign form submission
+    const assignForm = document.getElementById('assignForm');
+    if (assignForm) {
+        assignForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('saveAssignBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            
+            const formData = new FormData(assignForm);
+            
+            fetch(assignForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the card's assigned count
+                    const countEl = document.getElementById(`assigned-count-${currentAssignDeviceId}`);
+                    if (countEl) {
+                        const count = data.total_assigned;
+                        countEl.textContent = `${count} User${count !== 1 ? 's' : ''}`;
+                        countEl.className = `device-badge ${count > 0 ? 'user-count' : 'no-users'}`;
+                    }
+                    
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('assignModal')).hide();
+                    
+                    // Show success message
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message || 'Error saving assignments', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Failed to save assignments', 'error');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        });
+    }
+});
+
+// ==========================================
+// TOAST NOTIFICATIONS
+// ==========================================
+function showToast(message, type = 'info') {
+    // Remove existing toasts
+    document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Add styles if not exists
+    if (!document.getElementById('toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.textContent = `
+            .toast-notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 24px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                z-index: 9999;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            }
+            .toast-success { background: #10b981; }
+            .toast-error { background: #ef4444; }
+            .toast-info { background: #3b82f6; }
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
 }
 </script>
 {% endblock %}

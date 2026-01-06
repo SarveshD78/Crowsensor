@@ -1,0 +1,605 @@
+{% extends 'userdashboard/base.html' %}
+
+{% block title %}My Devices{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========================================
+   DEVICES PAGE - CLEAN SIMPLE DESIGN
+   Matching Alerts & Reports pattern
+   ======================================== */
+
+/* ===== CONTAINER ===== */
+.devices-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* ===== WELCOME CARD ===== */
+.welcome-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.welcome-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.welcome-card h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333B4A;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.welcome-card h3 i {
+    color: #3094FF;
+    font-size: 24px;
+}
+
+.welcome-card p {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
+}
+
+.stats-badge {
+    background: #fff;
+    border: 2px solid #3094FF;
+    color: #3094FF;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ===== STATS CARDS ===== */
+.device-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.device-stat-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+}
+
+.device-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.device-stat-number {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+    color: #333B4A;
+}
+
+.device-stat-label {
+    font-size: 14px;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+/* ===== SECTION HEADER ===== */
+.section-header {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333B4A;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+}
+
+.section-title i {
+    color: #3094FF;
+    font-size: 18px;
+}
+
+.section-badge {
+    background: #f8f9fa;
+    color: #333B4A;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ===== DEVICES TABLE ===== */
+.devices-table-container {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+}
+
+.devices-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.devices-table thead {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.devices-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+.devices-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s ease;
+}
+
+.devices-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.devices-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.devices-table td {
+    padding: 16px;
+    vertical-align: middle;
+}
+
+/* ===== DEVICE INFO CELL ===== */
+.device-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.device-info-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 20px;
+}
+
+.device-info-icon.asset-tracking {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.device-info-text strong {
+    display: block;
+    font-size: 15px;
+    color: #333B4A;
+    margin-bottom: 2px;
+}
+
+.device-info-text small {
+    color: #6c757d;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+}
+
+/* ===== DEVICE TYPE BADGE ===== */
+.device-type-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.device-type-badge.industrial {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.device-type-badge.asset {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+/* ===== DEPARTMENT BADGE ===== */
+.dept-badge {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dept-badge i {
+    font-size: 10px;
+}
+
+/* ===== STAT CELLS ===== */
+.stat-cell {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333B4A;
+    display: block;
+}
+
+.stat-value.alert {
+    color: #dc3545;
+}
+
+.stat-label {
+    font-size: 10px;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* ===== STATUS BADGE ===== */
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: inline-block;
+}
+
+.status-badge.online {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.status-badge.offline {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+/* ===== ACTION BUTTON ===== */
+.action-btn {
+    background: #3094FF;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.action-btn:hover {
+    background: #0066CC;
+    color: #fff;
+}
+
+.action-btn.map-btn {
+    background: #28a745;
+}
+
+.action-btn.map-btn:hover {
+    background: #218838;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #e9ecef;
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: #dee2e6;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.empty-state h4 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
+}
+
+/* ===== READ-ONLY NOTICE ===== */
+.readonly-notice {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #1565c0;
+}
+
+.readonly-notice i {
+    font-size: 18px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .devices-table thead {
+        display: none;
+    }
+    
+    .devices-table tbody tr {
+        display: block;
+        margin-bottom: 16px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        padding: 16px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .devices-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .devices-table td:last-child {
+        border-bottom: none;
+    }
+    
+    .devices-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 11px;
+        color: #6c757d;
+        text-transform: uppercase;
+    }
+    
+    .device-info {
+        flex-direction: row;
+    }
+}
+
+@media (max-width: 768px) {
+    .devices-container {
+        padding: 16px;
+    }
+    
+    .device-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .welcome-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="devices-container">
+
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+        <div class="welcome-card-header">
+            <div>
+                <h3>
+                    <i class="fas fa-microchip"></i>
+                    My Devices
+                </h3>
+                <p>View and monitor all devices assigned to you</p>
+            </div>
+            <span class="stats-badge">
+                <i class="fas fa-microchip"></i>
+                <span>{{ total_devices }}</span> Device{{ total_devices|pluralize }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Read-Only Notice -->
+    <div class="readonly-notice">
+        <i class="fas fa-info-circle"></i>
+        <span>View-only access. You can view graphs and reports for your assigned devices.</span>
+    </div>
+
+    <!-- Device Statistics Cards -->
+    <div class="device-stats-grid">
+        <div class="device-stat-card">
+            <div class="device-stat-number">{{ total_devices }}</div>
+            <div class="device-stat-label">📱 Total Devices</div>
+        </div>
+
+        <div class="device-stat-card">
+            <div class="device-stat-number">{{ total_sensors|default:0 }}</div>
+            <div class="device-stat-label">📊 Total Sensors</div>
+        </div>
+
+        <div class="device-stat-card">
+            <div class="device-stat-number">{{ total_alerts|default:0 }}</div>
+            <div class="device-stat-label">🔴 Active Alerts</div>
+        </div>
+
+        <div class="device-stat-card">
+            <div class="device-stat-number">{{ total_departments|default:0 }}</div>
+            <div class="device-stat-label">📍 Departments</div>
+        </div>
+    </div>
+
+    <!-- Section Header -->
+    <div class="section-header">
+        <div class="section-title">
+            <i class="fas fa-table"></i>
+            All Devices
+        </div>
+        <span class="section-badge">{{ total_devices }} Device{{ total_devices|pluralize }}</span>
+    </div>
+
+    <!-- Devices Table -->
+    {% if devices_by_department %}
+    <div class="devices-table-container">
+        <table class="devices-table">
+            <thead>
+                <tr>
+                    <th>Device</th>
+                    <th>Department</th>
+                    <th style="text-align: center;">Sensors</th>
+                    <th style="text-align: center;">Alerts</th>
+                    <th style="text-align: center;">Status</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dept_name, dept_data in devices_by_department.items %}
+                    {% for item in dept_data.devices %}
+                    <tr>
+                        <!-- Device Info -->
+                        <td data-label="Device">
+                            <div class="device-info">
+                                <div class="device-info-icon {% if item.device.device_type == 'asset_tracking' %}asset-tracking{% endif %}">
+                                    {% if item.device.device_type == 'asset_tracking' %}
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {% else %}
+                                    <i class="fas fa-microchip"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="device-info-text">
+                                    <strong>{{ item.device.display_name }}</strong>
+                                    <small>{{ item.device.device_id }}</small>
+                                    {% if item.device.device_type == 'asset_tracking' %}
+                                    <span class="device-type-badge asset">Asset Tracking</span>
+                                    {% else %}
+                                    <span class="device-type-badge industrial">Industrial Sensor</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Department -->
+                        <td data-label="Department">
+                            <span class="dept-badge">
+                                <i class="fas fa-building"></i>
+                                {{ dept_name }}
+                            </span>
+                        </td>
+
+                        <!-- Sensors -->
+                        <td data-label="Sensors" class="stat-cell">
+                            <span class="stat-value">{{ item.sensor_count }}</span>
+                            <span class="stat-label">Sensors</span>
+                        </td>
+
+                        <!-- Alerts -->
+                        <td data-label="Alerts" class="stat-cell">
+                            <span class="stat-value {% if item.alert_count > 0 %}alert{% endif %}">
+                                {{ item.alert_count }}
+                            </span>
+                            <span class="stat-label">Active</span>
+                        </td>
+
+                        <!-- Status -->
+                        <td data-label="Status" style="text-align: center;">
+                            <span class="status-badge online">
+                                <i class="fas fa-circle" style="font-size: 6px; margin-right: 4px;"></i>
+                                Online
+                            </span>
+                        </td>
+
+                        <!-- Action - Uses user_device_visualization for smart routing -->
+                        <td data-label="Action" style="text-align: center;">
+                            <a href="{% url 'userdashboard:user_device_visualization' item.device.id %}" 
+                               class="action-btn {% if item.device.device_type == 'asset_tracking' %}map-btn{% endif %}">
+                                {% if item.device.device_type == 'asset_tracking' %}
+                                <i class="fas fa-map-marker-alt"></i>
+                                View Map
+                                {% else %}
+                                <i class="fas fa-chart-line"></i>
+                                View Graphs
+                                {% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <i class="fas fa-microchip"></i>
+        <h4>No Devices Assigned</h4>
+        <p>Contact your department administrator to get device access.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

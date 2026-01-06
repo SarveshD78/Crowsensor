@@ -1,8 +1,6 @@
-{% extends 'departmentadmin/base.html' %}
+{% extends 'userdashboard/base.html' %}
 
-{% load static %}
-
-{% block title %}Alerts - {{ department.name }}{% endblock %}
+{% block title %}Alerts{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -15,17 +13,17 @@
 .alerts-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: var(--space-6);
+    padding: 24px;
 }
 
 /* ===== WELCOME CARD ===== */
 .welcome-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
-    margin-bottom: var(--space-6);
-    box-shadow: var(--shadow-sm);
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .welcome-card-header {
@@ -33,218 +31,218 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: var(--space-4);
+    gap: 16px;
 }
 
 .welcome-card h3 {
-    font-size: var(--text-2xl);
+    font-size: 24px;
     font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 var(--space-2) 0;
+    color: #333B4A;
+    margin: 0 0 8px 0;
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: 12px;
 }
 
 .welcome-card h3 i {
-    color: var(--primary-blue);
-    font-size: var(--text-2xl);
+    color: #3094FF;
+    font-size: 24px;
 }
 
 .welcome-card p {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
+    font-size: 14px;
+    color: #6c757d;
     margin: 0;
 }
 
 .stats-badge {
-    background: var(--bg-primary);
-    border: 2px solid var(--primary-blue);
-    color: var(--primary-blue);
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
+    background: #fff;
+    border: 2px solid #3094FF;
+    color: #3094FF;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: 8px;
 }
 
-/* ===== STATS CARDS - ALL SIDES BORDER ===== */
+/* ===== STATS CARDS ===== */
 .alert-stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--space-4);
-    margin-bottom: var(--space-6);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
 }
 
 .alert-stat-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: var(--space-5);
-    box-shadow: var(--shadow-sm);
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     transition: all 0.3s ease;
 }
 
 .alert-stat-card:hover {
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     transform: translateY(-2px);
 }
 
 .alert-stat-number {
-    font-size: 42px;
+    font-size: 36px;
     font-weight: 700;
     line-height: 1;
-    margin-bottom: var(--space-2);
-    color: var(--text-primary);
+    margin-bottom: 8px;
+    color: #333B4A;
 }
 
 .alert-stat-label {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
+    font-size: 14px;
+    color: #6c757d;
     font-weight: 600;
 }
 
 /* ===== FILTER SECTION ===== */
 .filter-section {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: var(--space-5);
-    margin-bottom: var(--space-4);
-    box-shadow: var(--shadow-sm);
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .filter-row {
     display: flex;
-    gap: var(--space-3);
+    gap: 12px;
     align-items: center;
     flex-wrap: wrap;
 }
 
 .filter-label {
-    font-size: var(--text-sm);
+    font-size: 14px;
     font-weight: 600;
-    color: var(--text-secondary);
-    margin-right: var(--space-2);
+    color: #6c757d;
+    margin-right: 8px;
 }
 
 .filter-btn-group {
     display: flex;
-    gap: var(--space-2);
+    gap: 8px;
     flex-wrap: wrap;
 }
 
 .filter-btn {
-    padding: 6px var(--space-3);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
+    padding: 8px 16px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
     background: white;
-    color: var(--text-secondary);
-    font-size: var(--text-sm);
+    color: #6c757d;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .filter-btn:hover {
-    border-color: var(--primary-blue);
-    color: var(--primary-blue);
+    border-color: #3094FF;
+    color: #3094FF;
 }
 
 .filter-btn.active {
-    background: var(--primary-blue);
+    background: #3094FF;
     color: white;
-    border-color: var(--primary-blue);
+    border-color: #3094FF;
 }
 
 .filter-btn .badge {
     background: rgba(0,0,0,0.15);
     color: inherit;
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
-    font-size: 10px;
-    margin-left: 4px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    margin-left: 6px;
 }
 
 /* ===== TABLE SECTION ===== */
 .section-header {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    padding: var(--space-4) var(--space-5);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--space-4);
+    background: #fff;
+    border: 1px solid #e9ecef;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .section-title {
-    font-size: var(--text-xl);
+    font-size: 18px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #333B4A;
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: 12px;
     margin: 0;
 }
 
 .section-title i {
-    color: var(--primary-blue);
-    font-size: var(--text-xl);
+    color: #3094FF;
+    font-size: 18px;
 }
 
 .section-badge {
-    background: var(--gray-100);
-    color: var(--text-primary);
-    padding: 4px var(--space-3);
-    border-radius: var(--radius-full);
-    font-size: var(--text-xs);
+    background: #f8f9fa;
+    color: #333B4A;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
     font-weight: 600;
 }
 
 /* ===== TABLE CONTAINER ===== */
 .alerts-table-container {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    margin-bottom: var(--space-4);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
 }
 
 /* ===== TABLE ===== */
 .alerts-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: var(--text-sm);
+    font-size: 14px;
 }
 
 .alerts-table thead {
-    background: var(--gray-50);
-    border-bottom: 2px solid var(--border-medium);
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
 }
 
 .alerts-table th {
-    padding: var(--space-3) var(--space-4);
+    padding: 14px 16px;
     text-align: left;
     font-weight: 600;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--text-secondary);
+    color: #6c757d;
     white-space: nowrap;
 }
 
 .alerts-table tbody tr {
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 1px solid #f0f0f0;
     transition: background 0.2s ease;
 }
 
 .alerts-table tbody tr:hover {
-    background: var(--gray-50);
+    background: #f8f9fa;
 }
 
 .alerts-table tbody tr.hidden {
@@ -252,14 +250,14 @@
 }
 
 .alerts-table td {
-    padding: var(--space-3) var(--space-4);
+    padding: 14px 16px;
     vertical-align: middle;
 }
 
 /* ===== STATUS BADGES ===== */
 .status-badge {
-    padding: 4px var(--space-3);
-    border-radius: var(--radius-md);
+    padding: 5px 12px;
+    border-radius: 8px;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
@@ -269,86 +267,117 @@
 }
 
 .status-badge.high {
-    background: var(--danger);
+    background: #dc3545;
     color: white;
 }
 
 .status-badge.medium {
-    background: var(--warning);
-    color: white;
+    background: #ffc107;
+    color: #333;
 }
 
 .status-badge.initial {
-    background: var(--primary-blue);
+    background: #3094FF;
     color: white;
 }
 
 .status-badge.resolved {
-    background: var(--success);
+    background: #28a745;
     color: white;
 }
 
 /* ===== TEXT STYLES ===== */
 .text-primary-bold {
     font-weight: 600;
-    color: var(--text-primary);
+    color: #333B4A;
 }
 
 .text-secondary-small {
     font-size: 11px;
-    color: var(--text-secondary);
+    color: #6c757d;
     font-family: 'Courier New', monospace;
 }
 
 .text-value {
     font-weight: 600;
     font-family: 'Courier New', monospace;
-    color: var(--text-primary);
+    color: #333B4A;
 }
 
 .text-breach {
-    color: var(--danger);
+    color: #dc3545;
     font-weight: 700;
+}
+
+/* ===== DEVICE INFO ===== */
+.device-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.device-info-icon {
+    width: 36px;
+    height: 36px;
+    background: #e3f2fd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1976d2;
+    font-size: 14px;
+}
+
+.device-info-text strong {
+    display: block;
+    font-size: 14px;
+    color: #333B4A;
+}
+
+.device-info-text small {
+    color: #6c757d;
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
 }
 
 /* ===== PAGINATION ===== */
 .pagination-container {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4);
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--space-4);
-    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .pagination-info {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
+    font-size: 14px;
+    color: #6c757d;
 }
 
 .pagination-controls {
     display: flex;
-    gap: var(--space-2);
+    gap: 8px;
 }
 
 .pagination-btn {
-    padding: 6px 12px;
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
+    padding: 8px 14px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
     background: white;
-    color: var(--text-primary);
-    font-size: var(--text-sm);
+    color: #333B4A;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .pagination-btn:hover:not(:disabled) {
-    border-color: var(--primary-blue);
-    color: var(--primary-blue);
+    border-color: #3094FF;
+    color: #3094FF;
 }
 
 .pagination-btn:disabled {
@@ -357,62 +386,117 @@
 }
 
 .pagination-btn.active {
-    background: var(--primary-blue);
+    background: #3094FF;
     color: white;
-    border-color: var(--primary-blue);
+    border-color: #3094FF;
 }
 
 /* ===== EMPTY STATE ===== */
 .empty-state {
     text-align: center;
     padding: 60px 40px;
-    background: var(--gray-50);
-    border-radius: var(--radius-lg);
-    border: 2px dashed var(--border-medium);
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #e9ecef;
 }
 
 .empty-state i {
     font-size: 64px;
-    color: var(--gray-400);
-    margin-bottom: var(--space-4);
+    color: #dee2e6;
+    margin-bottom: 16px;
     display: block;
 }
 
 .empty-state h4 {
-    font-size: var(--text-xl);
+    font-size: 20px;
     font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: var(--space-2);
+    color: #333B4A;
+    margin-bottom: 8px;
 }
 
 .empty-state p {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
+    font-size: 14px;
+    color: #6c757d;
     margin: 0;
 }
 
 /* ===== FOOTER NOTICE ===== */
 .auto-refresh-notice {
     text-align: center;
-    padding: var(--space-4);
-    background: var(--gray-50);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-light);
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
 }
 
 .auto-refresh-notice small {
-    color: var(--text-secondary);
-    font-size: var(--text-sm);
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* ===== READ-ONLY NOTICE ===== */
+.readonly-notice {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #856404;
+}
+
+.readonly-notice i {
+    font-size: 18px;
 }
 
 /* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .alerts-table thead {
+        display: none;
+    }
+    
+    .alerts-table tbody tr {
+        display: block;
+        margin-bottom: 16px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        padding: 16px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .alerts-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .alerts-table td:last-child {
+        border-bottom: none;
+    }
+    
+    .alerts-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 11px;
+        color: #6c757d;
+        text-transform: uppercase;
+    }
+}
+
 @media (max-width: 768px) {
     .alerts-container {
-        padding: var(--space-4);
+        padding: 16px;
     }
     
     .alert-stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
     
     .welcome-card-header {
@@ -427,7 +511,7 @@
     
     .pagination-container {
         flex-direction: column;
-        gap: var(--space-3);
+        gap: 12px;
     }
 }
 </style>
@@ -441,38 +525,44 @@
         <div class="welcome-card-header">
             <div>
                 <h3>
-                    <i class="fas fa-exclamation-triangle"></i>
+                    <i class="fas fa-bell"></i>
                     Alert Monitoring
                 </h3>
-                <p>Department: <strong>{{ department.name }}</strong></p>
+                <p>Viewing alerts for your assigned devices</p>
             </div>
             <span class="stats-badge">
                 <i class="fas fa-bell"></i>
-                <span id="totalAlertsCount">{{ all_alerts|length }}</span> Total Alert{{ all_alerts|length|pluralize }}
+                <span id="totalAlertsCount">{{ stats.total }}</span> Total Alert{{ stats.total|pluralize }}
             </span>
         </div>
+    </div>
+
+    <!-- Read-Only Notice -->
+    <div class="readonly-notice">
+        <i class="fas fa-info-circle"></i>
+        <span>View-only access. Contact your department administrator for alert management.</span>
     </div>
 
     <!-- Alert Statistics Cards -->
     <div class="alert-stats-grid">
         
         <div class="alert-stat-card">
-            <div class="alert-stat-number" id="highCount">{{ alert_counts.high }}</div>
+            <div class="alert-stat-number" id="highCount">{{ stats.high }}</div>
             <div class="alert-stat-label">🔴 High Priority</div>
         </div>
 
         <div class="alert-stat-card">
-            <div class="alert-stat-number" id="mediumCount">{{ alert_counts.medium }}</div>
+            <div class="alert-stat-number" id="mediumCount">{{ stats.medium }}</div>
             <div class="alert-stat-label">🟡 Medium Priority</div>
         </div>
 
         <div class="alert-stat-card">
-            <div class="alert-stat-number" id="initialCount">{{ alert_counts.initial }}</div>
+            <div class="alert-stat-number" id="initialCount">{{ stats.initial }}</div>
             <div class="alert-stat-label">🔵 Initial</div>
         </div>
 
         <div class="alert-stat-card">
-            <div class="alert-stat-number" id="resolvedCount">{{ alert_counts.total_resolved }}</div>
+            <div class="alert-stat-number" id="resolvedCount">{{ stats.resolved }}</div>
             <div class="alert-stat-label">✅ Resolved</div>
         </div>
 
@@ -483,20 +573,23 @@
         <div class="filter-row">
             <span class="filter-label">Filter by Status:</span>
             <div class="filter-btn-group">
-                <button class="filter-btn active" data-filter="all" onclick="filterAlerts('all')">
-                    All <span class="badge">{{ all_alerts|length }}</span>
+                <button class="filter-btn {% if status_filter == 'all' %}active{% endif %}" data-filter="all" onclick="filterAlerts('all')">
+                    All <span class="badge">{{ stats.total }}</span>
+                </button>
+                <button class="filter-btn {% if status_filter == 'active' %}active{% endif %}" data-filter="active" onclick="filterAlerts('active')">
+                    Active <span class="badge">{{ stats.active }}</span>
                 </button>
                 <button class="filter-btn" data-filter="high" onclick="filterAlerts('high')">
-                    High <span class="badge">{{ alert_counts.high }}</span>
+                    High <span class="badge">{{ stats.high }}</span>
                 </button>
                 <button class="filter-btn" data-filter="medium" onclick="filterAlerts('medium')">
-                    Medium <span class="badge">{{ alert_counts.medium }}</span>
+                    Medium <span class="badge">{{ stats.medium }}</span>
                 </button>
                 <button class="filter-btn" data-filter="initial" onclick="filterAlerts('initial')">
-                    Initial <span class="badge">{{ alert_counts.initial }}</span>
+                    Initial <span class="badge">{{ stats.initial }}</span>
                 </button>
-                <button class="filter-btn" data-filter="resolved" onclick="filterAlerts('resolved')">
-                    Resolved <span class="badge">{{ alert_counts.total_resolved }}</span>
+                <button class="filter-btn {% if status_filter == 'resolved' %}active{% endif %}" data-filter="resolved" onclick="filterAlerts('resolved')">
+                    Resolved <span class="badge">{{ stats.resolved }}</span>
                 </button>
             </div>
         </div>
@@ -508,11 +601,11 @@
             <i class="fas fa-table"></i>
             All Alerts
         </div>
-        <span class="section-badge" id="visibleCount">{{ all_alerts|length }}</span>
+        <span class="section-badge" id="visibleCount">{{ alerts|length }}</span>
     </div>
 
     <!-- Alerts Table -->
-    {% if all_alerts %}
+    {% if alerts %}
     <div class="alerts-table-container">
         <table class="alerts-table" id="alertsTable">
             <thead>
@@ -528,9 +621,9 @@
                 </tr>
             </thead>
             <tbody>
-                {% for alert in all_alerts %}
+                {% for alert in alerts %}
                 <tr data-status="{{ alert.status }}" class="alert-row">
-                    <td>
+                    <td data-label="Status">
                         <span class="status-badge {{ alert.status }}">
                             {% if alert.status == 'high' %}HIGH
                             {% elif alert.status == 'medium' %}MEDIUM
@@ -538,11 +631,18 @@
                             {% else %}RESOLVED{% endif %}
                         </span>
                     </td>
-                    <td>
-                        <div class="text-primary-bold">{{ alert.sensor_metadata.sensor.device.display_name }}</div>
-                        <div class="text-secondary-small">{{ alert.sensor_metadata.sensor.device.device_id }}</div>
+                    <td data-label="Device">
+                        <div class="device-info">
+                            <div class="device-info-icon">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                            <div class="device-info-text">
+                                <strong>{{ alert.sensor_metadata.sensor.device.display_name }}</strong>
+                                <small>{{ alert.sensor_metadata.sensor.device.device_id }}</small>
+                            </div>
+                        </div>
                     </td>
-                    <td>
+                    <td data-label="Sensor">
                         <div class="text-primary-bold">
                             {% if alert.sensor_metadata.display_name %}
                                 {{ alert.sensor_metadata.display_name }}
@@ -551,23 +651,25 @@
                             {% endif %}
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Value">
                         <span class="text-value {% if alert.status != 'resolved' %}text-breach{% endif %}">
                             {{ alert.breach_value }}{% if alert.sensor_metadata.unit %} {{ alert.sensor_metadata.unit }}{% endif %}
                         </span>
                     </td>
-                    <td>
+                    <td data-label="Limit">
                         <span class="text-value">
                             {% if alert.breach_type == 'upper' %}↑ ≤{% else %}↓ ≥{% endif %}
                             {{ alert.limit_value }}{% if alert.sensor_metadata.unit %} {{ alert.sensor_metadata.unit }}{% endif %}
                         </span>
                     </td>
-                    <td><span class="text-value">{{ alert.duration_minutes }} min</span></td>
-                    <td>
+                    <td data-label="Duration">
+                        <span class="text-value">{{ alert.duration_minutes }} min</span>
+                    </td>
+                    <td data-label="Created">
                         <div>{{ alert.created_at|date:"Y-m-d" }}</div>
                         <div class="text-secondary-small">{{ alert.created_at|date:"H:i:s" }}</div>
                     </td>
-                    <td>
+                    <td data-label="Resolved">
                         {% if alert.resolved_at %}
                         <div>{{ alert.resolved_at|date:"Y-m-d" }}</div>
                         <div class="text-secondary-small">{{ alert.resolved_at|date:"H:i:s" }}</div>
@@ -584,7 +686,7 @@
     <!-- Pagination Controls -->
     <div class="pagination-container">
         <div class="pagination-info">
-            Showing <strong id="showingStart">1</strong> to <strong id="showingEnd">10</strong> of <strong id="showingTotal">{{ all_alerts|length }}</strong> alerts
+            Showing <strong id="showingStart">1</strong> to <strong id="showingEnd">10</strong> of <strong id="showingTotal">{{ alerts|length }}</strong> alerts
         </div>
         <div class="pagination-controls" id="paginationControls">
             <!-- Dynamically generated by JavaScript -->
@@ -592,9 +694,17 @@
     </div>
     {% else %}
     <div class="empty-state">
-        <i class="fas fa-check-circle"></i>
-        <h4>No Alerts</h4>
-        <p>No alerts found for this department</p>
+        <i class="fas fa-bell-slash"></i>
+        <h4>No Alerts Found</h4>
+        <p>
+            {% if status_filter == 'active' %}
+                No active alerts for your assigned devices.
+            {% elif status_filter == 'resolved' %}
+                No resolved alerts found.
+            {% else %}
+                No alerts for your assigned devices.
+            {% endif %}
+        </p>
     </div>
     {% endif %}
 
@@ -613,7 +723,7 @@
 // ========== PAGINATION & FILTER VARIABLES ==========
 let currentPage = 1;
 const rowsPerPage = 10;
-let currentFilter = 'all';
+let currentFilter = '{{ status_filter }}';
 
 // ========== FILTER FUNCTION ==========
 function filterAlerts(status) {
@@ -638,7 +748,17 @@ function applyFilterAndPagination() {
     // Filter rows
     rows.forEach(row => {
         const status = row.getAttribute('data-status');
-        if (currentFilter === 'all' || status === currentFilter) {
+        let showRow = false;
+        
+        if (currentFilter === 'all') {
+            showRow = true;
+        } else if (currentFilter === 'active') {
+            showRow = ['initial', 'medium', 'high'].includes(status);
+        } else {
+            showRow = status === currentFilter;
+        }
+        
+        if (showRow) {
             visibleRows.push(row);
             row.style.display = '';
         } else {
@@ -673,7 +793,11 @@ function applyFilterAndPagination() {
 // ========== RENDER PAGINATION CONTROLS ==========
 function renderPaginationControls(totalPages) {
     const controls = document.getElementById('paginationControls');
+    if (!controls) return;
+    
     controls.innerHTML = '';
+    
+    if (totalPages <= 1) return;
     
     // Previous button
     const prevBtn = document.createElement('button');

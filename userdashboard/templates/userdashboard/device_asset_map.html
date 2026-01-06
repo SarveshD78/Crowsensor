@@ -1,0 +1,1480 @@
+{% extends 'userdashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ device.display_name }} - Asset Map{% endblock %}
+{% block page_title %}Asset Map{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+/* ========================================
+   USER DASHBOARD ASSET MAP
+   Complete with Info Cards + Time Series
+   ======================================== */
+
+/* ===== CONTAINER ===== */
+.asset-map-container {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+/* ===== PAGE HEADER ===== */
+.page-header-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.page-header-left h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-header-left h2 i {
+    color: #6b7280;
+    font-size: 1.5rem;
+}
+
+.page-header-left p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.back-btn {
+    background: #e5e7eb;
+    color: #111827;
+    border: 1px solid #d1d5db;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: #d1d5db;
+    text-decoration: none;
+    color: #111827;
+}
+
+/* ===== STATS HEADER BAR ===== */
+.stats-header {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.stats-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+}
+
+.stat-item i {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.stat-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-left: 0.25rem;
+}
+
+.stats-right {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.time-range-select {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.time-range-select option {
+    background: #1e40af;
+    color: white;
+}
+
+.refresh-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.refresh-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* ===== MAIN LAYOUT: 50/50 SPLIT ===== */
+.asset-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    align-items: stretch;
+}
+
+/* ===== BOTH CARDS: IDENTICAL STRUCTURE ===== */
+.info-card-single,
+.map-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 500px;
+}
+
+/* ===== CARD HEADERS ===== */
+.info-card-header,
+.map-header {
+    background: #f9fafb;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    flex-shrink: 0;
+}
+
+.info-card-header h4,
+.map-title {
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-card-header h4 i,
+.map-title i {
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+/* ===== CARD BODIES ===== */
+.info-card-body,
+.map-body {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+}
+
+.map-body {
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== INFO LIST ===== */
+.info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-list-item {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s ease;
+}
+
+.info-list-item:last-child {
+    border-bottom: none;
+}
+
+.info-list-item:hover {
+    background: #f9fafb;
+}
+
+.info-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-label i {
+    color: #9ca3af;
+    width: 16px;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.info-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.info-unit {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9ca3af;
+}
+
+.info-loading,
+.map-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    height: 100%;
+}
+
+.info-loading .spinner-border,
+.map-loading .spinner-border {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-width: 3px;
+    color: #3b82f6;
+}
+
+.info-loading p,
+.map-loading p {
+    margin-top: 1rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.no-info-message {
+    padding: 2rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* ===== MAP CONTAINER ===== */
+#asset-map {
+    width: 100%;
+    height: 100%;
+    min-height: 450px;
+    background: #f3f4f6;
+}
+
+.map-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    z-index: 1000;
+}
+
+/* ===== FULLSCREEN BUTTON ===== */
+.leaflet-control-fullscreen {
+    background: white !important;
+    border: 2px solid rgba(0,0,0,0.2) !important;
+    border-radius: 4px !important;
+}
+
+.leaflet-control-fullscreen a {
+    background: white !important;
+    color: #333 !important;
+    font-size: 18px !important;
+    line-height: 30px !important;
+    width: 34px !important;
+    height: 34px !important;
+    display: block !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+}
+
+/* ===== TIME SERIES CHARTS SECTION ===== */
+.charts-section {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-top: 1.5rem;
+}
+
+.charts-header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+
+.charts-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.charts-header h3 i {
+    color: #6b7280;
+    font-size: 1.25rem;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.chart-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.chart-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chart-title i {
+    color: #6b7280;
+}
+
+.chart-canvas {
+    max-height: 280px;
+}
+
+.charts-loading {
+    text-align: center;
+    padding: 2rem;
+}
+
+.charts-loading .spinner-border {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-width: 3px;
+    color: #3b82f6;
+}
+
+.charts-loading p {
+    margin-top: 1rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.no-charts-message {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* ===== CONFIG WARNING ===== */
+.config-warning {
+    background: #ffffff;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+}
+
+.config-warning i {
+    font-size: 64px;
+    color: #f59e0b;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.config-warning h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.75rem;
+}
+
+.config-warning p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ===== LEAFLET POPUP ===== */
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+}
+
+.custom-popup {
+    font-size: 0.75rem;
+    min-width: 220px;
+}
+
+.popup-header {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: #111827;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.popup-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.popup-row:last-child {
+    border-bottom: none;
+}
+
+.popup-label {
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+
+.popup-value {
+    font-weight: 700;
+    color: #111827;
+    text-align: right;
+    font-size: 0.75rem;
+}
+
+/* ===== FULLSCREEN MAP STYLES ===== */
+#asset-map:-webkit-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 99999 !important;
+}
+
+#asset-map:-moz-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 99999 !important;
+}
+
+#asset-map:fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 99999 !important;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 992px) {
+    .asset-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    #asset-map {
+        min-height: 400px;
+    }
+    
+    .stats-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .stats-left {
+        flex-wrap: wrap;
+    }
+    
+    .stats-right {
+        width: 100%;
+    }
+    
+    .time-range-select,
+    .refresh-btn {
+        flex: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .asset-map-container {
+        padding: 1rem;
+    }
+    
+    .page-header-card {
+        padding: 1rem;
+    }
+    
+    .page-header-left h2 {
+        font-size: 1.25rem;
+    }
+    
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-card {
+        min-width: auto;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="asset-map-container">
+
+    <!-- Page Header -->
+    <div class="page-header-card">
+        <div class="page-header-left">
+            <h2>
+                <i class="fas fa-map-marked-alt"></i>
+                {{ device.display_name }}
+            </h2>
+            <p>Real-time asset tracking and sensor monitoring</p>
+        </div>
+        <a href="{% url 'userdashboard:user_devices' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Devices
+        </a>
+    </div>
+
+    {% if not has_location_config %}
+    
+    <!-- No Configuration Warning -->
+    <div class="config-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>Asset Tracking Not Configured</h3>
+        <p>
+            This device doesn't have asset tracking configuration yet.<br>
+            Contact your administrator to configure location sensors and display options.
+        </p>
+    </div>
+
+    {% else %}
+
+    <!-- Stats Header Bar -->
+    <div class="stats-header">
+        <div class="stats-left">
+            <div class="stat-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span class="stat-label">Total Points:</span>
+                <span class="stat-value" id="total-points">--</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-play-circle"></i>
+                <span class="stat-label">Start:</span>
+                <span class="stat-value" id="start-time">--</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-stop-circle"></i>
+                <span class="stat-label">End:</span>
+                <span class="stat-value" id="end-time">--</span>
+            </div>
+        </div>
+        <div class="stats-right">
+            <select id="timeRangeSelect" class="time-range-select">
+                <option value="now() - 1h">Last 1 Hour</option>
+                <option value="now() - 2h">Last 2 Hours</option>
+                <option value="now() - 3h">Last 3 Hours</option>
+                <option value="now() - 6h">Last 6 Hours</option>
+                <option value="now() - 12h">Last 12 Hours</option>
+                <option value="now() - 24h" selected>Last 24 Hours</option>
+                <option value="now() - 2d">Last 2 Days</option>
+                <option value="now() - 7d">Last 7 Days</option>
+            </select>
+            <button id="refreshBtn" class="refresh-btn">
+                <i class="fas fa-sync-alt"></i>
+                Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Layout: 50/50 Split -->
+    <div class="asset-layout">
+        
+        <!-- LEFT SIDE - INFO CARD -->
+        <div class="info-card-single">
+            
+            <!-- Card Header -->
+            <div class="info-card-header">
+                <h4>
+                    <i class="fas fa-info-circle"></i>
+                    Live Sensor Data
+                </h4>
+            </div>
+
+            <!-- Card Body -->
+            <div class="info-card-body">
+                <div id="info-list-container">
+                    <div class="info-loading">
+                        <div class="spinner-border" role="status"></div>
+                        <p>Loading sensor data...</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT SIDE - MAP -->
+        <div class="map-card">
+            
+            <!-- Map Header -->
+            <div class="map-header">
+                <h3 class="map-title">
+                    <i class="fas fa-map"></i>
+                    Live Location Tracking
+                </h3>
+            </div>
+
+            <!-- Map Body -->
+            <div class="map-body">
+                <div id="asset-map"></div>
+                <div id="map-loading" class="map-loading">
+                    <div class="spinner-border" role="status"></div>
+                    <p>Loading location data...</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- BOTTOM SECTION - TIME SERIES CHARTS -->
+    <div class="charts-section" id="charts-section">
+        
+        <!-- Charts Header -->
+        <div class="charts-header">
+            <h3>
+                <i class="fas fa-chart-line"></i>
+                Time Series Data
+            </h3>
+        </div>
+
+        <!-- Charts Container -->
+        <div id="charts-container">
+            <div class="charts-loading">
+                <div class="spinner-border" role="status"></div>
+                <p>Loading charts...</p>
+            </div>
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+<script>
+// ==========================================
+// 🗺️  USER DASHBOARD ASSET MAP
+// Complete with Info Cards + Time Series
+// ==========================================
+console.log('🗺️  User Asset Map Initialized');
+
+// ==========================================
+// CONFIGURATION
+// ==========================================
+const DEVICE_ID = {{ device.id }};
+const API_URL = "{% url 'userdashboard:user_device_asset_map_data' device.id %}";
+
+// ==========================================
+// GLOBAL STATE
+// ==========================================
+let map = null;
+let markersLayer = null;
+let pathLayer = null;
+let allPoints = [];
+let isFullscreen = false;
+let fullscreenControl = null;
+let chartInstances = {};  // Store chart instances for cleanup
+
+// ==========================================
+// 🔲 CUSTOM FULLSCREEN CONTROL
+// ==========================================
+L.Control.CustomFullscreen = L.Control.extend({
+    options: {
+        position: 'topleft'
+    },
+    
+    onAdd: function(map) {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        const button = L.DomUtil.create('a', 'leaflet-control-fullscreen', container);
+        
+        button.href = '#';
+        button.title = 'Toggle Fullscreen';
+        button.innerHTML = '⛶';
+        button.style.cssText = `
+            font-size: 20px;
+            line-height: 30px;
+            width: 34px;
+            height: 34px;
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            cursor: pointer;
+        `;
+        
+        L.DomEvent.on(button, 'click', function(e) {
+            L.DomEvent.stopPropagation(e);
+            L.DomEvent.preventDefault(e);
+            toggleFullscreen();
+        });
+        
+        this._button = button;
+        return container;
+    },
+    
+    updateIcon: function(isFS) {
+        if (this._button) {
+            this._button.innerHTML = isFS ? '⤧' : '⛶';
+        }
+    }
+});
+
+L.control.customFullscreen = function(opts) {
+    return new L.Control.CustomFullscreen(opts);
+};
+
+// ==========================================
+// 🔲 FULLSCREEN TOGGLE
+// ==========================================
+function toggleFullscreen() {
+    const mapElement = document.getElementById('asset-map');
+    
+    if (!isFullscreen) {
+        if (mapElement.requestFullscreen) {
+            mapElement.requestFullscreen();
+        } else if (mapElement.webkitRequestFullscreen) {
+            mapElement.webkitRequestFullscreen();
+        } else if (mapElement.mozRequestFullScreen) {
+            mapElement.mozRequestFullScreen();
+        } else if (mapElement.msRequestFullscreen) {
+            mapElement.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// ==========================================
+// 🔲 FULLSCREEN CHANGE HANDLER
+// ==========================================
+function handleFullscreenChange() {
+    const isCurrentlyFullscreen = !!(
+        document.fullscreenElement || 
+        document.webkitFullscreenElement || 
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+    );
+    
+    if (isCurrentlyFullscreen !== isFullscreen) {
+        isFullscreen = isCurrentlyFullscreen;
+        
+        console.log(isFullscreen ? '🔲 FULLSCREEN MODE' : '🔳 NORMAL MODE');
+        
+        if (fullscreenControl) {
+            fullscreenControl.updateIcon(isFullscreen);
+        }
+        
+        if (allPoints.length > 0) {
+            renderMapData(allPoints);
+        }
+        
+        setTimeout(() => {
+            if (map) {
+                map.invalidateSize();
+            }
+        }, 100);
+    }
+}
+
+// Register fullscreen listeners
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+// ==========================================
+// 🗺️  MAP INITIALIZATION
+// ==========================================
+function initMap() {
+    console.log('🗺️  Initializing map...');
+    
+    map = L.map('asset-map', {
+        center: [20.5937, 78.9629],
+        zoom: 5,
+        zoomControl: true,
+        preferCanvas: true
+    });
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Add custom fullscreen control
+    fullscreenControl = L.control.customFullscreen().addTo(map);
+    
+    // Create layer groups
+    pathLayer = L.layerGroup().addTo(map);
+    markersLayer = L.layerGroup().addTo(map);
+    
+    console.log('✅ Map initialized');
+}
+
+// ==========================================
+// 🔄 FETCH DATA FROM API
+// ==========================================
+function loadMapData() {
+    const timeRange = document.getElementById('timeRangeSelect').value;
+    
+    console.log(`🔄 Fetching data for: ${timeRange}`);
+    
+    // Show loading states
+    document.getElementById('map-loading').style.display = 'flex';
+    document.getElementById('info-list-container').innerHTML = `
+        <div class="info-loading">
+            <div class="spinner-border" role="status"></div>
+            <p>Loading sensor data...</p>
+        </div>
+    `;
+    document.getElementById('charts-container').innerHTML = `
+        <div class="charts-loading">
+            <div class="spinner-border" role="status"></div>
+            <p>Loading charts...</p>
+        </div>
+    `;
+    
+    fetch(`${API_URL}?time_range=${encodeURIComponent(timeRange)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.message || 'Unknown error');
+            }
+            
+            const responseData = data.data;
+            const points = responseData.points || responseData.locations || [];
+            
+            if (!points || points.length === 0) {
+                showNoDataMessage();
+                return;
+            }
+            
+            console.log(`✅ Received ${points.length} points`);
+            
+            // Store globally
+            allPoints = points;
+            
+            // Update stats header
+            updateStatsHeader(points);
+            
+            // Render map
+            renderMapData(points);
+            
+            // Update info cards with latest point
+            updateInfoCards(points[points.length - 1], responseData.info_card_data);
+            
+            // Update time series charts
+            updateTimeSeriesCharts(points);
+        })
+        .catch(error => {
+            console.error('❌ Error:', error);
+            showErrorMessage(error.message);
+        })
+        .finally(() => {
+            document.getElementById('map-loading').style.display = 'none';
+        });
+}
+
+// ==========================================
+// 📊 UPDATE STATS HEADER
+// ==========================================
+function updateStatsHeader(points) {
+    document.getElementById('total-points').textContent = points.length;
+    
+    if (points.length > 0) {
+        const startPoint = points[0];
+        const endPoint = points[points.length - 1];
+        
+        document.getElementById('start-time').textContent = startPoint.timestamp || startPoint.time || '--';
+        document.getElementById('end-time').textContent = endPoint.timestamp || endPoint.time || '--';
+    }
+}
+
+// ==========================================
+// 📋 UPDATE INFO CARDS (LEFT PANEL)
+// ==========================================
+function updateInfoCards(latestPoint, infoCardData) {
+    const container = document.getElementById('info-list-container');
+    if (!container) return;
+    
+    // Prefer info_card_data from API, fallback to point's info_data
+    const infoData = infoCardData || latestPoint.info_data || {};
+    
+    if (Object.keys(infoData).length === 0) {
+        container.innerHTML = '<div class="no-info-message">No sensor data configured for info display</div>';
+        return;
+    }
+    
+    let html = '<ul class="info-list">';
+    
+    for (const [key, sensorData] of Object.entries(infoData)) {
+        // Handle both formats: {display_name, value, unit} or just value
+        let displayName, value, unit;
+        
+        if (typeof sensorData === 'object' && sensorData !== null) {
+            displayName = sensorData.display_name || key;
+            value = sensorData.value;
+            unit = sensorData.unit || '';
+        } else {
+            displayName = key;
+            value = sensorData;
+            unit = '';
+        }
+        
+        // Format value
+        if (value === null || value === undefined) {
+            value = 'N/A';
+        } else if (typeof value === 'number') {
+            value = value.toFixed(2);
+        }
+        
+        html += `
+            <li class="info-list-item">
+                <span class="info-label">
+                    <i class="fas fa-circle"></i>
+                    ${displayName}
+                </span>
+                <span class="info-value">
+                    ${value}
+                    <span class="info-unit">${unit}</span>
+                </span>
+            </li>
+        `;
+    }
+    
+    html += '</ul>';
+    container.innerHTML = html;
+}
+
+// ==========================================
+// 📈 UPDATE TIME SERIES CHARTS
+// ==========================================
+function updateTimeSeriesCharts(points) {
+    const container = document.getElementById('charts-container');
+    const section = document.getElementById('charts-section');
+    if (!container) return;
+    
+    // Destroy existing charts
+    Object.values(chartInstances).forEach(chart => {
+        if (chart) chart.destroy();
+    });
+    chartInstances = {};
+    
+    // Collect unique timeseries sensor keys
+    const sensorNames = new Set();
+    points.forEach(point => {
+        if (point.timeseries_data) {
+            Object.keys(point.timeseries_data).forEach(key => sensorNames.add(key));
+        }
+    });
+    
+    if (sensorNames.size === 0) {
+        // Hide charts section if no timeseries sensors
+        if (section) {
+            section.style.display = 'none';
+        }
+        return;
+    }
+    
+    // Show charts section
+    if (section) {
+        section.style.display = 'block';
+    }
+    
+    // Create chart containers
+    let html = '<div class="charts-grid">';
+    
+    Array.from(sensorNames).forEach((sensorKey, index) => {
+        // Find first point with this sensor data
+        const pointWithData = points.find(p => p.timeseries_data && p.timeseries_data[sensorKey]);
+        if (!pointWithData) return;
+        
+        const sensorData = pointWithData.timeseries_data[sensorKey];
+        const displayName = sensorData.display_name || sensorKey;
+        const unit = sensorData.unit || '';
+        
+        html += `
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    ${displayName} ${unit ? '(' + unit + ')' : ''}
+                </div>
+                <canvas id="chart-${index}" class="chart-canvas"></canvas>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+    // Render charts after DOM update
+    setTimeout(() => {
+        Array.from(sensorNames).forEach((sensorKey, index) => {
+            renderChart(sensorKey, index, points);
+        });
+    }, 100);
+}
+
+// ==========================================
+// 📊 RENDER INDIVIDUAL CHART
+// ==========================================
+function renderChart(sensorKey, chartIndex, points) {
+    const ctx = document.getElementById(`chart-${chartIndex}`);
+    if (!ctx) return;
+    
+    const labels = points.map(p => p.time || '');
+    const data = points.map(p => {
+        const sensorData = p.timeseries_data ? p.timeseries_data[sensorKey] : null;
+        return sensorData && sensorData.value !== null ? sensorData.value : null;
+    });
+    
+    const firstPoint = points.find(p => p.timeseries_data && p.timeseries_data[sensorKey]);
+    if (!firstPoint) return;
+    
+    const sensorData = firstPoint.timeseries_data[sensorKey];
+    
+    chartInstances[chartIndex] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: sensorData.display_name || sensorKey,
+                data: data,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                spanGaps: true,
+                pointRadius: 0,
+                pointHoverRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        label: function(context) {
+                            let value = context.parsed.y;
+                            if (value !== null) {
+                                value = value.toFixed(2);
+                            }
+                            return `${sensorData.display_name || sensorKey}: ${value} ${sensorData.unit || ''}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toFixed(1);
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45,
+                        maxTicksLimit: 10
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ==========================================
+// 🗺️  RENDER MAP DATA
+// ==========================================
+function renderMapData(points) {
+    console.log(`🗺️  Rendering ${points.length} points (Mode: ${isFullscreen ? 'FULLSCREEN' : 'NORMAL'})`);
+    
+    markersLayer.clearLayers();
+    pathLayer.clearLayers();
+    
+    // Sort points chronologically
+    const sortedPoints = [...points].sort((a, b) => {
+        const timeA = a.timestamp || a.time || '';
+        const timeB = b.timestamp || b.time || '';
+        return timeA.localeCompare(timeB);
+    });
+    
+    if (isFullscreen) {
+        // FULLSCREEN: Show all waypoints + full polyline
+        renderFullscreenMode(sortedPoints);
+    } else {
+        // NORMAL: Show start + end only
+        renderNormalMode(sortedPoints);
+    }
+}
+
+// ==========================================
+// 🔳 NORMAL MODE: Start + End
+// ==========================================
+function renderNormalMode(points) {
+    const startPoint = points[0];
+    const endPoint = points[points.length - 1];
+    
+    // Get coordinates - handle both formats
+    const startLat = startPoint.lat || startPoint.latitude;
+    const startLng = startPoint.lng || startPoint.longitude;
+    const endLat = endPoint.lat || endPoint.latitude;
+    const endLng = endPoint.lng || endPoint.longitude;
+    
+    console.log(`📍 Start: [${startLat}, ${startLng}]`);
+    console.log(`📍 End: [${endLat}, ${endLng}]`);
+    
+    // Draw dashed line
+    const straightLine = L.polyline(
+        [[startLat, startLng], [endLat, endLng]], 
+        {
+            color: '#3b82f6',
+            weight: 3,
+            opacity: 0.7,
+            dashArray: '10, 10'
+        }
+    );
+    straightLine.addTo(pathLayer);
+    
+    // Start marker (green)
+    const startMarker = L.circleMarker([startLat, startLng], {
+        radius: 16,
+        fillColor: '#10b981',
+        color: '#ffffff',
+        weight: 5,
+        opacity: 1,
+        fillOpacity: 1
+    });
+    startMarker.bindPopup(createPopupContent(startPoint, 0, true, false));
+    startMarker.addTo(markersLayer);
+    
+    // End marker (red)
+    const endMarker = L.circleMarker([endLat, endLng], {
+        radius: 16,
+        fillColor: '#ef4444',
+        color: '#ffffff',
+        weight: 5,
+        opacity: 1,
+        fillOpacity: 1
+    });
+    endMarker.bindPopup(createPopupContent(endPoint, points.length - 1, false, true));
+    endMarker.addTo(markersLayer);
+    
+    // Fit bounds
+    map.fitBounds(straightLine.getBounds(), { padding: [100, 100] });
+}
+
+// ==========================================
+// 🔲 FULLSCREEN MODE: All waypoints
+// ==========================================
+function renderFullscreenMode(points) {
+    const MAX_MARKERS = 30;
+    const totalPoints = points.length;
+    const sampledPoints = [];
+    
+    // Always include start
+    sampledPoints.push({ point: points[0], index: 0, isStart: true, isEnd: false });
+    
+    // Sample middle points
+    if (totalPoints > MAX_MARKERS) {
+        const interval = Math.floor((totalPoints - 2) / (MAX_MARKERS - 2));
+        for (let i = interval; i < totalPoints - 1; i += interval) {
+            if (sampledPoints.length < MAX_MARKERS - 1) {
+                sampledPoints.push({ point: points[i], index: i, isStart: false, isEnd: false });
+            }
+        }
+    } else {
+        for (let i = 1; i < totalPoints - 1; i++) {
+            sampledPoints.push({ point: points[i], index: i, isStart: false, isEnd: false });
+        }
+    }
+    
+    // Always include end
+    sampledPoints.push({ point: points[totalPoints - 1], index: totalPoints - 1, isStart: false, isEnd: true });
+    
+    console.log(`📊 Sampled ${sampledPoints.length} markers from ${totalPoints} points`);
+    
+    // Draw polyline with ALL points
+    const pathCoordinates = points.map(p => {
+        const lat = p.lat || p.latitude;
+        const lng = p.lng || p.longitude;
+        return [lat, lng];
+    });
+    
+    const polyline = L.polyline(pathCoordinates, {
+        color: '#3b82f6',
+        weight: 4,
+        opacity: 0.7,
+        smoothFactor: 1.0
+    });
+    polyline.addTo(pathLayer);
+    
+    // Draw markers
+    sampledPoints.forEach((item) => {
+        const { point, index, isStart, isEnd } = item;
+        const lat = point.lat || point.latitude;
+        const lng = point.lng || point.longitude;
+        
+        let radius, fillColor;
+        if (isStart) {
+            radius = 14;
+            fillColor = '#10b981';
+        } else if (isEnd) {
+            radius = 14;
+            fillColor = '#ef4444';
+        } else {
+            radius = 8;
+            fillColor = '#3b82f6';
+        }
+        
+        const marker = L.circleMarker([lat, lng], {
+            radius: radius,
+            fillColor: fillColor,
+            color: '#ffffff',
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 1
+        });
+        
+        marker.bindPopup(createPopupContent(point, index, isStart, isEnd));
+        marker.addTo(markersLayer);
+    });
+    
+    // Fit bounds
+    map.fitBounds(polyline.getBounds(), { padding: [80, 80] });
+}
+
+// ==========================================
+// 🏷️  CREATE POPUP CONTENT
+// ==========================================
+function createPopupContent(point, index, isStart, isEnd) {
+    let label = isStart ? '🟢 Start Point' : 
+                isEnd ? `🔴 Current Location (Point ${index})` : 
+                `⚪ Point ${index}`;
+    
+    const lat = point.lat || point.latitude;
+    const lng = point.lng || point.longitude;
+    
+    let popupHtml = `
+        <div class="custom-popup">
+            <div class="popup-header">${label}</div>
+            <div class="popup-row">
+                <span class="popup-label">Time:</span>
+                <span class="popup-value">${point.time || 'N/A'}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Date:</span>
+                <span class="popup-value">${point.date || 'N/A'}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Coordinates:</span>
+                <span class="popup-value">${lat.toFixed(6)}, ${lng.toFixed(6)}</span>
+            </div>
+    `;
+    
+    // Add popup sensor data
+    if (point.popup_data) {
+        for (const [key, sensorData] of Object.entries(point.popup_data)) {
+            let value = sensorData.value !== null ? sensorData.value : 'N/A';
+            if (typeof value === 'number') {
+                value = value.toFixed(2);
+            }
+            
+            popupHtml += `
+                <div class="popup-row">
+                    <span class="popup-label">${sensorData.display_name}:</span>
+                    <span class="popup-value">${value} ${sensorData.unit || ''}</span>
+                </div>
+            `;
+        }
+    }
+    
+    popupHtml += `</div>`;
+    return popupHtml;
+}
+
+// ==========================================
+// ⚠️  ERROR/NO DATA HANDLERS
+// ==========================================
+function showNoDataMessage() {
+    document.getElementById('map-loading').style.display = 'none';
+    document.getElementById('info-list-container').innerHTML = '<div class="no-info-message">No data available for selected time range</div>';
+    document.getElementById('charts-container').innerHTML = '<div class="no-charts-message">No data available for selected time range</div>';
+    
+    // Update stats
+    document.getElementById('total-points').textContent = '0';
+    document.getElementById('start-time').textContent = '--';
+    document.getElementById('end-time').textContent = '--';
+}
+
+function showErrorMessage(message) {
+    document.getElementById('map-loading').style.display = 'none';
+    document.getElementById('info-list-container').innerHTML = `<div class="no-info-message" style="color: #ef4444;">Error: ${message}</div>`;
+    document.getElementById('charts-container').innerHTML = `<div class="no-charts-message" style="color: #ef4444;">Error loading data</div>`;
+}
+
+// ==========================================
+// 🎬 EVENT LISTENERS
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 DOM loaded');
+    
+    {% if has_location_config %}
+    console.log('🗺️  Starting map initialization...');
+    initMap();
+    loadMapData();
+    
+    // Refresh button
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+        console.log('🔄 Manual refresh triggered');
+        loadMapData();
+    });
+    
+    // Time range change
+    document.getElementById('timeRangeSelect').addEventListener('change', function() {
+        console.log(`🕒 Time range changed to: ${this.value}`);
+        loadMapData();
+    });
+    
+    // Auto-refresh every 30 seconds
+    setInterval(function() {
+        console.log('🔄 Auto-refresh...');
+        loadMapData();
+    }, 30000);
+    {% else %}
+    console.log('⚠️  No location config');
+    {% endif %}
+});
+</script>
+{% endblock %}

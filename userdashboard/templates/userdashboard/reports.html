@@ -1,0 +1,874 @@
+{% extends 'userdashboard/base.html' %}
+
+{% block title %}Reports{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========================================
+   REPORTS PAGE - CLEAN SIMPLE DESIGN
+   Matching Alerts page pattern exactly
+   ======================================== */
+
+/* ===== CONTAINER ===== */
+.reports-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* ===== WELCOME CARD ===== */
+.welcome-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.welcome-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.welcome-card h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333B4A;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.welcome-card h3 i {
+    color: #3094FF;
+    font-size: 24px;
+}
+
+.welcome-card p {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
+}
+
+.stats-badge {
+    background: #fff;
+    border: 2px solid #3094FF;
+    color: #3094FF;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ===== STATS CARDS ===== */
+.report-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.report-stat-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+}
+
+.report-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.report-stat-number {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+    color: #333B4A;
+}
+
+.report-stat-label {
+    font-size: 14px;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+/* ===== FILTER SECTION ===== */
+.filter-section {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.filter-group select,
+.filter-group input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    background: #fff;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+    outline: none;
+    border-color: #3094FF;
+}
+
+.filter-btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+.filter-btn {
+    padding: 10px 16px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background: white;
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-btn:hover {
+    border-color: #3094FF;
+    color: #3094FF;
+}
+
+.filter-btn.primary {
+    background: #3094FF;
+    color: white;
+    border-color: #3094FF;
+}
+
+.filter-btn.primary:hover {
+    background: #0066CC;
+    border-color: #0066CC;
+    color: white;
+}
+
+/* ===== TABLE SECTION ===== */
+.section-header {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333B4A;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+}
+
+.section-title i {
+    color: #3094FF;
+    font-size: 18px;
+}
+
+.section-badge {
+    background: #f8f9fa;
+    color: #333B4A;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ===== TABLE CONTAINER ===== */
+.reports-table-container {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+}
+
+/* ===== TABLE ===== */
+.reports-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.reports-table thead {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.reports-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+.reports-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s ease;
+}
+
+.reports-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.reports-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.reports-table td {
+    padding: 14px 16px;
+    vertical-align: middle;
+}
+
+/* ===== TYPE BADGES ===== */
+.type-badge {
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.type-badge.daily {
+    background: #3094FF;
+    color: white;
+}
+
+.type-badge.custom {
+    background: #f59e0b;
+    color: white;
+}
+
+/* ===== INFO BADGES ===== */
+.info-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.info-badge.primary {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.info-badge.success {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.info-badge.warning {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.info-badge.secondary {
+    background: #f5f5f5;
+    color: #616161;
+}
+
+/* ===== DEVICE INFO ===== */
+.device-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.device-info-icon {
+    width: 36px;
+    height: 36px;
+    background: #e3f2fd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1976d2;
+    font-size: 14px;
+}
+
+.device-info-text strong {
+    display: block;
+    font-size: 14px;
+    color: #333B4A;
+}
+
+.device-info-text small {
+    color: #6c757d;
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+}
+
+/* ===== TEXT STYLES ===== */
+.text-primary-bold {
+    font-weight: 600;
+    color: #333B4A;
+}
+
+.text-secondary-small {
+    font-size: 11px;
+    color: #6c757d;
+    font-family: 'Courier New', monospace;
+}
+
+.text-value {
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    color: #333B4A;
+}
+
+/* ===== DOWNLOAD BUTTON ===== */
+.download-btn {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.download-btn:hover {
+    background: #218838;
+    color: #fff;
+}
+
+/* ===== PAGINATION ===== */
+.pagination-container {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.pagination-btn {
+    padding: 8px 14px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background: white;
+    color: #333B4A;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pagination-btn:hover {
+    border-color: #3094FF;
+    color: #3094FF;
+}
+
+.pagination-btn.active {
+    background: #3094FF;
+    color: white;
+    border-color: #3094FF;
+}
+
+.pagination-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #e9ecef;
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: #dee2e6;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.empty-state h4 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333B4A;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
+}
+
+.empty-state a {
+    color: #3094FF;
+    text-decoration: none;
+}
+
+.empty-state a:hover {
+    text-decoration: underline;
+}
+
+/* ===== READ-ONLY NOTICE ===== */
+.readonly-notice {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #1565c0;
+}
+
+.readonly-notice i {
+    font-size: 18px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .reports-table thead {
+        display: none;
+    }
+    
+    .reports-table tbody tr {
+        display: block;
+        margin-bottom: 16px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        padding: 16px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .reports-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .reports-table td:last-child {
+        border-bottom: none;
+    }
+    
+    .reports-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 11px;
+        color: #6c757d;
+        text-transform: uppercase;
+    }
+}
+
+@media (max-width: 768px) {
+    .reports-container {
+        padding: 16px;
+    }
+    
+    .report-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .welcome-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        min-width: 100%;
+    }
+    
+    .filter-btn-group {
+        width: 100%;
+    }
+    
+    .filter-btn {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .pagination-container {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reports-container">
+
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+        <div class="welcome-card-header">
+            <div>
+                <h3>
+                    <i class="fas fa-file-alt"></i>
+                    Device Reports
+                </h3>
+                <p>View and download reports for your assigned devices in {{ department_name }}</p>
+            </div>
+            <span class="stats-badge">
+                <i class="fas fa-file-alt"></i>
+                <span>{{ total_reports }}</span> Total Report{{ total_reports|pluralize }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Read-Only Notice -->
+    <div class="readonly-notice">
+        <i class="fas fa-info-circle"></i>
+        <span>View-only access. Reports are generated by your department administrator.</span>
+    </div>
+
+    <!-- Report Statistics Cards -->
+    <div class="report-stats-grid">
+        <div class="report-stat-card">
+            <div class="report-stat-number">{{ total_reports }}</div>
+            <div class="report-stat-label">📊 Total Reports</div>
+        </div>
+
+        <div class="report-stat-card">
+            <div class="report-stat-number">{{ daily_reports_count }}</div>
+            <div class="report-stat-label">📅 Daily Reports</div>
+        </div>
+
+        <div class="report-stat-card">
+            <div class="report-stat-number">{{ custom_reports_count }}</div>
+            <div class="report-stat-label">🔧 Custom Reports</div>
+        </div>
+
+        <div class="report-stat-card">
+            <div class="report-stat-number">{{ assigned_devices_count|default:0 }}</div>
+            <div class="report-stat-label">📱 Your Devices</div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form method="get" id="filterForm">
+            <div class="filter-row">
+                <!-- Report Type -->
+                <div class="filter-group">
+                    <label>Report Type</label>
+                    <select name="type" onchange="document.getElementById('filterForm').submit();">
+                        <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All Types</option>
+                        <option value="daily" {% if filter_type == 'daily' %}selected{% endif %}>Daily Only</option>
+                        <option value="custom" {% if filter_type == 'custom' %}selected{% endif %}>Custom Only</option>
+                    </select>
+                </div>
+                
+                <!-- Date From -->
+                <div class="filter-group">
+                    <label>Date From</label>
+                    <input type="date" 
+                           name="date_from" 
+                           value="{{ filter_date_from }}"
+                           onchange="document.getElementById('filterForm').submit();">
+                </div>
+                
+                <!-- Date To -->
+                <div class="filter-group">
+                    <label>Date To</label>
+                    <input type="date" 
+                           name="date_to" 
+                           value="{{ filter_date_to }}"
+                           onchange="document.getElementById('filterForm').submit();">
+                </div>
+                
+                <!-- Buttons -->
+                <div class="filter-btn-group">
+                    <a href="{% url 'userdashboard:user_reports' %}" class="filter-btn">
+                        <i class="fas fa-times"></i>
+                        Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Section Header -->
+    <div class="section-header">
+        <div class="section-title">
+            <i class="fas fa-table"></i>
+            Available Reports
+        </div>
+        <span class="section-badge">
+            {{ filtered_count }} Report{{ filtered_count|pluralize }}
+            {% if filtered_count != total_reports %}
+            <span style="color: #6c757d; font-weight: normal;">(filtered)</span>
+            {% endif %}
+        </span>
+    </div>
+
+    <!-- Reports Table -->
+    {% if reports %}
+    <div class="reports-table-container">
+        <table class="reports-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Report Date</th>
+                    <th>Device</th>
+                    <th style="text-align: center;">Sensors</th>
+                    <th style="text-align: center;">Data Points</th>
+                    <th style="text-align: center;">Size</th>
+                    <th>Generated</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr>
+                    <!-- Type -->
+                    <td data-label="Type">
+                        {% if report.report_type == 'custom' %}
+                            <span class="type-badge custom">
+                                <i class="fas fa-calendar-alt"></i>
+                                Custom
+                            </span>
+                        {% else %}
+                            <span class="type-badge daily">
+                                <i class="fas fa-calendar-day"></i>
+                                Daily
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Report Date -->
+                    <td data-label="Date">
+                        <div class="text-primary-bold">{{ report.report_date|date:"d M Y" }}</div>
+                        <div class="text-secondary-small">{{ report.report_date|date:"l" }}</div>
+                    </td>
+
+                    <!-- Device -->
+                    <td data-label="Device">
+                        <div class="device-info">
+                            <div class="device-info-icon">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                            <div class="device-info-text">
+                                <strong>{{ report.device.display_name }}</strong>
+                                <small>{{ report.device.measurement_name }}</small>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Sensors -->
+                    <td data-label="Sensors" style="text-align: center;">
+                        <div style="display: flex; justify-content: center; gap: 4px; flex-wrap: wrap;">
+                            <span class="info-badge primary">{{ report.total_sensors }}</span>
+                            {% if report.trend_sensors_count > 0 %}
+                            <span class="info-badge success" title="Trend Sensors">{{ report.trend_sensors_count }}T</span>
+                            {% endif %}
+                            {% if report.latest_sensors_count > 0 %}
+                            <span class="info-badge warning" title="Latest Sensors">{{ report.latest_sensors_count }}L</span>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <!-- Data Points -->
+                    <td data-label="Data Points" style="text-align: center;">
+                        {% if report.data_points_analyzed %}
+                            <span class="text-value">{{ report.data_points_analyzed|floatformat:0 }}</span>
+                        {% else %}
+                            <span style="color: #6c757d;">—</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Size -->
+                    <td data-label="Size" style="text-align: center;">
+                        <span class="info-badge secondary">{{ report.file_size_mb }} MB</span>
+                    </td>
+
+                    <!-- Generated -->
+                    <td data-label="Generated">
+                        <div>{{ report.created_at|date:"d M Y" }}</div>
+                        <div class="text-secondary-small">{{ report.created_at|date:"H:i" }}</div>
+                    </td>
+
+                    <!-- Action -->
+                    <td data-label="Action" style="text-align: center;">
+                        <a href="{% url 'userdashboard:download_report' report.id %}" class="download-btn">
+                            <i class="fas fa-download"></i>
+                            Download
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if reports.has_other_pages %}
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Showing <strong>{{ reports.start_index }}</strong> to <strong>{{ reports.end_index }}</strong> of <strong>{{ paginator.count }}</strong> reports
+        </div>
+        <div class="pagination-controls">
+            <!-- First -->
+            {% if reports.has_previous %}
+            <a href="?page=1{% if filter_type != 'all' %}&type={{ filter_type }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}" 
+               class="pagination-btn" title="First Page">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            {% endif %}
+            
+            <!-- Previous -->
+            {% if reports.has_previous %}
+            <a href="?page={{ reports.previous_page_number }}{% if filter_type != 'all' %}&type={{ filter_type }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}" 
+               class="pagination-btn">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            {% else %}
+            <span class="pagination-btn disabled">
+                <i class="fas fa-chevron-left"></i>
+            </span>
+            {% endif %}
+            
+            <!-- Page Numbers -->
+            {% for num in reports.paginator.page_range %}
+                {% if reports.number == num %}
+                <span class="pagination-btn active">{{ num }}</span>
+                {% elif num > reports.number|add:'-3' and num < reports.number|add:'3' %}
+                <a href="?page={{ num }}{% if filter_type != 'all' %}&type={{ filter_type }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}" 
+                   class="pagination-btn">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            <!-- Next -->
+            {% if reports.has_next %}
+            <a href="?page={{ reports.next_page_number }}{% if filter_type != 'all' %}&type={{ filter_type }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}" 
+               class="pagination-btn">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% else %}
+            <span class="pagination-btn disabled">
+                <i class="fas fa-chevron-right"></i>
+            </span>
+            {% endif %}
+            
+            <!-- Last -->
+            {% if reports.has_next %}
+            <a href="?page={{ paginator.num_pages }}{% if filter_type != 'all' %}&type={{ filter_type }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}" 
+               class="pagination-btn" title="Last Page">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <i class="fas fa-file-alt"></i>
+        <h4>No Reports Found</h4>
+        {% if filter_type != 'all' or filter_date_from or filter_date_to %}
+        <p>No reports match your current filters. <a href="{% url 'userdashboard:user_reports' %}">Clear filters</a> to see all reports.</p>
+        {% else %}
+        <p>No reports are available for your assigned devices yet.<br>Reports will appear here once they are generated by your department administrator.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

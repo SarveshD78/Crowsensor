@@ -1,4 +1,4 @@
-# cleanup_all.py - COMPLETE RESET WITH PUBLIC TENANT CREATION
+# cleanup_all.py - DATABASE & MIGRATIONS RESET ONLY (Keep venv)
 
 import subprocess
 import os
@@ -7,48 +7,14 @@ from pathlib import Path
 import sys
 
 print("=" * 80)
-print("🚀 ULTIMATE CROWSENSOR RESET - PYTHON 3.11 + DJANGO 4.2.7")
+print("🚀 CROWSENSOR DATABASE RESET - KEEP VENV")
 print("=" * 80)
 print()
 
 # ============================================================================
-# STEP 1: CHECK IF PYTHON 3.11 IS INSTALLED
+# STEP 1: KILL DJANGO SERVER
 # ============================================================================
-print("📋 STEP 1: Checking Python 3.11...")
-print("-" * 80)
-
-try:
-    result = subprocess.run(
-        ['python3.11', '--version'],
-        capture_output=True,
-        text=True,
-        check=False
-    )
-    
-    if result.returncode == 0:
-        print(f"  ✅ {result.stdout.strip()}")
-    else:
-        print("  ⚠️  Python 3.11 not found!")
-        print()
-        print("  📝 Install Python 3.11:")
-        print("     brew install python@3.11")
-        print()
-        sys.exit(1)
-        
-except FileNotFoundError:
-    print("  ⚠️  Python 3.11 not found!")
-    print()
-    print("  📝 Install Python 3.11:")
-    print("     brew install python@3.11")
-    print()
-    sys.exit(1)
-
-print()
-
-# ============================================================================
-# STEP 2: KILL DJANGO SERVER
-# ============================================================================
-print("📋 STEP 2: Stopping Django server...")
+print("📋 STEP 1: Stopping Django server...")
 print("-" * 80)
 
 try:
@@ -60,48 +26,21 @@ except Exception as e:
 print()
 
 # ============================================================================
-# STEP 3: REMOVE OLD VENV
+# STEP 2: DETERMINE PYTHON PATH
 # ============================================================================
-print("📋 STEP 3: Removing old virtual environment...")
+print("📋 STEP 2: Finding Python in venv...")
 print("-" * 80)
 
+# Check if venv exists
 venv_path = Path('venv')
-if venv_path.exists():
-    try:
-        shutil.rmtree(venv_path)
-        print("  ✅ Old venv removed")
-    except Exception as e:
-        print(f"  ⚠️  Error removing venv: {e}")
-else:
-    print("  ℹ️  No venv to remove")
-
-print()
-
-# ============================================================================
-# STEP 4: CREATE NEW VENV WITH PYTHON 3.11
-# ============================================================================
-print("📋 STEP 4: Creating new virtual environment with Python 3.11...")
-print("-" * 80)
-
-try:
-    subprocess.run(
-        ['python3.11', '-m', 'venv', 'venv'],
-        check=True
-    )
-    print("  ✅ New venv created with Python 3.11")
-except Exception as e:
-    print(f"  ⚠️  Error creating venv: {e}")
+if not venv_path.exists():
+    print("  ⚠️  No venv found! Please create venv first:")
+    print("     python3.11 -m venv venv")
+    print("     source venv/bin/activate")
+    print("     pip install -r requirements.txt")
     sys.exit(1)
 
-print()
-
-# ============================================================================
-# STEP 5: DETERMINE ACTIVATE SCRIPT PATH
-# ============================================================================
-print("📋 STEP 5: Preparing pip installation...")
-print("-" * 80)
-
-# Determine pip path based on OS
+# Determine pip/python path based on OS
 if os.name == 'nt':  # Windows
     pip_path = 'venv/Scripts/pip'
     python_path = 'venv/Scripts/python'
@@ -109,112 +48,13 @@ else:  # Unix/Mac
     pip_path = 'venv/bin/pip'
     python_path = 'venv/bin/python'
 
-print(f"  Using pip: {pip_path}")
-print(f"  Using python: {python_path}")
+print(f"  ✅ Using python: {python_path}")
 print()
 
 # ============================================================================
-# STEP 6: UPGRADE PIP
+# STEP 3: CLEAN MIGRATION FILES
 # ============================================================================
-print("📋 STEP 6: Upgrading pip...")
-print("-" * 80)
-
-try:
-    subprocess.run(
-        [python_path, '-m', 'pip', 'install', '--upgrade', 'pip'],
-        check=True,
-        capture_output=True
-    )
-    print("  ✅ Pip upgraded")
-except Exception as e:
-    print(f"  ⚠️  Error upgrading pip: {e}")
-
-print()
-
-# ============================================================================
-# STEP 7: INSTALL PACKAGES
-# ============================================================================
-# ============================================================================
-# STEP 7: INSTALL PACKAGES
-# ============================================================================
-print("📋 STEP 7: Installing Django 5.1.4 and compatible packages...")
-print("-" * 80)
-
-packages = [
-    'Django==5.1.4',
-    'django-tenants==3.7.0',
-    'python-dotenv==1.0.1',
-    'Pillow==11.0.0',
-    'asgiref==3.11.0',
-    'certifi==2025.11.12',
-    'charset-normalizer==3.4.4',
-    'idna==3.11',
-    'psycopg2-binary==2.9.11',
-    'pytz==2025.2',
-    'requests==2.32.5',
-    'sqlparse==0.5.4',
-    'urllib3==2.5.0'
-]
-
-for package in packages:
-    print(f"  Installing {package}...")
-    result = subprocess.run(
-        [pip_path, 'install', package],
-        capture_output=True,
-        text=True
-    )
-    
-    if result.returncode == 0:
-        print(f"    ✅ {package}")
-    else:
-        print(f"    ⚠️  {package} - Error")
-        if 'psycopg2-binary' in package:
-            print("       This is critical - psycopg2 failed to install")
-
-print()
-# ============================================================================
-# STEP 8: VERIFY INSTALLATION
-# ============================================================================
-print("📋 STEP 8: Verifying installation...")
-print("-" * 80)
-
-# Verify Django
-try:
-    result = subprocess.run(
-        [python_path, '-c', 'import django; print(f"Django {django.get_version()}")'],
-        capture_output=True,
-        text=True,
-        check=False
-    )
-    if result.returncode == 0:
-        print(f"  ✅ {result.stdout.strip()}")
-    else:
-        print("  ⚠️  Django import failed")
-except Exception as e:
-    print(f"  ⚠️  Django verification failed: {e}")
-
-# Verify psycopg2
-try:
-    result = subprocess.run(
-        [python_path, '-c', 'import psycopg2; print("psycopg2 OK")'],
-        capture_output=True,
-        text=True,
-        check=False
-    )
-    if result.returncode == 0:
-        print(f"  ✅ {result.stdout.strip()}")
-    else:
-        print("  ⚠️  psycopg2 import failed")
-        print("  ⚠️  Database connections will NOT work!")
-except Exception as e:
-    print(f"  ⚠️  psycopg2 verification failed: {e}")
-
-print()
-
-# ============================================================================
-# STEP 9: CLEAN MIGRATION FILES
-# ============================================================================
-print("📋 STEP 9: Cleaning migration files...")
+print("📋 STEP 3: Cleaning migration files...")
 print("-" * 80)
 
 apps = ['systemadmin', 'accounts', 'companyadmin', 'departmentadmin', 'userdashboard']
@@ -245,9 +85,9 @@ print("  ✅ Migration files cleaned")
 print()
 
 # ============================================================================
-# STEP 10: CLEAN ALL __pycache__
+# STEP 4: CLEAN ALL __pycache__
 # ============================================================================
-print("📋 STEP 10: Cleaning __pycache__ folders...")
+print("📋 STEP 4: Cleaning __pycache__ folders...")
 print("-" * 80)
 
 pycache_count = 0
@@ -263,9 +103,9 @@ print(f"  ✅ Deleted {pycache_count} __pycache__ folder(s)")
 print()
 
 # ============================================================================
-# STEP 11: RESET POSTGRESQL DATABASE
+# STEP 5: RESET POSTGRESQL DATABASE
 # ============================================================================
-print("📋 STEP 11: Resetting PostgreSQL database...")
+print("📋 STEP 5: Resetting PostgreSQL database...")
 print("-" * 80)
 
 db_name = 'crowsensor_db'
@@ -320,9 +160,9 @@ else:
 print()
 
 # ============================================================================
-# STEP 12: CREATE MIGRATIONS
+# STEP 6: CREATE MIGRATIONS
 # ============================================================================
-print("📋 STEP 12: Creating migrations...")
+print("📋 STEP 6: Creating migrations...")
 print("-" * 80)
 
 result = subprocess.run(
@@ -341,9 +181,9 @@ else:
 print()
 
 # ============================================================================
-# STEP 13: MIGRATE PUBLIC SCHEMA
+# STEP 7: MIGRATE PUBLIC SCHEMA
 # ============================================================================
-print("📋 STEP 13: Migrating public schema...")
+print("📋 STEP 7: Migrating public schema...")
 print("-" * 80)
 
 result = subprocess.run(
@@ -361,9 +201,9 @@ else:
 print()
 
 # ============================================================================
-# STEP 14: CREATE PUBLIC TENANT (CRITICAL!)
+# STEP 8: CREATE PUBLIC TENANT (CRITICAL!)
 # ============================================================================
-print("📋 STEP 14: Creating public tenant...")
+print("📋 STEP 8: Creating public tenant...")
 print("-" * 80)
 
 create_public_tenant_script = """
@@ -406,9 +246,9 @@ if result.returncode != 0:
 print()
 
 # ============================================================================
-# STEP 15: MIGRATE TENANT SCHEMAS
+# STEP 9: MIGRATE TENANT SCHEMAS
 # ============================================================================
-print("📋 STEP 15: Migrating tenant schemas...")
+print("📋 STEP 9: Migrating tenant schemas...")
 print("-" * 80)
 
 result = subprocess.run(
@@ -426,9 +266,9 @@ else:
 print()
 
 # ============================================================================
-# STEP 16: CREATE SUPERUSER
+# STEP 10: CREATE SUPERUSER
 # ============================================================================
-print("📋 STEP 16: Creating superuser...")
+print("📋 STEP 10: Creating superuser...")
 print("-" * 80)
 
 create_superuser_script = """
@@ -457,9 +297,9 @@ else:
 print()
 
 # ============================================================================
-# STEP 17: VERIFY SETUP
+# STEP 11: VERIFY SETUP
 # ============================================================================
-print("📋 STEP 17: Verifying final setup...")
+print("📋 STEP 11: Verifying final setup...")
 print("-" * 80)
 
 verify_script = """
@@ -494,14 +334,8 @@ print()
 # COMPLETE
 # ============================================================================
 print("=" * 80)
-print("🎉 COMPLETE! SYSTEM READY")
+print("🎉 COMPLETE! DATABASE RESET SUCCESSFUL")
 print("=" * 80)
-print()
-print("📝 CONFIGURATION:")
-print("   Python: 3.11.x")
-print("   Django: 4.2.7")
-print("   django-tenants: 3.6.1")
-print("   psycopg2-binary: (latest compatible)")
 print()
 print("📝 CREDENTIALS:")
 print("   System Admin:")
@@ -510,7 +344,6 @@ print("   Username: admin")
 print("   Password: admin123")
 print()
 print("🚀 START SERVER:")
-print("   source venv/bin/activate")
 print("   python manage.py runserver")
 print()
 print("=" * 80)

@@ -1,13 +1,13 @@
 {% extends 'companyadmin/base.html' %}
 
-{% block title %}Users Management{% endblock %}
-{% block page_heading %}Department Admins{% endblock %}
+{% block title %}Workspace Supervisors{% endblock %}
+{% block page_heading %}Workspace Supervisors{% endblock %}
 
 {% block extra_css %}
 <style>
 /* ========================================
    USERS PAGE - PRIMARY BLUE THEME
-   Matches Department Admin design
+   Multi-Department Checkbox Support
    ======================================== */
 
 /* CONTAINER */
@@ -17,7 +17,7 @@
     padding: var(--space-6);
 }
 
-/* FLOATING LABEL INPUTS (same as departments) */
+/* FLOATING LABEL INPUTS */
 .floating-label-group {
     position: relative;
     margin-bottom: var(--space-4);
@@ -182,7 +182,7 @@
     margin: 0;
 }
 
-/* QUICK ADD ADMIN SECTION */
+/* QUICK ADD SECTION */
 .users-add-section {
     margin-bottom: var(--space-6);
 }
@@ -219,7 +219,7 @@
     margin: 0;
 }
 
-/* PRIMARY SUBMIT BUTTON (same as departments) */
+/* PRIMARY SUBMIT BUTTON */
 .btn-primary-submit {
     background: var(--primary-blue);
     color: white;
@@ -242,7 +242,7 @@
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
-/* SEARCH & FILTER CARD (same style family) */
+/* SEARCH & FILTER */
 .users-search-filter-bar {
     background: var(--bg-primary);
     border: 1px solid var(--border-light);
@@ -252,7 +252,6 @@
     margin-bottom: var(--space-6);
 }
 
-/* Search input + select (reusing old users styles) */
 .users-search-input {
     border: 2px solid #e9ecef;
     border-radius: 8px;
@@ -305,7 +304,7 @@
     margin-top: 10px;
 }
 
-/* USERS SECTION HEADER */
+/* SECTION HEADER */
 .users-section {
     margin-bottom: var(--space-6);
 }
@@ -342,7 +341,7 @@
     font-weight: 600;
 }
 
-/* USER CARDS GRID + CARD (unchanged logic, department-style visuals) */
+/* USER CARDS GRID */
 .users-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -351,7 +350,7 @@
 
 .users-card {
     background: var(--bg-primary);
-    border: 1px solid var(--primary-blue);
+    border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
     overflow: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -392,8 +391,9 @@
     border-radius: var(--radius-sm);
 }
 
-/* compact info + actions (same as before) */
-.users-card-body { padding: var(--space-4); }
+.users-card-body { 
+    padding: var(--space-4); 
+}
 
 .users-info-compact {
     display: grid;
@@ -430,15 +430,37 @@
     word-break: break-word;
 }
 
-.users-badge {
-    padding: 3px var(--space-2);
-    border-radius: var(--radius-sm);
-    font-size: 11px;
-    font-weight: 600;
+/* ✅ DEPARTMENT BADGES IN CARDS */
+.dept-badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-end;
+    max-width: 220px;
 }
 
-.users-badge.active { background: var(--success); color: white; }
-.users-badge.warning { background: var(--warning); color: white; }
+.dept-badge {
+    background: var(--primary-blue);
+    color: white;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.dept-badge.warning {
+    background: var(--warning);
+}
+
+.dept-count-badge {
+    background: var(--success);
+    color: white;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 10px;
+    font-weight: 600;
+}
 
 /* ACTION BUTTONS */
 .users-actions-compact {
@@ -478,6 +500,78 @@
 .users-btn-delete { background: var(--danger); color: white; }
 .users-btn-delete:hover { background: rgb(89,0,0); }
 
+/* ✅ CHECKBOX GRID FOR DEPARTMENT ASSIGNMENT */
+.dept-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-3);
+    max-height: 400px;
+    overflow-y: auto;
+    padding: var(--space-2);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--gray-50);
+}
+
+.dept-checkbox-item {
+    background: white;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.dept-checkbox-item:hover {
+    border-color: var(--primary-blue);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.dept-checkbox-item.selected {
+    border-color: var(--primary-blue);
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.dept-checkbox-item input[type="checkbox"] {
+    margin-right: var(--space-2);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.dept-checkbox-item label {
+    cursor: pointer;
+    margin: 0;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.dept-meta {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+    margin-left: 26px;
+}
+
+/* SELECTION COUNTER */
+.selection-counter {
+    background: var(--gray-50);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    margin-bottom: var(--space-3);
+    text-align: center;
+}
+
+.selection-counter strong {
+    color: var(--primary-blue);
+    font-size: var(--text-lg);
+}
+
 /* EMPTY STATE */
 .empty-state {
     text-align: center;
@@ -489,7 +583,9 @@
 }
 
 /* HIDDEN CLASS */
-.user-hidden { display: none !important; }
+.user-hidden { 
+    display: none !important; 
+}
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
@@ -497,6 +593,7 @@
     .users-grid { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr; }
     .users-actions-compact { grid-template-columns: 1fr; }
+    .dept-checkbox-grid { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
@@ -504,54 +601,54 @@
 {% block content %}
 <div class="users-container">
 
-    <!-- Welcome -->
+    <!-- Welcome Card -->
     <div class="welcome-card">
         <div class="welcome-card-header">
             <div>
-                <h3><i class="fas fa-users-cog"></i>Department Admins Management</h3>
-                <p>Manage department administrators and their assignments</p>
+                <h3><i class="fas fa-users-cog"></i>Workspace Supervisors Management</h3>
+                <p>Create and manage workspace supervisors with multi-workspace access</p>
             </div>
             <span class="stats-badge">
                 <i class="fas fa-users"></i>
-                {{ total_dept_admins|default:0 }} Admin{{ total_dept_admins|default:0|pluralize }}
+                {{ total_dept_admins|default:0 }} Supervisor{{ total_dept_admins|default:0|pluralize }}
             </span>
         </div>
     </div>
 
-    <!-- Stats -->
+    <!-- Stats Cards -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon primary"><i class="fas fa-users-cog"></i></div>
             <div class="stat-content">
                 <h3 id="total-users-count">{{ total_dept_admins }}</h3>
-                <p>Department Admins</p>
+                <p>Workspace Supervisors</p>
             </div>
         </div>
         <div class="stat-card">
             <div class="stat-icon success"><i class="fas fa-user-check"></i></div>
             <div class="stat-content">
                 <h3 id="active-users-count">{{ total_dept_admins }}</h3>
-                <p>Active Users</p>
+                <p>Active Supervisors</p>
             </div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon warning"><i class="fas fa-building"></i></div>
+            <div class="stat-icon warning"><i class="fas fa-briefcase"></i></div>
             <div class="stat-content">
                 <h3>{{ total_departments }}</h3>
-                <p>Departments</p>
+                <p>Total Workspaces</p>
             </div>
         </div>
     </div>
 
-    <!-- Add New Department Admin (fixed) -->
+    <!-- Add New Supervisor Form -->
     <div class="users-add-section">
         <div class="add-form-card">
             <div class="info-alert">
                 <h4 class="add-form-title">
                     <i class="fas fa-user-plus"></i>
-                    Add New Department Admin
+                    Add New Workspace Supervisor
                 </h4>
-                <p class="add-form-subtitle">Create a new admin user for department management</p>
+                <p class="add-form-subtitle">Create a new supervisor who can manage multiple workspaces</p>
             </div>
 
             <form method="POST">
@@ -591,7 +688,7 @@
                     </div>
                     <div class="col-md-2 d-flex align-items-stretch">
                         <button type="submit" class="btn-primary-submit w-100">
-                            <i class="fas fa-plus"></i> Add Admin
+                            <i class="fas fa-plus"></i> Add Supervisor
                         </button>
                     </div>
                 </div>
@@ -599,7 +696,7 @@
         </div>
     </div>
 
-    <!-- Search & Filter (fixed) -->
+    <!-- Search & Filter Bar -->
     <div class="users-search-filter-bar">
         <div class="row g-3">
             <div class="col-md-6">
@@ -615,12 +712,12 @@
             </div>
             <div class="col-md-5">
                 <select id="departmentFilter" class="form-select users-filter-select">
-                    <option value="">All Departments</option>
+                    <option value="">All Workspaces</option>
                     {% for dept in departments %}
                     <option value="{{ dept.id }}">{{ dept.name }}</option>
                     {% endfor %}
                 </select>
-                <div class="text-muted mt-1" style="font-size: 13px;">Filter by Department</div>
+                <div class="text-muted mt-1" style="font-size: 13px;">Filter by Workspace Assignment</div>
             </div>
             <div class="col-md-1">
                 <button id="clearFilters" class="users-clear-btn w-100" title="Clear all filters">
@@ -630,19 +727,19 @@
         </div>
         <div class="users-results-info">
             Showing <strong id="visibleCount">{{ total_dept_admins }}</strong> of
-            <strong id="totalCount">{{ total_dept_admins }}</strong> admins
+            <strong id="totalCount">{{ total_dept_admins }}</strong> supervisors
         </div>
     </div>
 
-    <!-- Users Section (same logic) -->
+    <!-- Users List Section -->
     <div class="users-section">
         <div class="section-header">
             <div class="section-title">
                 <i class="fas fa-list"></i>
-                All Department Admins
+                All Workspace Supervisors
             </div>
             <span class="section-badge">
-                {{ total_dept_admins|default:0 }} Admin{{ total_dept_admins|default:0|pluralize }}
+                {{ total_dept_admins|default:0 }} Supervisor{{ total_dept_admins|default:0|pluralize }}
             </span>
         </div>
 
@@ -654,7 +751,7 @@
                  data-first-name="{{ user.first_name|lower }}"
                  data-last-name="{{ user.last_name|lower }}"
                  data-email="{{ user.email|lower }}"
-                 data-department="{{ user.department_id|default:'' }}">
+                 data-departments="{{ user.department_ids|join:',' }}">
                 
                 <div class="users-card-header">
                     <h3 class="users-title">
@@ -681,14 +778,19 @@
                         </div>
                         {% endif %}
                         <div class="users-info-row">
-                            <span class="users-info-label"><i class="fas fa-building"></i>Department</span>
+                            <span class="users-info-label"><i class="fas fa-briefcase"></i>Workspaces</span>
                             <span class="users-info-value">
-                                {% if user.has_department %}
-                                    {{ user.department.name }}
-                                    <span class="users-badge active" style="font-size:10px;">Active</span>
+                                {% if user.has_departments %}
+                                    <div class="dept-badges-container">
+                                        {% for dept in user.departments|slice:":3" %}
+                                        <span class="dept-badge" title="{{ dept.name }}">{{ dept.name|truncatechars:12 }}</span>
+                                        {% endfor %}
+                                        {% if user.department_count > 3 %}
+                                        <span class="dept-count-badge">+{{ user.department_count|add:"-3" }}</span>
+                                        {% endif %}
+                                    </div>
                                 {% else %}
-                                    <span style="color: var(--warning);">Not Assigned</span>
-                                    <span class="users-badge.warning" style="font-size:10px;">Pending</span>
+                                    <span class="dept-badge warning">Not Assigned</span>
                                 {% endif %}
                             </span>
                         </div>
@@ -706,8 +808,8 @@
                         </button>
                         <button class="users-btn-compact users-btn-assign"
                                 type="button"
-                                onclick="assignDepartment({{ user.id }}, '{{ user.first_name|escapejs }} {{ user.last_name|escapejs }}', {{ user.department_id|default:'null' }})">
-                            <i class="fas fa-building"></i>Assign
+                                onclick="assignDepartments({{ user.id }}, '{{ user.first_name|escapejs }} {{ user.last_name|escapejs }}', {{ user.department_ids_json|safe }})">
+                            <i class="fas fa-briefcase"></i>Assign
                         </button>
                         <form method="POST" class="delete-form" style="margin:0;">
                             {% csrf_token %}
@@ -723,22 +825,20 @@
             </div>
             {% empty %}
             <div class="empty-state">
-                <i class="fas fa-users-cog"></i>
-                <h3>No Department Admins Yet</h3>
-                <p>Use the form above to create your first department admin.</p>
+                <i class="fas fa-users-cog" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: var(--space-4);"></i>
+                <h3>No Workspace Supervisors Yet</h3>
+                <p>Use the form above to create your first workspace supervisor.</p>
             </div>
             {% endfor %}
         </div>
     </div>
 
     <div id="noResultsMessage" class="empty-state" style="display:none;">
-        <i class="fas fa-search"></i>
+        <i class="fas fa-search" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: var(--space-4);"></i>
         <h3>No Users Found</h3>
         <p>Try adjusting your search or filter criteria.</p>
     </div>
 </div>
-
-
 
 <!-- Edit User Modal -->
 <div class="modal fade" id="userModal" tabindex="-1">
@@ -751,7 +851,7 @@
                 
                 <div class="modal-header">
                     <h6 class="modal-title">
-                        <i class="fas fa-edit"></i>Edit Department Admin
+                        <i class="fas fa-edit"></i> Edit Workspace Supervisor
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -784,7 +884,7 @@
                         <i class="fas fa-times me-1"></i>Cancel
                     </button>
                     <button type="submit" class="btn-primary-submit">
-                        <i class="fas fa-save"></i>Update Admin
+                        <i class="fas fa-save"></i> Update Supervisor
                     </button>
                 </div>
             </form>
@@ -792,50 +892,60 @@
     </div>
 </div>
 
-<!-- Assign Department Modal -->
+<!-- ✅ ASSIGN WORKSPACES MODAL - MULTI-SELECT WITH CHECKBOXES -->
 <div class="modal fade" id="assignModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" id="assignForm">
+            <form method="POST" id="assignDepartmentsForm">
                 {% csrf_token %}
-                <input type="hidden" name="assign_department" value="1">
+                <input type="hidden" name="assign_departments" value="1">
                 <input type="hidden" name="user_id" id="assign_user_id">
                 
                 <div class="modal-header">
                     <h6 class="modal-title">
-                        <i class="fas fa-building"></i>Assign Department - <span id="assign_user_name"></span>
+                        <i class="fas fa-briefcase"></i> Assign Workspaces - <span id="assign_user_name"></span>
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 
                 <div class="modal-body">
                     {% if departments %}
+                    
+                    <!-- Selection Counter -->
+                    <div class="selection-counter">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <strong id="selectedCount">0</strong> workspace(s) selected
+                    </div>
+                    
                     <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
                         <i class="fas fa-info-circle" style="color: var(--info);"></i>
-                        Select <strong>ONE</strong> department for this admin:
+                        Select <strong>MULTIPLE</strong> workspaces this supervisor can manage:
                     </p>
-                    <div class="dept-radio-list">
+                    
+                    <!-- Checkbox Grid -->
+                    <div class="dept-checkbox-grid" id="deptCheckboxGrid">
                         {% for dept in departments %}
-                        <div class="dept-radio-item">
-                            <input type="radio" 
-                                   name="department_id" 
-                                   value="{{ dept.id }}" 
-                                   id="dept_{{ dept.id }}"
-                                   class="dept-radio">
-                            <label for="dept_{{ dept.id }}">
-                                <strong>{{ dept.name }}</strong>
-                                <div class="dept-meta">
-                                    <i class="fas fa-tag"></i>{{ dept.department_type }} • 
-                                    <i class="fas fa-map-marker-alt"></i>{{ dept.plant_location }}
-                                </div>
+                        <div class="dept-checkbox-item">
+                            <label>
+                                <input type="checkbox" 
+                                       name="department_ids[]" 
+                                       value="{{ dept.id }}" 
+                                       id="dept_{{ dept.id }}"
+                                       class="dept-checkbox">
+                                <span>{{ dept.name }}</span>
                             </label>
+                            <div class="dept-meta">
+                                <i class="fas fa-tag"></i> {{ dept.department_type }} • 
+                                <i class="fas fa-map-marker-alt"></i> {{ dept.plant_location }}
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
+                    
                     {% else %}
                     <div style="background: var(--warning-50); border: 1px solid var(--warning); border-radius: var(--radius-md); padding: var(--space-4);">
                         <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
-                        No departments available. Please create departments first.
+                        No workspaces available. Please create workspaces first.
                     </div>
                     {% endif %}
                 </div>
@@ -845,8 +955,8 @@
                         <i class="fas fa-times me-1"></i>Cancel
                     </button>
                     {% if departments %}
-                    <button type="submit" class="btn-primary-submit">
-                        <i class="fas fa-save"></i>Save Assignment
+                    <button type="submit" class="btn-primary-submit" id="saveBtn">
+                        <i class="fas fa-save me-1"></i>Save Assignments
                     </button>
                     {% endif %}
                 </div>
@@ -859,7 +969,13 @@
 
 {% block extra_js %}
 <script>
+console.log('🚀 Users page JavaScript loaded');
+
+// ==========================================
+// EDIT USER FUNCTION
+// ==========================================
 function editUser(id, username, firstName, lastName, email, phone) {
+    console.log('✏️ Edit user:', id, username);
     document.getElementById('modal_user_id').value = id;
     document.getElementById('modal_username').value = username;
     document.getElementById('modal_first_name').value = firstName;
@@ -869,18 +985,121 @@ function editUser(id, username, firstName, lastName, email, phone) {
     new bootstrap.Modal(document.getElementById('userModal')).show();
 }
 
-function assignDepartment(userId, userName, currentDeptId) {
+// ==========================================
+// ✅ ASSIGN MULTIPLE DEPARTMENTS FUNCTION
+// ==========================================
+function assignDepartments(userId, userName, currentDepartmentIds) {
+    console.log('🏢 Assign departments to user:', userId, userName);
+    console.log('📋 Current department IDs:', currentDepartmentIds);
+    console.log('📋 Type:', typeof currentDepartmentIds);
+    console.log('📋 Is Array:', Array.isArray(currentDepartmentIds));
+    
+    // Set user ID and name
     document.getElementById('assign_user_id').value = userId;
     document.getElementById('assign_user_name').textContent = userName;
-    document.querySelectorAll('.dept-radio').forEach(r => r.checked = false);
-    if (currentDeptId) {
-        const r = document.getElementById('dept_' + currentDeptId);
-        if (r) r.checked = true;
+    
+    // Clear all checkboxes first
+    document.querySelectorAll('.dept-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+        checkbox.closest('.dept-checkbox-item').classList.remove('selected');
+    });
+    
+    // Pre-select assigned departments
+    if (Array.isArray(currentDepartmentIds) && currentDepartmentIds.length > 0) {
+        console.log('✅ Pre-selecting', currentDepartmentIds.length, 'departments');
+        currentDepartmentIds.forEach(deptId => {
+            const checkbox = document.getElementById('dept_' + deptId);
+            if (checkbox) {
+                checkbox.checked = true;
+                checkbox.closest('.dept-checkbox-item').classList.add('selected');
+                console.log('  ✓ Selected department ID:', deptId);
+            } else {
+                console.warn('  ⚠️ Checkbox not found for department ID:', deptId);
+            }
+        });
+    } else {
+        console.log('ℹ️ No departments currently assigned');
     }
+    
+    // Update counter
+    updateSelectedCount();
+    
+    // Show modal
     new bootstrap.Modal(document.getElementById('assignModal')).show();
 }
 
+// ==========================================
+// UPDATE SELECTION COUNTER
+// ==========================================
+function updateSelectedCount() {
+    const checked = document.querySelectorAll('.dept-checkbox:checked');
+    const count = checked.length;
+    document.getElementById('selectedCount').textContent = count;
+    
+    const saveBtn = document.getElementById('saveBtn');
+    if (count === 0) {
+        saveBtn.innerHTML = '<i class="fas fa-times me-1"></i>Clear All';
+    } else {
+        saveBtn.innerHTML = `<i class="fas fa-save me-1"></i>Save ${count} Assignment(s)`;
+    }
+    
+    console.log('📊 Selected count updated:', count);
+}
+
+// ==========================================
+// DOM READY - SETUP EVENT LISTENERS
+// ==========================================
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('📱 DOM Ready - Setting up event listeners');
+    
+    // ✅ CHECKBOX CHANGE EVENT - Visual feedback
+    document.querySelectorAll('.dept-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                this.closest('.dept-checkbox-item').classList.add('selected');
+            } else {
+                this.closest('.dept-checkbox-item').classList.remove('selected');
+            }
+            updateSelectedCount();
+        });
+    });
+    
+    // ✅ ITEM CLICK EVENT - Click anywhere on item to toggle
+    document.querySelectorAll('.dept-checkbox-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            // Don't toggle if clicking the checkbox directly
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
+                const checkbox = this.querySelector('.dept-checkbox');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    checkbox.dispatchEvent(new Event('change'));
+                }
+            }
+        });
+    });
+    
+    // ✅ FORM SUBMISSION VALIDATION
+    document.getElementById('assignDepartmentsForm').addEventListener('submit', function(e) {
+        const checked = document.querySelectorAll('.dept-checkbox:checked');
+        const username = document.getElementById('assign_user_name').textContent;
+        
+        if (checked.length === 0) {
+            if (!confirm(`⚠️ No workspaces selected!\n\n"${username}" will NOT be able to login without workspace assignment.\n\nContinue to clear all assignments?`)) {
+                e.preventDefault();
+                return false;
+            }
+        }
+        
+        console.log('📤 Submitting form with', checked.length, 'departments');
+        
+        // Log selected department IDs
+        const selectedIds = Array.from(checked).map(cb => cb.value);
+        console.log('📋 Selected department IDs:', selectedIds);
+    });
+    
+    // ==========================================
+    // SEARCH & FILTER FUNCTIONALITY
+    // ==========================================
     const searchInput = document.getElementById('searchInput');
     const departmentFilter = document.getElementById('departmentFilter');
     const clearFiltersBtn = document.getElementById('clearFilters');
@@ -901,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const firstName = card.dataset.firstName || '';
             const lastName = card.dataset.lastName || '';
             const email = card.dataset.email || '';
-            const dept = card.dataset.department || '';
+            const deptIds = card.dataset.departments || '';
 
             const matchesSearch = !searchTerm ||
                 username.includes(searchTerm) ||
@@ -909,7 +1128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 lastName.includes(searchTerm) ||
                 email.includes(searchTerm);
 
-            const matchesDept = !selectedDept || dept === selectedDept;
+            const matchesDept = !selectedDept || deptIds.split(',').includes(selectedDept);
 
             if (matchesSearch && matchesDept) {
                 card.classList.remove('user-hidden');
@@ -943,6 +1162,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     filterUsers();
 
+    // ==========================================
+    // FORM SUBMIT LOADING STATES
+    // ==========================================
     document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', function(e) {
             const btn = form.querySelector('button[type="submit"]');
@@ -950,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (form.classList.contains('delete-form')) {
                 const userName = btn.getAttribute('data-user-name');
-                if (!confirm(`Are you sure you want to delete "${userName}"?\n\nThis action cannot be undone.`)) {
+                if (!confirm(`⚠️ Are you sure you want to delete "${userName}"?\n\nThis action cannot be undone.`)) {
                     e.preventDefault();
                     return;
                 }
@@ -959,12 +1181,16 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.disabled = true;
             const original = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+            
+            // Re-enable after 10 seconds (safety)
             setTimeout(() => {
                 btn.disabled = false;
                 btn.innerHTML = original;
             }, 10000);
         });
     });
+    
+    console.log('✅ All event listeners set up successfully');
 });
 </script>
 {% endblock %}

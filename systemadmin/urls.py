@@ -19,4 +19,5 @@ urlpatterns = [
     path('system/tenant/<int:tenant_id>/detail/', views.tenant_detail_view, name='tenant_detail'),
     path('system/tenant/<int:tenant_id>/edit/', views.tenant_edit_view, name='tenant_edit'),
     path('system/tenant/<int:tenant_id>/toggle/', views.tenant_toggle_status, name='tenant_toggle_status'),
+    path('tenant/<int:tenant_id>/delete/', views.tenant_delete_view, name='tenant_delete'),
 ]

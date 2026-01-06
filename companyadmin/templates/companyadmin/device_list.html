@@ -6,475 +6,604 @@
 {% block extra_css %}
 <style>
 /* ========================================
-   DEVICE MANAGEMENT - DEPARTMENT ADMIN STYLE
-   With Measurement Grouping
+   DEVICE MANAGEMENT - TABS VERSION
+   Professional IoT Device Management Interface
    ======================================== */
+
+:root {
+    --device-primary: #2563eb;
+    --device-primary-dark: #1e40af;
+    --device-success: #10b981;
+    --device-warning: #f59e0b;
+    --device-danger: #ef4444;
+    --device-info: #3b82f6;
+    --device-gray-50: #f9fafb;
+    --device-gray-100: #f3f4f6;
+    --device-gray-200: #e5e7eb;
+    --device-gray-300: #d1d5db;
+    --device-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --device-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --device-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
 
 /* ===== CONTAINER ===== */
 .device-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: var(--space-6);
+    padding: 2rem;
 }
 
-/* ===== WELCOME CARD (Department Admin Style) ===== */
-.welcome-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
-    margin-bottom: var(--space-6);
-    box-shadow: var(--shadow-sm);
+/* ===== HEADER CARD ===== */
+.device-header-card {
+    background: white;
+    border: 1px solid var(--device-gray-200);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--device-shadow-sm);
 }
 
-.welcome-card h3 {
-    font-size: var(--text-2xl);
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 var(--space-2) 0;
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-}
-
-.welcome-card h3 i {
-    color: var(--primary-blue);
-    font-size: var(--text-2xl);
-}
-
-.welcome-card p {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
-    margin: 0;
-}
-
-.welcome-card-header {
+.device-header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: var(--space-4);
+    gap: 1.5rem;
 }
 
-/* Stats Badges + Setup Wizard Button Container */
-.welcome-card-actions {
+.device-header-title h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.5rem 0;
     display: flex;
-    gap: var(--space-3);
-    flex-wrap: wrap;
     align-items: center;
+    gap: 0.75rem;
 }
 
-.stats-badges {
+.device-header-title h3 i {
+    color: var(--device-primary);
+}
+
+.device-header-title p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.device-header-actions {
     display: flex;
-    gap: var(--space-3);
+    gap: 1rem;
+    align-items: center;
     flex-wrap: wrap;
 }
 
-.stats-badge {
-    background: var(--bg-primary);
-    border: 2px solid var(--primary-blue);
-    color: var(--primary-blue);
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
+.device-stats-badge {
+    background: var(--device-gray-100);
+    border: 2px solid var(--device-primary);
+    color: var(--device-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
     font-weight: 600;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: var(--space-2);
-}
-
-.stats-badge i {
-    color: var(--primary-blue);
+    gap: 0.5rem;
 }
 
 .btn-setup-wizard {
-    background: var(--primary-blue);
+    background: var(--device-primary);
     color: white;
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-md);
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
     font-weight: 600;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2);
-    transition: all 0.2s ease;
-    font-size: var(--text-sm);
+    gap: 0.5rem;
+    transition: all 0.2s;
     border: none;
+    font-size: 0.875rem;
 }
 
 .btn-setup-wizard:hover {
-    background: var(--primary-blue-dark);
+    background: var(--device-primary-dark);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--device-shadow-md);
     color: white;
 }
 
-/* ===== CONFIG WARNING ===== */
-.config-warning {
+/* ===== WARNING/INFO ALERTS ===== */
+.device-alert {
     background: linear-gradient(135deg, #fff3cd 0%, #fffaed 100%);
-    border: 2px solid var(--warning);
-    border-radius: var(--radius-lg);
-    padding: var(--space-5);
-    margin-bottom: var(--space-6);
+    border: 2px solid var(--device-warning);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
     display: flex;
     align-items: center;
-    gap: var(--space-4);
+    gap: 1.5rem;
 }
 
-.config-warning i {
-    font-size: 36px;
-    color: var(--warning);
+.device-alert.info {
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    border-color: var(--device-info);
+}
+
+.device-alert-icon {
+    font-size: 2.5rem;
     flex-shrink: 0;
 }
 
-.config-warning-content h4 {
-    margin: 0 0 var(--space-2) 0;
-    color: #856404;
-    font-size: var(--text-xl);
+.device-alert.warning .device-alert-icon {
+    color: var(--device-warning);
+}
+
+.device-alert.info .device-alert-icon {
+    color: var(--device-info);
+}
+
+.device-alert-content {
+    flex: 1;
+}
+
+.device-alert-content h4 {
+    margin: 0 0 0.5rem 0;
+    color: #111827;
+    font-size: 1.125rem;
     font-weight: 700;
 }
 
-.config-warning-content p {
-    margin: 0 0 var(--space-3) 0;
-    color: #856404;
-    font-size: var(--text-sm);
+.device-alert-content p {
+    margin: 0;
+    color: #374151;
+    font-size: 0.875rem;
 }
 
-.btn-configure {
-    background: var(--warning);
-    color: white;
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-md);
+.device-alert-button {
+    flex-shrink: 0;
+}
+
+.btn-alert-action {
+    background: var(--device-warning);
+    color: #000;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
     font-weight: 600;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2);
-    font-size: var(--text-sm);
-    transition: all 0.2s ease;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    border: none;
+    font-size: 0.875rem;
 }
 
-.btn-configure:hover {
+.btn-alert-action:hover {
     background: #e0a800;
     color: white;
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--device-shadow-md);
 }
 
-/* ===== MEASUREMENT SECTIONS ===== */
-.measurement-section {
-    margin-bottom: var(--space-8);
+.btn-alert-action.primary {
+    background: var(--device-primary);
+    color: white;
 }
 
-/* Section Header (Department Admin "All Devices" Style) */
-.section-header {
-    background: var(--bg-primary);
-    border-left: 4px solid var(--primary-blue);
-    border: 1px solid var(--border-light);
-    padding: var(--space-4) var(--space-5);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--space-4);
+.btn-alert-action.primary:hover {
+    background: var(--device-primary-dark);
+}
+
+/* ===== CUSTOM TABS ===== */
+.influx-tabs-container {
+    background: white;
+    border: 2px solid var(--device-gray-200);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--device-shadow-md);
+    margin-bottom: 2rem;
+}
+
+.influx-tabs-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: var(--shadow-sm);
+    background: var(--device-gray-50);
+    border-bottom: 2px solid var(--device-gray-200);
+    overflow-x: auto;
+    gap: 0;
 }
 
-.section-title {
-    font-size: var(--text-xl);
-    font-weight: 700;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    margin: 0;
-}
-
-.section-title i {
-    color: var(--primary-blue);
-    font-size: var(--text-xl);
-}
-
-.section-badge {
-    background: var(--gray-100);
-    color: var(--text-primary);
-    padding: 4px var(--space-3);
-    border-radius: var(--radius-full);
-    font-size: var(--text-xs);
+.influx-tab-button {
+    flex: 1;
+    min-width: 200px;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--device-gray-200);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    font-size: 1rem;
     font-weight: 600;
+    color: #6b7280;
 }
 
-/* ===== DEVICE CARDS GRID ===== */
+.influx-tab-button:last-child {
+    border-right: none;
+}
+
+.influx-tab-button:hover {
+    background: #ffffff;
+    color: var(--device-primary);
+}
+
+.influx-tab-button.active {
+    background: white;
+    color: var(--device-primary);
+    border-bottom: 3px solid var(--device-primary);
+}
+
+.influx-tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--device-primary);
+}
+
+.tab-button-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tab-button-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.125rem;
+}
+
+.tab-button-title i {
+    font-size: 1.25rem;
+}
+
+.tab-button-subtitle {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.tab-button-stats {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.25rem;
+}
+
+.tab-stat {
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--device-gray-100);
+    border-radius: 4px;
+    color: #6b7280;
+}
+
+.influx-tab-button.active .tab-stat {
+    background: #eff6ff;
+    color: var(--device-primary);
+}
+
+/* ===== TAB CONTENT ===== */
+.influx-tabs-content {
+    padding: 2rem;
+    background: #fafbfc;
+}
+
+.influx-tab-pane {
+    display: none;
+}
+
+.influx-tab-pane.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== DEVICE GRID - 3 COLUMNS ===== */
 .device-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--space-4);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
 }
 
-/* ===== DEVICE CARD (Department Admin Style) ===== */
+/* ===== DEVICE CARD ===== */
 .device-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--primary-blue);
-    border-radius: var(--radius-lg);
+    background: white;
+    border: 2px solid var(--device-gray-200);
+    border-radius: 12px;
     overflow: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--device-shadow-sm);
 }
 
 .device-card:hover {
-    border-color: var(--primary-blue);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    border-color: var(--device-primary);
+    box-shadow: var(--device-shadow-lg);
+    transform: translateY(-4px);
 }
 
 .device-card-header {
-    background: var(--gray-50);
-    padding: var(--space-4);
-    border-bottom: 1px solid var(--border-light);
+    background: var(--device-gray-50);
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--device-gray-200);
 }
 
-.device-title {
-    font-size: var(--text-base);
+.device-card-title {
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 var(--space-2) 0;
+    color: #111827;
+    margin: 0 0 0.5rem 0;
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: 0.5rem;
 }
 
-.device-title i {
-    color: var(--primary-blue);
-    font-size: var(--text-lg);
+.device-card-title i {
+    color: var(--device-primary);
 }
 
-.device-id-label {
-    font-size: 11px;
-    color: var(--text-tertiary);
+.device-id-display {
+    font-size: 0.6875rem;
+    color: #6b7280;
     font-family: 'Courier New', monospace;
-    background: var(--bg-tertiary);
-    padding: 3px var(--space-2);
-    border-radius: var(--radius-sm);
+    background: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
     display: inline-block;
+    border: 1px solid var(--device-gray-200);
 }
 
 .device-card-body {
-    padding: var(--space-4);
+    padding: 1.25rem;
 }
 
-/* ===== DEVICE INFO ===== */
-.device-info-compact {
-    display: grid;
-    gap: var(--space-2);
-    margin-bottom: var(--space-3);
+/* ===== DEVICE INFO ROWS ===== */
+.device-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .device-info-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: var(--text-sm);
+    font-size: 0.875rem;
 }
 
 .device-info-label {
     font-weight: 600;
-    color: var(--text-secondary);
+    color: #4b5563;
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: 0.5rem;
 }
 
 .device-info-label i {
-    width: 16px;
+    width: 18px;
     text-align: center;
+    font-size: 0.875rem;
 }
 
-.device-info-label i.fa-power-off {
-    color: var(--success);
-}
+.device-info-label i.fa-power-off { color: var(--device-success); }
+.device-info-label i.fa-layer-group { color: var(--device-info); }
+.device-info-label i.fa-tag { color: var(--device-warning); }
+.device-info-label i.fa-database { color: var(--device-info); }
+.device-info-label i.fa-chart-line { color: var(--device-success); }
+.device-info-label i.fa-briefcase { color: var(--device-primary); }
 
-.device-info-label i.fa-database {
-    color: var(--info);
-}
-
-.device-info-label i.fa-chart-line {
-    color: var(--warning);
-}
-
-.device-info-label i.fa-building {
-    color: var(--primary-blue);
-}
-
-/* ===== DEVICE BADGES ===== */
-.device-badge {
-    padding: 3px var(--space-2);
-    border-radius: var(--radius-sm);
-    font-size: 11px;
+/* ===== STATUS BADGES ===== */
+.status-badge {
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    font-size: 0.6875rem;
     font-weight: 600;
+    display: inline-block;
 }
 
-.device-badge.active {
-    background: var(--success);
-    color: white;
+.status-badge.active {
+    background: #d1fae5;
+    color: #065f46;
 }
 
-.device-badge.inactive {
-    background: var(--danger);
-    color: white;
+.status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
 }
 
-.device-badge.sensor-count {
-    background: var(--info);
-    color: white;
+.status-badge.sensor-count {
+    background: #dbeafe;
+    color: #1e40af;
 }
 
-/* Department Pills */
-.department-pills {
+/* ===== DEVICE TYPE BADGES ===== */
+.device-type-badge {
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.device-type-badge.industrial {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.device-type-badge.tracking {
+    background: #fed7aa;
+    color: #9a3412;
+}
+
+.device-type-badge.not-set {
+    background: var(--device-gray-200);
+    color: #6b7280;
+}
+
+/* ===== WORKSPACE PILLS ===== */
+.workspace-pills {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2);
+    gap: 0.375rem;
 }
 
-.department-pill {
-    background: var(--gray-100);
-    color: var(--text-primary);
-    padding: 4px var(--space-2);
-    border-radius: var(--radius-sm);
-    font-size: var(--text-xs);
+.workspace-pill {
+    background: var(--device-gray-100);
+    color: #374151;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.6875rem;
     font-weight: 600;
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--device-gray-200);
 }
 
-.no-departments {
-    color: var(--text-muted);
+.no-workspaces {
+    color: #9ca3af;
     font-style: italic;
-    font-size: var(--text-xs);
+    font-size: 0.75rem;
 }
 
-/* ===== ACTION BUTTONS (4 buttons like original) ===== */
-.device-actions-compact {
+/* ===== ACTION BUTTONS ===== */
+.device-actions {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-2);
-    padding-top: var(--space-3);
-    border-top: 1px solid var(--border-light);
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--device-gray-200);
 }
 
-.device-btn-compact {
-    padding: var(--space-2) var(--space-3);
+.device-btn {
+    padding: 0.5rem 0.75rem;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: 8px;
     font-weight: 600;
-    font-size: 11px;
+    font-size: 0.6875rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    text-decoration: none;
+    gap: 0.375rem;
 }
 
-.device-btn-compact:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+.device-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--device-shadow-md);
 }
 
-.device-btn-view {
-    background: var(--primary-blue);
+.device-btn.view {
+    background: var(--device-primary);
     color: white;
 }
 
-.device-btn-view:hover {
-    background: var(--primary-blue-dark);
+.device-btn.view:hover {
+    background: var(--device-primary-dark);
     color: white;
 }
 
-.device-btn-edit {
-    background: var(--success);
+.device-btn.edit {
+    background: var(--device-success);
     color: white;
 }
 
-.device-btn-edit:hover {
-    background: var(--success-dark);
+.device-btn.edit:hover {
+    background: #059669;
     color: white;
 }
 
-.device-btn-configure {
-    background: var(--warning);
+.device-btn.configure {
+    background: var(--device-warning);
     color: white;
 }
 
-.device-btn-configure:hover {
-    background: #e0a800;
+.device-btn.configure:hover {
+    background: #d97706;
     color: white;
 }
 
-.device-btn-delete {
-    background: var(--danger);
+.device-btn.delete {
+    background: var(--device-danger);
     color: white;
 }
 
-.device-btn-delete:hover {
-    background: #c82333;
+.device-btn.delete:hover {
+    background: #dc2626;
     color: white;
 }
 
-/* ===== MODAL STYLES ===== */
+/* ===== MODALS ===== */
 .modal-header {
-    background: var(--primary-blue);
+    background: var(--device-primary);
     color: white;
     border-bottom: none;
-    padding: var(--space-5);
+    padding: 1.25rem 1.5rem;
 }
 
 .modal-header .btn-close {
     filter: brightness(0) invert(1);
 }
 
-.modal-header .modal-title {
+.modal-title {
     font-weight: 600;
-    font-size: var(--text-lg);
+    font-size: 1.125rem;
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: 0.5rem;
 }
 
-.modal-lg {
-    max-width: 900px;
-}
-
-.modal-xl {
-    max-width: 1200px;
-}
-
-/* ===== DETAIL SECTIONS ===== */
 .detail-section {
-    margin-bottom: var(--space-5);
-    padding: var(--space-4);
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    border-left: 4px solid var(--primary-blue);
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: var(--device-gray-50);
+    border-radius: 8px;
+    border-left: 4px solid var(--device-primary);
 }
 
 .detail-section-title {
-    font-size: var(--text-sm);
+    font-size: 0.875rem;
     font-weight: 700;
-    color: var(--primary-blue);
+    color: var(--device-primary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: var(--space-3);
+    margin-bottom: 1rem;
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: 0.5rem;
 }
 
 .detail-row {
     display: flex;
     justify-content: space-between;
-    padding: var(--space-2) 0;
-    border-bottom: 1px solid var(--border-light);
-    font-size: var(--text-sm);
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--device-gray-200);
+    font-size: 0.875rem;
 }
 
 .detail-row:last-child {
@@ -483,11 +612,11 @@
 
 .detail-label {
     font-weight: 600;
-    color: var(--text-primary);
+    color: #374151;
 }
 
 .detail-value {
-    color: var(--text-secondary);
+    color: #6b7280;
     text-align: right;
 }
 
@@ -495,121 +624,119 @@
 .sensor-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--space-4);
+    gap: 1rem;
     max-height: 500px;
     overflow-y: auto;
 }
 
 .sensor-card {
     background: white;
-    border: 2px solid var(--border-light);
-    border-radius: var(--radius-md);
-    padding: var(--space-3);
-    transition: all 0.2s ease;
+    border: 2px solid var(--device-gray-200);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s;
 }
 
 .sensor-card:hover {
-    border-color: var(--primary-blue);
-    box-shadow: var(--shadow-md);
+    border-color: var(--device-primary);
+    box-shadow: var(--device-shadow-md);
 }
 
 .sensor-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--space-2);
+    margin-bottom: 0.75rem;
 }
 
 .sensor-name {
     font-family: 'Courier New', monospace;
     font-weight: 700;
-    font-size: var(--text-sm);
-    color: var(--text-primary);
+    font-size: 0.875rem;
+    color: #111827;
 }
 
 .sensor-category-badge {
-    padding: 3px var(--space-2);
-    border-radius: var(--radius-full);
-    font-size: 10px;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.625rem;
     font-weight: 600;
 }
 
 .sensor-category-badge.sensor {
-    background: #d4edda;
-    color: #155724;
+    background: #d1fae5;
+    color: #065f46;
 }
 
 .sensor-category-badge.info {
-    background: #d1ecf1;
-    color: #0c5460;
+    background: #dbeafe;
+    color: #1e40af;
 }
 
 .sensor-category-badge.slave {
-    background: #fff3cd;
-    color: #856404;
+    background: #fef3c7;
+    color: #92400e;
 }
 
 .sensor-detail {
-    font-size: var(--text-xs);
-    color: var(--text-secondary);
-    margin: var(--space-2) 0;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0.5rem 0;
 }
 
 .sensor-detail strong {
-    color: var(--text-primary);
+    color: #374151;
 }
 
 /* ===== EMPTY STATE ===== */
 .empty-state {
     text-align: center;
-    padding: 60px 40px;
-    background: var(--gray-50);
-    border-radius: var(--radius-lg);
-    border: 2px dashed var(--border-medium);
+    padding: 4rem 2rem;
 }
 
-.empty-state i {
-    font-size: 64px;
-    color: var(--gray-400);
-    margin-bottom: var(--space-5);
-    display: block;
+.empty-state-icon {
+    font-size: 4rem;
+    color: var(--device-gray-300);
+    margin-bottom: 1rem;
 }
 
-.empty-state h3 {
-    font-size: var(--text-2xl);
+.empty-state h4 {
+    font-size: 1.25rem;
     font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: var(--space-3);
+    color: #374151;
+    margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
-    margin-bottom: var(--space-5);
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 1.5rem;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+    .device-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     .device-container {
-        padding: var(--space-4);
+        padding: 1rem;
     }
     
     .device-grid {
         grid-template-columns: 1fr;
     }
     
-    .welcome-card-header {
+    .device-header-content {
         flex-direction: column;
         align-items: flex-start;
     }
     
-    .welcome-card-actions {
+    .device-header-actions {
         width: 100%;
         flex-direction: column;
-    }
-    
-    .stats-badges {
-        width: 100%;
     }
     
     .btn-setup-wizard {
@@ -617,22 +744,31 @@
         justify-content: center;
     }
     
-    .device-actions-compact {
+    .device-actions {
         grid-template-columns: repeat(2, 1fr);
     }
     
-    .config-warning {
+    .device-alert {
         flex-direction: column;
         text-align: center;
+    }
+    
+    .influx-tabs-header {
+        flex-direction: column;
+    }
+    
+    .influx-tab-button {
+        border-right: none;
+        border-bottom: 1px solid var(--device-gray-200);
     }
 }
 
 @media (max-width: 480px) {
-    .welcome-card h3 {
-        font-size: var(--text-xl);
+    .device-header-title h3 {
+        font-size: 1.5rem;
     }
     
-    .device-actions-compact {
+    .device-actions {
         grid-template-columns: 1fr;
     }
 }
@@ -642,23 +778,29 @@
 {% block content %}
 <div class="device-container">
 
-    <!-- Welcome Card (Department Admin Style) -->
-    <div class="welcome-card">
-        <div class="welcome-card-header">
-            <div>
+    <!-- ===== HEADER CARD ===== -->
+    <div class="device-header-card">
+        <div class="device-header-content">
+            <div class="device-header-title">
                 <h3>
                     <i class="fas fa-microchip"></i>
                     Device Management
                 </h3>
-                <p>Manage IoT devices discovered from InfluxDB</p>
+                <p>Manage IoT devices from {{ total_configs }} InfluxDB instance{{ total_configs|pluralize }}</p>
             </div>
-            <div class="welcome-card-actions">
-                <div class="stats-badges">
-                    <span class="stats-badge">
-                        <i class="fas fa-microchip"></i>
-                        {{ measurements|length }} Measurement{{ measurements|length|pluralize }}
-                    </span>
-                </div>
+            <div class="device-header-actions">
+                <span class="device-stats-badge">
+                    <i class="fas fa-database"></i>
+                    {{ total_configs }} Config{{ total_configs|pluralize }}
+                </span>
+                <span class="device-stats-badge">
+                    <i class="fas fa-layer-group"></i>
+                    {{ total_measurements }} Measurement{{ total_measurements|pluralize }}
+                </span>
+                <span class="device-stats-badge">
+                    <i class="fas fa-microchip"></i>
+                    {{ total_devices }} Device{{ total_devices|pluralize }}
+                </span>
                 {% if has_config %}
                 <a href="{% url 'companyadmin:device_setup_wizard' %}" class="btn-setup-wizard">
                     <i class="fas fa-magic"></i>
@@ -669,14 +811,16 @@
         </div>
     </div>
 
-    <!-- No Config Warning -->
+    <!-- ===== INFLUXDB NOT CONFIGURED WARNING ===== -->
     {% if not has_config %}
-    <div class="config-warning">
-        <i class="fas fa-exclamation-triangle"></i>
-        <div class="config-warning-content">
+    <div class="device-alert warning">
+        <i class="fas fa-exclamation-triangle device-alert-icon"></i>
+        <div class="device-alert-content">
             <h4>InfluxDB Not Configured</h4>
-            <p>Please configure your InfluxDB connection before setting up devices.</p>
-            <a href="{% url 'companyadmin:influx_config' %}" class="btn-configure">
+            <p>Please configure your InfluxDB connection to start discovering and managing devices.</p>
+        </div>
+        <div class="device-alert-button">
+            <a href="{% url 'companyadmin:influx_config' %}" class="btn-alert-action">
                 <i class="fas fa-cog"></i>
                 Configure InfluxDB
             </a>
@@ -684,167 +828,236 @@
     </div>
     {% endif %}
 
-    <!-- Devices Content -->
-    {% if measurements %}
-    
-        <!-- Loop through measurements (MEASUREMENT GROUPING PRESERVED) -->
-        {% for measurement_name, devices in measurements.items %}
-        <div class="measurement-section">
-            
-            <!-- Measurement Section Header (Department Admin "All Devices" Style) -->
-            <div class="section-header">
-                <div class="section-title">
-                    <i class="fas fa-database"></i>
-                    {{ measurement_name }}
-                </div>
-                <span class="section-badge">
-                    {{ devices|length }} Device{{ devices|length|pluralize }}
-                </span>
-            </div>
-
-            <!-- Device Cards Grid (Department Admin Style) -->
-            <div class="device-grid">
-                {% for device in devices %}
-                <div class="device-card">
-                    
-                    <!-- Card Header -->
-                    <div class="device-card-header">
-                        <h3 class="device-title">
-                            <i class="fas fa-microchip"></i>
-                            {{ device.display_name|truncatechars:25 }}
-                        </h3>
-                        <span class="device-id-label">
-                            ID: {{ device.device_id }}
-                        </span>
-                    </div>
-
-                    <!-- Card Body -->
-                    <div class="device-card-body">
-                        
-                        <!-- Device Info -->
-                        <div class="device-info-compact">
-                            
-                            <!-- Status -->
-                            <div class="device-info-row">
-                                <span class="device-info-label">
-                                    <i class="fas fa-power-off"></i>
-                                    Status
-                                </span>
-                                <span class="device-badge {% if device.is_active %}active{% else %}inactive{% endif %}">
-                                    {% if device.is_active %}Active{% else %}Inactive{% endif %}
-                                </span>
-                            </div>
-
-                            <!-- Measurement -->
-                            <div class="device-info-row">
-                                <span class="device-info-label">
-                                    <i class="fas fa-database"></i>
-                                    Measurement
-                                </span>
-                                <span style="font-size: 11px; font-family: monospace; color: var(--text-tertiary);">
-                                    {{ device.measurement_name|truncatechars:20 }}
-                                </span>
-                            </div>
-
-                            <!-- Sensors -->
-                            <div class="device-info-row">
-                                <span class="device-info-label">
-                                    <i class="fas fa-chart-line"></i>
-                                    Sensors
-                                </span>
-                                <span class="device-badge sensor-count">
-                                    {{ device.total_sensors_only }}
-                                </span>
-                            </div>
-
-                            <!-- Departments -->
-                            <div class="device-info-row" style="align-items: flex-start;">
-                                <span class="device-info-label">
-                                    <i class="fas fa-building"></i>
-                                    Departments
-                                </span>
-                                {% if device.departments.all %}
-                                    <div class="department-pills">
-                                        {% for dept in device.departments.all|slice:":2" %}
-                                        <span class="department-pill">{{ dept.name|truncatechars:12 }}</span>
-                                        {% endfor %}
-                                        {% if device.departments.all|length > 2 %}
-                                        <span class="department-pill">+{{ device.departments.all|length|add:"-2" }}</span>
-                                        {% endif %}
-                                    </div>
-                                {% else %}
-                                    <span class="no-departments">None</span>
-                                {% endif %}
-                            </div>
-
-                        </div>
-
-                        <!-- Action Buttons (4 BUTTONS - ORIGINAL FUNCTIONALITY) -->
-                        <div class="device-actions-compact">
-                            <!-- View Details -->
-                            <button type="button" class="device-btn-compact device-btn-view" onclick="openViewModal({{ device.id }})">
-                                <i class="fas fa-eye"></i>
-                                View
-                            </button>
-
-                            <!-- Edit -->
-                            <button type="button" class="device-btn-compact device-btn-edit" onclick="openEditModal({{ device.id }})">
-                                <i class="fas fa-edit"></i>
-                                Edit
-                            </button>
-
-                            <!-- Configure Sensors -->
-                            <a href="{% url 'companyadmin:configure_sensors' device.id %}" class="device-btn-compact device-btn-configure">
-                                <i class="fas fa-cog"></i>
-                                Config
-                            </a>
-
-                            <!-- Delete -->
-                            <button type="button" class="device-btn-compact device-btn-delete" onclick="deleteDevice({{ device.id }}, '{{ device.display_name|escapejs }}')">
-                                <i class="fas fa-trash"></i>
-                                Delete
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-
+    <!-- ===== NO DEVICES YET ===== -->
+    {% if has_config and total_devices == 0 %}
+    <div class="device-alert info">
+        <i class="fas fa-robot device-alert-icon"></i>
+        <div class="device-alert-content">
+            <h4>No Devices Setup Yet</h4>
+            <p>Use the Setup Wizard to automatically discover and configure devices from your InfluxDB instances.</p>
         </div>
-        {% endfor %}
-
-    {% else %}
-
-        <!-- Empty State -->
-        <div class="empty-state">
-            <i class="fas fa-robot"></i>
-            <h3>No Devices Setup Yet</h3>
-            <p>
-                {% if not has_config %}
-                    Configure InfluxDB first, then use the Setup Wizard to discover and configure your devices.
-                {% else %}
-                    Click below to start the Setup Wizard and discover devices from InfluxDB.
-                {% endif %}
-            </p>
-            {% if has_config %}
-            <a href="{% url 'companyadmin:device_setup_wizard' %}" class="btn-setup-wizard">
+        <div class="device-alert-button">
+            <a href="{% url 'companyadmin:device_setup_wizard' %}" class="btn-alert-action primary">
                 <i class="fas fa-magic"></i>
                 Start Setup Wizard
             </a>
-            {% else %}
-            <a href="{% url 'companyadmin:influx_config' %}" class="btn-configure">
-                <i class="fas fa-cog"></i>
-                Configure InfluxDB
-            </a>
-            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== INFLUXDB TABS ===== -->
+    {% if config_data %}
+    <div class="influx-tabs-container">
+        
+        <!-- Tabs Header -->
+        <div class="influx-tabs-header">
+            {% for config_item in config_data %}
+            <button class="influx-tab-button {% if forloop.first %}active{% endif %}" 
+                    onclick="switchTab('tab-{{ config_item.config.id }}')"
+                    data-tab="tab-{{ config_item.config.id }}">
+                <div class="tab-button-content">
+                    <div class="tab-button-title">
+                        <i class="fas fa-database"></i>
+                        {{ config_item.config.config_name }}
+                    </div>
+                    <div class="tab-button-subtitle">
+                        {{ config_item.config.base_api|truncatechars:40 }}
+                    </div>
+                    <div class="tab-button-stats">
+                        <span class="tab-stat">
+                            {{ config_item.total_measurements }} Measurement{{ config_item.total_measurements|pluralize }}
+                        </span>
+                        <span class="tab-stat">
+                            {{ config_item.total_devices }} Device{{ config_item.total_devices|pluralize }}
+                        </span>
+                    </div>
+                </div>
+            </button>
+            {% endfor %}
         </div>
 
+        <!-- Tabs Content -->
+        <div class="influx-tabs-content">
+            {% for config_item in config_data %}
+            <div class="influx-tab-pane {% if forloop.first %}active{% endif %}" 
+                 id="tab-{{ config_item.config.id }}">
+                
+                {% if config_item.measurements %}
+                    <!-- Device Grid -->
+                    <div class="device-grid">
+                        {% for measurement_data in config_item.measurements %}
+                            {% for device in measurement_data.devices %}
+                            
+                            <!-- Device Card -->
+                            <div class="device-card">
+                                
+                                <!-- Card Header -->
+                                <div class="device-card-header">
+                                    <h5 class="device-card-title">
+                                        <i class="fas fa-microchip"></i>
+                                        {{ device.display_name|truncatechars:30 }}
+                                    </h5>
+                                    <span class="device-id-display">
+                                        ID: {{ device.device_id }}
+                                    </span>
+                                </div>
+
+                                <!-- Card Body -->
+                                <div class="device-card-body">
+                                    
+                                    <!-- Device Information -->
+                                    <div class="device-info">
+                                        
+                                        <!-- Status -->
+                                        <div class="device-info-row">
+                                            <span class="device-info-label">
+                                                <i class="fas fa-power-off"></i>
+                                                Status
+                                            </span>
+                                            <span class="status-badge {% if device.is_active %}active{% else %}inactive{% endif %}">
+                                                {% if device.is_active %}Active{% else %}Inactive{% endif %}
+                                            </span>
+                                        </div>
+
+                                        <!-- Measurement -->
+                                        <div class="device-info-row">
+                                            <span class="device-info-label">
+                                                <i class="fas fa-layer-group"></i>
+                                                Measurement
+                                            </span>
+                                            <span style="font-size: 0.6875rem; font-family: monospace; color: #6b7280;">
+                                                {{ device.measurement_name|truncatechars:20 }}
+                                            </span>
+                                        </div>
+
+                                        <!-- Device Type -->
+                                        <div class="device-info-row">
+                                            <span class="device-info-label">
+                                                <i class="fas fa-tag"></i>
+                                                Type
+                                            </span>
+                                            {% if device.device_type == 'industrial_sensor' %}
+                                                <span class="device-type-badge industrial">
+                                                    <i class="fas fa-industry"></i>
+                                                    Industrial
+                                                </span>
+                                            {% elif device.device_type == 'asset_tracking' %}
+                                                <span class="device-type-badge tracking">
+                                                    <i class="fas fa-location-arrow"></i>
+                                                    Tracking
+                                                </span>
+                                            {% else %}
+                                                <span class="device-type-badge not-set">
+                                                    <i class="fas fa-question"></i>
+                                                    Not Set
+                                                </span>
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- Sensors Count -->
+                                        <div class="device-info-row">
+                                            <span class="device-info-label">
+                                                <i class="fas fa-chart-line"></i>
+                                                Sensors
+                                            </span>
+                                            <span class="status-badge sensor-count">
+                                                {{ device.sensor_breakdown.sensors }}
+                                            </span>
+                                        </div>
+
+                                        <!-- Workspaces -->
+                                        <div class="device-info-row" style="align-items: flex-start;">
+                                            <span class="device-info-label">
+                                                <i class="fas fa-briefcase"></i>
+                                                Workspaces
+                                            </span>
+                                            {% if device.departments.all %}
+                                                <div class="workspace-pills">
+                                                    {% for dept in device.departments.all|slice:":2" %}
+                                                    <span class="workspace-pill">{{ dept.name|truncatechars:12 }}</span>
+                                                    {% endfor %}
+                                                    {% if device.departments.all|length > 2 %}
+                                                    <span class="workspace-pill">+{{ device.departments.all|length|add:"-2" }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% else %}
+                                                <span class="no-workspaces">None</span>
+                                            {% endif %}
+                                        </div>
+
+                                    </div>
+
+                                    <!-- Action Buttons -->
+                                    <div class="device-actions">
+                                        
+                                        <!-- View Details -->
+                                        <button type="button" 
+                                                class="device-btn view" 
+                                                onclick="openViewModal({{ device.id }})"
+                                                title="View device details">
+                                            <i class="fas fa-eye"></i>
+                                            View
+                                        </button>
+
+                                        <!-- Edit -->
+                                        <button type="button" 
+                                                class="device-btn edit" 
+                                                onclick="openEditModal({{ device.id }})"
+                                                title="Edit device settings">
+                                            <i class="fas fa-edit"></i>
+                                            Edit
+                                        </button>
+
+                                        <!-- Configure -->
+                                        <a href="{% url 'companyadmin:configure_device_router' device.id %}" 
+                                           class="device-btn configure"
+                                           title="Configure sensors and metadata">
+                                            <i class="fas fa-cog"></i>
+                                            Configure
+                                        </a>
+
+                                        <!-- Delete -->
+                                        <button type="button" 
+                                                class="device-btn delete" 
+                                                onclick="deleteDevice({{ device.id }}, '{{ device.display_name|escapejs }}')"
+                                                title="Delete device">
+                                            <i class="fas fa-trash"></i>
+                                            Delete
+                                        </button>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                            
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <!-- Empty State -->
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h4>No Devices from {{ config_item.config.config_name }}</h4>
+                        <p>Use the Setup Wizard to discover devices from this InfluxDB instance.</p>
+                        <a href="{% url 'companyadmin:device_setup_wizard' %}" class="btn-setup-wizard">
+                            <i class="fas fa-magic"></i>
+                            Start Setup Wizard
+                        </a>
+                    </div>
+                {% endif %}
+                
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
     {% endif %}
 
 </div>
 
-<!-- View Device Details Modal -->
+<!-- ===== VIEW DEVICE MODAL ===== -->
 <div class="modal fade" id="viewDeviceModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -856,7 +1069,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="viewDeviceContent">
-                <!-- Content loaded via AJAX -->
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -865,7 +1082,7 @@
     </div>
 </div>
 
-<!-- Edit Device Modal -->
+<!-- ===== EDIT DEVICE MODAL ===== -->
 <div class="modal fade" id="editDeviceModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -881,34 +1098,46 @@
                     <input type="hidden" id="edit_device_id">
                     
                     <div class="mb-3">
-                        <label class="form-label"><strong>Display Name</strong></label>
+                        <label class="form-label fw-bold">Display Name</label>
                         <input type="text" class="form-control" id="edit_display_name" required>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label"><strong>Measurement Name</strong></label>
-                        <input type="text" class="form-control" id="edit_measurement_name" required>
+                        <label class="form-label fw-bold">Device Type</label>
+                        <select class="form-select" id="edit_device_type">
+                            <option value="">-- Not Set --</option>
+                            <option value="industrial_sensor">🏭 Industrial Sensor</option>
+                            <option value="asset_tracking">📍 Asset Tracking</option>
+                        </select>
+                        <small class="text-muted">Choose the device type to enable appropriate configuration</small>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label"><strong>Device ID</strong> (Read-Only)</label>
+                        <label class="form-label fw-bold">Measurement Name</label>
+                        <input type="text" class="form-control" id="edit_measurement_name" readonly>
+                        <small class="text-muted">Read-only - from InfluxDB</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Device ID</label>
                         <input type="text" class="form-control" id="edit_device_id_display" readonly>
+                        <small class="text-muted">This is the unique identifier from InfluxDB</small>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label"><strong>Status</strong></label>
+                        <label class="form-label fw-bold">Status</label>
                         <select class="form-select" id="edit_is_active">
-                            <option value="true">Active</option>
-                            <option value="false">Inactive</option>
+                            <option value="true">✓ Active</option>
+                            <option value="false">✗ Inactive</option>
                         </select>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label"><strong>Assign to Departments</strong></label>
+                        <label class="form-label fw-bold">Assign to Workspaces</label>
                         <select class="form-select" id="edit_departments" multiple size="5">
                             <!-- Options loaded dynamically -->
                         </select>
-                        <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                        <small class="text-muted">Hold Ctrl/Cmd to select multiple workspaces</small>
                     </div>
                 </form>
             </div>
@@ -922,7 +1151,7 @@
     </div>
 </div>
 
-<!-- Sensors Modal -->
+<!-- ===== SENSORS MODAL ===== -->
 <div class="modal fade" id="sensorsModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -933,8 +1162,12 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div id="sensors-content"></div>
+            <div class="modal-body" id="sensors-content">
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -944,7 +1177,32 @@
 </div>
 
 <script>
-// CSRF Token
+// ===== TAB SWITCHING LOGIC =====
+function switchTab(tabId) {
+    // Remove active class from all buttons
+    document.querySelectorAll('.influx-tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Remove active class from all panes
+    document.querySelectorAll('.influx-tab-pane').forEach(pane => {
+        pane.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    const clickedButton = document.querySelector(`[data-tab="${tabId}"]`);
+    if (clickedButton) {
+        clickedButton.classList.add('active');
+    }
+    
+    // Show corresponding pane
+    const targetPane = document.getElementById(tabId);
+    if (targetPane) {
+        targetPane.classList.add('active');
+    }
+}
+
+// ===== CSRF TOKEN =====
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -961,8 +1219,11 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-// Open View Details Modal
+// ===== OPEN VIEW MODAL =====
 function openViewModal(deviceId) {
+    const modal = new bootstrap.Modal(document.getElementById('viewDeviceModal'));
+    modal.show();
+    
     fetch(`/company/devices/edit/${deviceId}/`, {
         method: 'GET',
         headers: {'X-CSRFToken': csrftoken}
@@ -978,54 +1239,69 @@ function openViewModal(deviceId) {
             if (deviceData.success && sensorData.success) {
                 let html = '';
                 
+                // Basic Information
                 html += '<div class="detail-section">';
                 html += '<div class="detail-section-title"><i class="fas fa-info-circle"></i> Basic Information</div>';
                 html += `<div class="detail-row"><span class="detail-label">Display Name</span><span class="detail-value">${deviceData.device.display_name}</span></div>`;
                 html += `<div class="detail-row"><span class="detail-label">Device ID</span><span class="detail-value" style="font-family: monospace;">${deviceData.device.device_id}</span></div>`;
+                
+                // Device Type
+                let deviceTypeHtml = '';
+                if (deviceData.device.device_type === 'industrial_sensor') {
+                    deviceTypeHtml = '<span class="device-type-badge industrial"><i class="fas fa-industry"></i> Industrial Sensor</span>';
+                } else if (deviceData.device.device_type === 'asset_tracking') {
+                    deviceTypeHtml = '<span class="device-type-badge tracking"><i class="fas fa-location-arrow"></i> Asset Tracking</span>';
+                } else {
+                    deviceTypeHtml = '<span class="device-type-badge not-set"><i class="fas fa-question"></i> Not Set</span>';
+                }
+                html += `<div class="detail-row"><span class="detail-label">Device Type</span><span class="detail-value">${deviceTypeHtml}</span></div>`;
+                
                 html += `<div class="detail-row"><span class="detail-label">Measurement</span><span class="detail-value" style="font-family: monospace;">${deviceData.device.measurement_name}</span></div>`;
-                html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="device-badge ${deviceData.device.is_active ? 'active' : 'inactive'}">${deviceData.device.is_active ? 'Active' : 'Inactive'}</span></span></div>`;
+                html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="status-badge ${deviceData.device.is_active ? 'active' : 'inactive'}">${deviceData.device.is_active ? 'Active' : 'Inactive'}</span></span></div>`;
                 html += '</div>';
                 
+                // Workspaces
                 html += '<div class="detail-section">';
-                html += '<div class="detail-section-title"><i class="fas fa-building"></i> Departments</div>';
+                html += '<div class="detail-section-title"><i class="fas fa-briefcase"></i> Workspaces</div>';
                 if (deviceData.all_departments.length > 0) {
                     const assignedDeptIds = deviceData.device.departments;
                     const assignedDepts = deviceData.all_departments.filter(d => assignedDeptIds.includes(d.id));
                     if (assignedDepts.length > 0) {
-                        html += '<div class="department-pills">';
+                        html += '<div class="workspace-pills">';
                         assignedDepts.forEach(dept => {
-                            html += `<span class="department-pill">${dept.name}</span>`;
+                            html += `<span class="workspace-pill">${dept.name}</span>`;
                         });
                         html += '</div>';
                     } else {
-                        html += '<p style="color: var(--text-secondary); font-style: italic;">Not assigned to any department</p>';
+                        html += '<p style="color: #9ca3af; font-style: italic;">Not assigned to any workspace</p>';
                     }
                 } else {
-                    html += '<p style="color: var(--text-secondary); font-style: italic;">No departments available</p>';
+                    html += '<p style="color: #9ca3af; font-style: italic;">No workspaces available</p>';
                 }
                 html += '</div>';
                 
+                // Sensors Summary
                 html += '<div class="detail-section">';
-                html += `<div class="detail-section-title"><i class="fas fa-chart-line"></i> Sensors (${sensorData.total_sensors} sensors, ${sensorData.total_fields} total fields)</div>`;
-                html += '<button class="btn btn-sm btn-primary mb-3" onclick="openSensorsModal(' + deviceId + ')"><i class="fas fa-sliders-h"></i> View All Sensors</button>';
+                html += `<div class="detail-section-title"><i class="fas fa-chart-line"></i> Sensors</div>`;
+                html += `<p>Total Sensors: <strong>${sensorData.sensor_breakdown.sensors}</strong></p>`;
+                html += `<p>Slave Devices: <strong>${sensorData.sensor_breakdown.slaves}</strong></p>`;
+                html += `<p>Info Fields: <strong>${sensorData.sensor_breakdown.info}</strong></p>`;
+                html += '<button class="btn btn-sm btn-primary mt-2" onclick="openSensorsModal(' + deviceId + ')"><i class="fas fa-sliders-h"></i> View All Sensors</button>';
                 html += '</div>';
                 
                 document.getElementById('viewDeviceContent').innerHTML = html;
-                
-                const modal = new bootstrap.Modal(document.getElementById('viewDeviceModal'));
-                modal.show();
             } else {
-                alert('Error loading device details');
+                document.getElementById('viewDeviceContent').innerHTML = '<div class="alert alert-danger">Error loading device details</div>';
             }
         });
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Failed to load device details');
+        document.getElementById('viewDeviceContent').innerHTML = '<div class="alert alert-danger">Failed to load device details</div>';
     });
 }
 
-// Open Edit Modal
+// ===== OPEN EDIT MODAL =====
 function openEditModal(deviceId) {
     fetch(`/company/devices/edit/${deviceId}/`, {
         method: 'GET',
@@ -1039,6 +1315,7 @@ function openEditModal(deviceId) {
             document.getElementById('edit_measurement_name').value = data.device.measurement_name;
             document.getElementById('edit_device_id_display').value = data.device.device_id;
             document.getElementById('edit_is_active').value = data.device.is_active.toString();
+            document.getElementById('edit_device_type').value = data.device.device_type || '';
             
             const deptSelect = document.getElementById('edit_departments');
             deptSelect.innerHTML = '';
@@ -1062,7 +1339,7 @@ function openEditModal(deviceId) {
     });
 }
 
-// Save Device Edit
+// ===== SAVE DEVICE EDIT =====
 function saveDeviceEdit() {
     const deviceId = document.getElementById('edit_device_id').value;
     const formData = new FormData();
@@ -1070,6 +1347,7 @@ function saveDeviceEdit() {
     formData.append('display_name', document.getElementById('edit_display_name').value);
     formData.append('measurement_name', document.getElementById('edit_measurement_name').value);
     formData.append('is_active', document.getElementById('edit_is_active').value);
+    formData.append('device_type', document.getElementById('edit_device_type').value);
     
     const deptSelect = document.getElementById('edit_departments');
     Array.from(deptSelect.selectedOptions).forEach(option => {
@@ -1096,8 +1374,11 @@ function saveDeviceEdit() {
     });
 }
 
-// Open Sensors Modal
+// ===== OPEN SENSORS MODAL =====
 function openSensorsModal(deviceId) {
+    const modal = new bootstrap.Modal(document.getElementById('sensorsModal'));
+    modal.show();
+    
     fetch(`/company/devices/sensors/${deviceId}/`, {
         method: 'GET',
         headers: {'X-CSRFToken': csrftoken}
@@ -1116,27 +1397,25 @@ function openSensorsModal(deviceId) {
                 html += `<div class="sensor-detail"><strong>Display:</strong> ${sensor.display_name}</div>`;
                 html += `<div class="sensor-detail"><strong>Type:</strong> <code>${sensor.field_type}</code></div>`;
                 html += `<div class="sensor-detail"><strong>Unit:</strong> ${sensor.unit || 'N/A'}</div>`;
-                html += `<div class="sensor-detail"><strong>Sample:</strong> <code>${sensor.sample_value}</code></div>`;
-                html += `<div class="sensor-detail"><strong>Status:</strong> ${sensor.is_active ? '<span style="color: var(--success);">● Active</span>' : '<span style="color: var(--danger);">● Inactive</span>'}</div>`;
+                if (sensor.sample_value) {
+                    html += `<div class="sensor-detail"><strong>Sample:</strong> <code>${sensor.sample_value}</code></div>`;
+                }
                 html += '</div>';
             });
             
             html += '</div>';
             document.getElementById('sensors-content').innerHTML = html;
-            
-            const modal = new bootstrap.Modal(document.getElementById('sensorsModal'));
-            modal.show();
         } else {
-            alert('Error: ' + data.message);
+            document.getElementById('sensors-content').innerHTML = '<div class="alert alert-danger">Error: ' + data.message + '</div>';
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Failed to load sensors');
+        document.getElementById('sensors-content').innerHTML = '<div class="alert alert-danger">Failed to load sensors</div>';
     });
 }
 
-// Delete Device
+// ===== DELETE DEVICE =====
 function deleteDevice(deviceId, deviceName) {
     if (confirm(`Are you sure you want to delete "${deviceName}" and all associated sensors?\n\nThis action cannot be undone!`)) {
         fetch(`/company/devices/delete/${deviceId}/`, {

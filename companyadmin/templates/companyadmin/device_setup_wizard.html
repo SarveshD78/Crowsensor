@@ -41,7 +41,7 @@
     padding: 40px;
 }
 
-/* Progress Steps */
+/* Progress Steps - 5 STEPS NOW */
 .wizard-progress {
     display: flex;
     justify-content: space-between;
@@ -53,8 +53,8 @@
     content: '';
     position: absolute;
     top: 25px;
-    left: 12.5%;
-    right: 12.5%;
+    left: 10%;
+    right: 10%;
     height: 3px;
     background: #e9ecef;
     z-index: 0;
@@ -97,7 +97,7 @@
 }
 
 .wizard-step-label {
-    font-size: 14px;
+    font-size: 13px;
     color: #6c757d;
     font-weight: 600;
 }
@@ -143,6 +143,127 @@
     margin-right: 10px;
 }
 
+/* Config Selection Cards */
+.config-selection-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.config-card {
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    display: block;
+}
+
+.config-card-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 3px solid #e9ecef;
+    border-radius: 10px;
+    background: white;
+    transition: all 0.2s;
+}
+
+.config-card:hover .config-card-inner {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.config-card.selected .config-card-inner {
+    border-color: #667eea;
+    background: #f0f2ff;
+}
+
+.radio-indicator {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #ccc;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.config-card.selected .radio-indicator {
+    border-color: #667eea;
+}
+
+.radio-indicator-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #667eea;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.config-card.selected .radio-indicator-inner {
+    opacity: 1;
+}
+
+.config-info {
+    flex: 1;
+}
+
+.config-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.config-name i {
+    color: #667eea;
+    font-size: 20px;
+}
+
+.config-name strong {
+    font-size: 18px;
+    color: #333B4A;
+}
+
+.config-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.config-details {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.config-details span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.check-icon {
+    font-size: 28px;
+    color: #28a745;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.config-card.selected .check-icon {
+    opacity: 1;
+}
+
 /* Measurement Selection */
 .measurement-list {
     display: grid;
@@ -172,11 +293,6 @@
     width: 20px;
     height: 20px;
     cursor: pointer;
-}
-
-.measurement-checkbox input[type="checkbox"]:checked ~ .measurement-label {
-    color: #667eea;
-    font-weight: 700;
 }
 
 .measurement-checkbox.checked {
@@ -319,12 +435,6 @@
     font-size: 12px;
 }
 
-.col-reason {
-    color: #6c757d;
-    font-size: 12px;
-    font-style: italic;
-}
-
 /* Preview Cards */
 .preview-grid {
     display: grid;
@@ -440,6 +550,7 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
+    text-decoration: none;
 }
 
 .wizard-btn-primary {
@@ -451,6 +562,7 @@
     background: linear-gradient(135deg, #5568d3 0%, #6a3f8c 100%);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    color: white;
 }
 
 .wizard-btn-secondary {
@@ -461,6 +573,7 @@
 .wizard-btn-secondary:hover {
     background: #5a6268;
     transform: translateY(-2px);
+    color: white;
 }
 
 .wizard-btn-success {
@@ -471,6 +584,7 @@
 .wizard-btn-success:hover {
     background: #218838;
     transform: translateY(-2px);
+    color: white;
 }
 
 .wizard-btn-outline {
@@ -559,6 +673,62 @@
     margin-right: 6px;
 }
 
+/* Device Preview Cards */
+.device-preview-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.device-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.device-preview-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.device-preview-title i {
+    color: #667eea;
+    font-size: 24px;
+}
+
+.device-preview-badges {
+    display: flex;
+    gap: 8px;
+}
+
+.device-badge {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.device-badge.sensors {
+    background: #d4edda;
+    color: #155724;
+}
+
+.device-badge.slaves {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.device-badge.info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .wizard-progress::before {
@@ -595,6 +765,10 @@
     .summary-stats {
         grid-template-columns: repeat(2, 1fr);
     }
+    
+    .wizard-step-label {
+        font-size: 11px;
+    }
 }
 </style>
 {% endblock %}
@@ -613,8 +787,14 @@
         <!-- Body -->
         <div class="wizard-body">
             
-            <!-- Progress Steps -->
+            <!-- Progress Steps - 5 STEPS -->
             <div class="wizard-progress">
+                <div class="wizard-step {% if current_step >= 0 %}active{% endif %} {% if current_step > 0 %}completed{% endif %}">
+                    <div class="wizard-step-circle">
+                        {% if current_step > 0 %}<i class="fas fa-check"></i>{% else %}0{% endif %}
+                    </div>
+                    <div class="wizard-step-label">Select InfluxDB</div>
+                </div>
                 <div class="wizard-step {% if current_step >= 1 %}active{% endif %} {% if current_step > 1 %}completed{% endif %}">
                     <div class="wizard-step-circle">
                         {% if current_step > 1 %}<i class="fas fa-check"></i>{% else %}1{% endif %}
@@ -639,26 +819,94 @@
                 </div>
             </div>
 
+<!-- STEP 0: SELECT INFLUXDB -->
+<div class="step-content {% if current_step == 0 %}active{% endif %}">
+    <h3 class="step-title">Step 0: Select InfluxDB Instance</h3>
+    <p class="step-description">Choose which InfluxDB database you want to import devices from</p>
+
+    <div class="info-box">
+        <i class="fas fa-database"></i>
+        <strong>Multiple InfluxDB Support:</strong> You have configured {{ configs.count }} InfluxDB instance(s). Select one to proceed with device discovery.
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <!-- Config Cards Grid -->
+        <div class="config-selection-grid">
+            {% for cfg in configs %}
+            <label class="config-card" onclick="selectConfig(this)">
+                <input type="radio" name="config_id" value="{{ cfg.id }}" 
+                       style="position: absolute; opacity: 0;"
+                       {% if forloop.first %}checked{% endif %}>
+                
+                <div class="config-card-inner">
+                    
+                    <!-- Radio Circle Indicator -->
+                    <div class="radio-indicator">
+                        <div class="radio-indicator-inner"></div>
+                    </div>
+                    
+                    <!-- Config Info -->
+                    <div class="config-info">
+                        <div class="config-name">
+                            <i class="fas fa-database"></i>
+                            <strong>{{ cfg.config_name }}</strong>
+                        </div>
+                        <div class="config-details">
+                            <span><i class="fas fa-server"></i> {{ cfg.base_api }}</span>
+                            <span><i class="fas fa-database"></i> {{ cfg.db_name }}</span>
+                            <span>
+                                {% if cfg.is_connected %}
+                                <i class="fas fa-check-circle" style="color: #28a745;"></i> Connected
+                                {% else %}
+                                <i class="fas fa-times-circle" style="color: #dc3545;"></i> Disconnected
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Check Icon (shows when selected) -->
+                    <i class="fas fa-check-circle check-icon"></i>
+                    
+                </div>
+            </label>
+            {% endfor %}
+        </div>
+
+        <div class="wizard-actions">
+            <a href="{% url 'companyadmin:device_list' %}" class="wizard-btn wizard-btn-outline">
+                <i class="fas fa-times"></i>
+                Cancel
+            </a>
+            <button type="submit" name="select_config" value="1" class="wizard-btn wizard-btn-primary">
+                Next: Fetch Measurements
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
             <!-- STEP 1: SELECT MEASUREMENTS -->
             <div class="step-content {% if current_step == 1 %}active{% endif %}">
                 <h3 class="step-title">Step 1: Select Measurements</h3>
-                <p class="step-description">Choose which measurements you want to import as devices</p>
+                <p class="step-description">Choose which measurements you want to import as devices from <strong>{{ config.config_name }}</strong></p>
 
                 {% if not wizard_data.measurements %}
                 <!-- Fetch Measurements -->
                 <div class="empty-state">
                     <i class="fas fa-database"></i>
                     <h3>Ready to Discover</h3>
-                    <p>Click below to scan your InfluxDB for available measurements</p>
+                    <p>Click below to scan "{{ config.config_name }}" for available measurements</p>
                 </div>
 
                 <form method="POST">
                     {% csrf_token %}
                     <div class="wizard-actions">
-                        <a href="{% url 'companyadmin:device_list' %}" class="wizard-btn wizard-btn-outline">
-                            <i class="fas fa-times"></i>
-                            Cancel
-                        </a>
+                        <button type="submit" name="back_to_config" value="1" class="wizard-btn wizard-btn-outline">
+                            <i class="fas fa-arrow-left"></i>
+                            Change InfluxDB
+                        </button>
                         <button type="submit" name="fetch_measurements" value="1" class="wizard-btn wizard-btn-primary">
                             <i class="fas fa-search"></i>
                             Fetch Measurements
@@ -670,7 +918,7 @@
                 <!-- Select Measurements -->
                 <div class="info-box">
                     <i class="fas fa-info-circle"></i>
-                    <strong>Found {{ wizard_data.measurements|length }} measurements.</strong> Select the ones you want to configure.
+                    <strong>Found {{ wizard_data.measurements|length }} measurements in "{{ config.config_name }}".</strong> Select the ones you want to configure.
                 </div>
 
                 <form method="POST" id="measurementForm">
@@ -703,11 +951,11 @@
             <!-- STEP 2: COLUMN ANALYSIS & DEVICE SELECTION -->
             <div class="step-content {% if current_step == 2 %}active{% endif %}">
                 <h3 class="step-title">Step 2: Column Analysis & Device Selection</h3>
-                <p class="step-description">Review auto-detected columns and select the device ID column</p>
+                <p class="step-description">Review auto-detected columns and select the device ID column for <strong>{{ config.config_name }}</strong></p>
 
                 <div class="info-box">
                     <i class="fas fa-robot"></i>
-                    <strong>Smart Auto-Detection Active!</strong> Analyzed last 10,000 entries. Columns are automatically categorized as Device, Slave, Sensor, or Info based on patterns and data.
+                    <strong>Smart Auto-Detection Active!</strong> Analyzed columns are automatically categorized as Device, Slave, Sensor, or Info based on patterns and data.
                 </div>
 
                 <form method="POST">
@@ -732,7 +980,7 @@
                                                 <th>Column Name</th>
                                                 <th>Category</th>
                                                 <th>Type</th>
-                                                <th>Detection Reason</th>
+                                                <th>Unique Values</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -745,7 +993,7 @@
                                                     </span>
                                                 </td>
                                                 <td class="col-type">{{ col_data.type }}</td>
-                                                <td class="col-reason">{{ col_data.reason }}</td>
+                                                <td class="col-type">{{ col_data.unique_count }}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -762,7 +1010,7 @@
                                             {% for col_name, col_data in columns.items %}
                                                 {% if col_data.category != 'hidden' %}
                                                 <option value="{{ col_name }}" {% if col_data.category == 'device' %}selected{% endif %}>
-                                                    {{ col_name }} ({{ col_data.category|upper }} - {{ col_data.unique_count }} unique values)
+                                                    {{ col_name }} ({{ col_data.category|upper }} - {{ col_data.unique_count }} unique)
                                                 </option>
                                                 {% endif %}
                                             {% endfor %}
@@ -789,149 +1037,149 @@
                 </form>
             </div>
 
-<!-- STEP 3: PREVIEW -->
-<!-- STEP 3: PREVIEW -->
-<div class="step-content {% if current_step == 3 %}active{% endif %}">
-    <h3 class="step-title">Step 3: Preview Device-Specific Configuration</h3>
-    <p class="step-description">Each device has been analyzed individually and will get its unique sensors</p>
+            <!-- STEP 3: PREVIEW -->
+            <div class="step-content {% if current_step == 3 %}active{% endif %}">
+                <h3 class="step-title">Step 3: Preview Device-Specific Configuration</h3>
+                <p class="step-description">Each device from <strong>{{ config.config_name }}</strong> has been analyzed individually and will get its unique sensors</p>
 
-    {% if wizard_data.preview_data %}
-    
-    <!-- Summary Stats -->
-    <div class="summary-stats">
-        <div class="summary-stat">
-            <div class="summary-stat-value">{{ wizard_data.preview_data|length }}</div>
-            <div class="summary-stat-label">Measurements</div>
-        </div>
-        <div class="summary-stat">
-            <div class="summary-stat-value">
-                {% for item in wizard_data.preview_data %}
-                    {% if forloop.first %}{{ item.device_count }}{% endif %}
-                {% endfor %}
-            </div>
-            <div class="summary-stat-label">Total Devices</div>
-        </div>
-    </div>
-
-    <!-- Preview Cards - Device-Specific View -->
-    <div class="preview-grid">
-        {% for item in wizard_data.preview_data %}
-        <div class="preview-card">
-            
-            <!-- Measurement Header -->
-            <div class="preview-card-header">
-                <div class="preview-card-title">
-                    <i class="fas fa-database"></i>
-                    Measurement: {{ item.measurement }}
+                {% if wizard_data.preview_data %}
+                
+                <!-- Summary Stats -->
+                <div class="summary-stats">
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">{{ wizard_data.preview_data|length }}</div>
+                        <div class="summary-stat-label">Measurements</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">{{ wizard_data.total_devices }}</div>
+                        <div class="summary-stat-label">Total Devices</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">{{ wizard_data.total_sensors }}</div>
+                        <div class="summary-stat-label">Total Sensors</div>
+                    </div>
                 </div>
-                <span class="preview-badge">{{ item.device_count }} Devices</span>
-            </div>
 
-            <!-- Device Column Info -->
-            <div style="background: #e7f3ff; border: 2px solid #3094FF; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                    <i class="fas fa-key" style="color: #3094FF;"></i>
-                    <strong style="color: #004085;">Device ID Column:</strong>
-                    <span style="background: #667eea; color: white; padding: 4px 12px; border-radius: 6px; font-family: monospace; font-weight: 600;">
-                        {{ item.device_column }}
-                    </span>
-                </div>
-                <p style="color: #004085; font-size: 13px; margin: 0;">
-                    <i class="fas fa-info-circle"></i>
-                    Each device below has been queried individually to detect its unique sensor configuration.
-                </p>
-            </div>
+                <!-- Preview Cards - Device-Specific View -->
+                <div class="preview-grid">
+                    {% for item in wizard_data.preview_data %}
+                    <div class="preview-card">
+                        
+                        <!-- Measurement Header -->
+                        <div class="preview-card-header">
+                            <div class="preview-card-title">
+                                <i class="fas fa-database"></i>
+                                Measurement: {{ item.measurement }}
+                            </div>
+                            <span class="preview-badge">{{ item.device_count }} Devices</span>
+                        </div>
 
-            <!-- Device List with Individual Sensors -->
-            <div style="margin-top: 20px;">
-                {% for device_info in item.devices_with_sensors %}
-                <div style="background: white; border: 2px solid #e9ecef; border-radius: 10px; padding: 20px; margin-bottom: 16px;">
-                    
-                    <!-- Device Header -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <i class="fas fa-microchip" style="color: #667eea; font-size: 24px;"></i>
-                            <div>
-                                <strong style="font-size: 18px; color: #333B4A; display: block;">
-                                    Device {{ device_info.device_id }}
-                                </strong>
-                                <span style="font-size: 12px; color: #6c757d;">
-                                    {{ device_info.sensors|length }} total fields detected
+                        <!-- Device Column Info -->
+                        <div style="background: #e7f3ff; border: 2px solid #3094FF; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <i class="fas fa-key" style="color: #3094FF;"></i>
+                                <strong style="color: #004085;">Device ID Column:</strong>
+                                <span style="background: #667eea; color: white; padding: 4px 12px; border-radius: 6px; font-family: monospace; font-weight: 600;">
+                                    {{ item.device_column }}
                                 </span>
                             </div>
+                            <p style="color: #004085; font-size: 13px; margin: 0;">
+                                <i class="fas fa-info-circle"></i>
+                                Each device below has been queried individually to detect its unique sensor configuration.
+                            </p>
                         </div>
-                        <div style="display: flex; gap: 8px;">
-                            <span style="background: #d4edda; color: #155724; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
-                                {{ device_info.sensor_count }} Sensors
-                            </span>
-                            {% if device_info.slave_count > 0 %}
-                            <span style="background: #fff3cd; color: #856404; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
-                                {{ device_info.slave_count }} Slaves
-                            </span>
-                            {% endif %}
-                            <span style="background: #d1ecf1; color: #0c5460; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
-                                {{ device_info.info_count }} Info
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <!-- Sensors for THIS Device -->
-                    <div style="margin-left: 0px;">
-                        <div style="font-size: 12px; font-weight: 700; color: #6c757d; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
-                            <i class="fas fa-list"></i> Fields for Device {{ device_info.device_id }}:
-                        </div>
-                        <div class="preview-items">
-                            {% for sensor in device_info.sensors %}
-                            <span class="preview-item {{ sensor.category }}" title="Type: {{ sensor.type }} | Sample: {{ sensor.sample_value }}">
-                                {{ sensor.name }} ({{ sensor.type }})
-                            </span>
+
+                        <!-- Device List with Individual Sensors -->
+                        <div style="margin-top: 20px;">
+                            {% for device_info in item.devices_with_sensors %}
+                            <div class="device-preview-card">
+                                
+                                <!-- Device Header -->
+                                <div class="device-preview-header">
+                                    <div class="device-preview-title">
+                                        <i class="fas fa-microchip"></i>
+                                        <div>
+                                            <strong style="font-size: 18px; color: #333B4A; display: block;">
+                                                Device {{ device_info.device_id }}
+                                            </strong>
+                                            <span style="font-size: 12px; color: #6c757d;">
+                                                {{ device_info.sensors|length }} total fields detected
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="device-preview-badges">
+                                        <span class="device-badge sensors">
+                                            {{ device_info.sensor_count }} Sensors
+                                        </span>
+                                        {% if device_info.slave_count > 0 %}
+                                        <span class="device-badge slaves">
+                                            {{ device_info.slave_count }} Slaves
+                                        </span>
+                                        {% endif %}
+                                        <span class="device-badge info">
+                                            {{ device_info.info_count }} Info
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Sensors for THIS Device -->
+                                <div>
+                                    <div class="preview-section-title">
+                                        <i class="fas fa-list"></i> Fields for Device {{ device_info.device_id }}:
+                                    </div>
+                                    <div class="preview-items">
+                                        {% for sensor in device_info.sensors %}
+                                        <span class="preview-item {{ sensor.category }}" title="Type: {{ sensor.type }} | Sample: {{ sensor.sample_value }}">
+                                            {{ sensor.name }} ({{ sensor.type }})
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                            </div>
                             {% endfor %}
+                            
+                            {% if item.device_count > 10 %}
+                            <div style="text-align: center; padding: 20px; background: #f8f9fa; border: 2px dashed #e9ecef; border-radius: 10px; color: #6c757d; font-size: 14px;">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Showing first 10 devices.</strong> All {{ item.device_count }} devices will be configured with their individual sensors when you save.
+                            </div>
+                            {% endif %}
                         </div>
+
                     </div>
-                    
+                    {% endfor %}
                 </div>
-                {% endfor %}
-                
-                {% if item.device_count > 10 %}
-                <div style="text-align: center; padding: 20px; background: #f8f9fa; border: 2px dashed #e9ecef; border-radius: 10px; color: #6c757d; font-size: 14px;">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Showing first 10 devices.</strong> All {{ item.device_count }} devices will be configured with their individual sensors when you save.
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="wizard-actions">
+                        <button type="submit" name="back_to_step2" value="1" class="wizard-btn wizard-btn-secondary">
+                            <i class="fas fa-arrow-left"></i>
+                            Back
+                        </button>
+                        <button type="submit" name="confirm_save" value="1" class="wizard-btn wizard-btn-success">
+                            <i class="fas fa-check"></i>
+                            Confirm & Save All Devices
+                        </button>
+                    </div>
+                </form>
+
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-hourglass-half"></i>
+                    <h3>Building Device-Specific Preview...</h3>
+                    <p>Querying each device individually to detect unique sensors</p>
                 </div>
                 {% endif %}
             </div>
 
-        </div>
-        {% endfor %}
-    </div>
-
-    <form method="POST">
-        {% csrf_token %}
-        <div class="wizard-actions">
-            <button type="submit" name="back_to_step2" value="1" class="wizard-btn wizard-btn-secondary">
-                <i class="fas fa-arrow-left"></i>
-                Back
-            </button>
-            <button type="submit" name="confirm_save" value="1" class="wizard-btn wizard-btn-success">
-                <i class="fas fa-check"></i>
-                Confirm & Save All Devices
-            </button>
-        </div>
-    </form>
-
-    {% else %}
-    <div class="empty-state">
-        <i class="fas fa-hourglass-half"></i>
-        <h3>Building Device-Specific Preview...</h3>
-        <p>Querying each device individually to detect unique sensors</p>
-    </div>
-    {% endif %}
-</div>
             <!-- STEP 4: SAVING (Auto-redirect) -->
             <div class="step-content {% if current_step == 4 %}active{% endif %}">
                 <div class="empty-state">
                     <i class="fas fa-spinner fa-spin" style="font-size: 80px; color: #667eea;"></i>
                     <h3>Saving to Database...</h3>
-                    <p>Creating devices and sensors with smart categorization. Please wait...</p>
+                    <p>Creating devices and sensors from <strong>{{ config.config_name }}</strong> with smart categorization. Please wait...</p>
                 </div>
             </div>
 
@@ -941,11 +1189,34 @@
 
 </div>
 
+<!-- JavaScript for Config Selection -->
+<script>
+    function selectConfig(label) {
+        // Remove selected class from all
+        document.querySelectorAll('.config-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Add selected class to clicked
+        label.classList.add('selected');
+        
+        // Check the radio button
+        label.querySelector('input[type="radio"]').checked = true;
+    }
+    
+    // ✅ FIXED: Auto-select first config on load (no is_default)
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstConfig = document.querySelector('.config-card input[type="radio"]:checked');
+        if (firstConfig) {
+            firstConfig.closest('.config-card').classList.add('selected');
+        }
+    });
+    </script>
 <!-- Only redirect after final save (Step 4) -->
 {% if current_step == 4 %}
 <script>
 setTimeout(function() {
-    window.location.href = "{% url 'companyadmin:device_list' %}";
+    window.location.href = "{% url 'companyadmin:device_list' %}?success=1";
 }, 3000);
 </script>
 {% endif %}

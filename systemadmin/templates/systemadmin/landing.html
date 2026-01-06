@@ -15,8 +15,9 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             overflow-x: hidden;
+            font-weight: 400;
         }
 
         /* Hero Section - NO OVERLAY */
@@ -51,35 +52,37 @@
 
         .logo {
             position: absolute;
-            top: 40px;
+            top: 120px;
             left: 50%;
             transform: translateX(-50%);
-            height: 80px;
+            height: 70px;
             z-index: 3;
         }
 
         .main-heading {
-            font-size: 4rem;
-            font-weight: 700;
-            color: #ffffff;
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
-            margin-bottom: 10px;
-            line-height: 1.2;
-        }
-
-        .sub-heading {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 600;
             color: #ffffff;
             text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
-            margin-bottom: 30px;
+            margin-bottom: 8px;
+            line-height: 1.3;
+            letter-spacing: 1px;
+        }
+
+        .sub-heading {
+            font-size: 1.8rem;
+            font-weight: 500;
+            color: #ffffff;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+            margin-bottom: 25px;
         }
 
         .tagline {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
+            font-weight: 400;
             color: #ffffff;
             text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.5);
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             max-width: 900px;
         }
 
@@ -87,43 +90,61 @@
             background: rgba(0, 0, 0, 0.75);
             border: 2px solid #d4af37;
             border-radius: 10px;
-            padding: 30px 40px;
-            max-width: 1100px;
-            margin-bottom: 40px;
+            padding: 25px 35px;
+            max-width: 1000px;
+            margin-bottom: 35px;
         }
 
         .description-text {
-            font-size: 1.15rem;
+            font-size: 1rem;
+            font-weight: 400;
             color: #d4af37;
-            line-height: 1.7;
+            line-height: 1.6;
             margin: 0;
             font-style: italic;
         }
 
-        .workplace-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-size: 18px;
-            font-weight: 700;
-            padding: 18px 48px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-            display: inline-flex;
+        /* Button Container */
+        .button-container {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
             align-items: center;
-            gap: 12px;
         }
 
-        .workplace-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
+        /* Sleeker, smaller buttons */
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 14px 38px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .action-btn i {
+            font-size: 14px;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, #7c92f5 0%, #8a5bb5 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+            color: white;
         }
 
         /* Modal Styles */
         .modal-content {
-            border-radius: 24px;
+            border-radius: 20px;
             border: none;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             background: rgba(255, 255, 255, 0.95);
@@ -133,17 +154,21 @@
         .modal-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-radius: 24px 24px 0 0;
-            padding: 28px 36px;
+            border-radius: 20px 20px 0 0;
+            padding: 22px 30px;
             border: none;
         }
 
         .modal-title {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 19px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+        }
+
+        .modal-title i {
+            font-size: 18px;
         }
 
         .btn-close {
@@ -156,31 +181,31 @@
         }
 
         .modal-body {
-            padding: 40px 36px;
+            padding: 32px 30px;
         }
 
         .code-input-group {
             position: relative;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .code-input-icon {
             position: absolute;
-            left: 22px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
-            color: #718096;
-            font-size: 20px;
+            color: #667eea;
+            font-size: 16px;
             z-index: 1;
         }
 
         .code-input {
             width: 100%;
-            font-size: 18px;
-            padding: 20px 24px 20px 58px;
+            font-size: 15px;
+            padding: 16px 20px 16px 50px;
             border: 2px solid #e2e8f0;
-            border-radius: 14px;
-            font-weight: 600;
+            border-radius: 12px;
+            font-weight: 500;
             transition: all 0.3s;
             background: #f7fafc;
         }
@@ -192,33 +217,39 @@
             background: white;
         }
 
-        .access-btn {
+        /* Submit button in modals */
+        .submit-btn {
             width: 100%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            font-size: 17px;
-            font-weight: 700;
-            padding: 18px;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 15px;
             border: none;
-            border-radius: 14px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .access-btn:hover {
+        .submit-btn i {
+            font-size: 14px;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #7c92f5 0%, #8a5bb5 100%);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 18px rgba(102, 126, 234, 0.4);
         }
 
         .modal-divider {
             display: flex;
             align-items: center;
-            gap: 16px;
-            margin: 32px 0;
+            gap: 14px;
+            margin: 26px 0;
         }
 
         .modal-divider::before,
@@ -231,25 +262,30 @@
 
         .modal-divider span {
             color: #718096;
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 12px;
+            font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .admin-link {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            padding: 18px;
+            gap: 8px;
+            padding: 15px;
             background: #f7fafc;
             border: 2px solid #e2e8f0;
-            border-radius: 14px;
+            border-radius: 12px;
             text-decoration: none;
             color: #1a202c;
-            font-weight: 600;
+            font-weight: 500;
+            font-size: 14px;
             transition: all 0.3s;
+        }
+
+        .admin-link i {
+            font-size: 14px;
         }
 
         .admin-link:hover {
@@ -264,16 +300,33 @@
             background: linear-gradient(135deg, #fee 0%, #fdd 100%);
             border: 2px solid #fcc;
             color: #c53030;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 18px;
             text-align: center;
-            font-weight: 600;
+            font-weight: 500;
+            font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             animation: shake 0.5s;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #a3cfbb;
+            color: #155724;
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         @keyframes shake {
@@ -282,37 +335,81 @@
             75% { transform: translateX(8px); }
         }
 
+        /* Form Group Styling */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 7px;
+            color: #2d3748;
+            font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.3s;
+            background: #f7fafc;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            outline: none;
+            background: white;
+        }
+
         /* Responsive */
         @media (max-width: 992px) {
-            .logo { height: 60px; top: 30px; }
-            .main-heading { font-size: 3rem; }
-            .sub-heading { font-size: 2rem; }
-            .tagline { font-size: 1.1rem; }
-            .description-box { padding: 20px 25px; }
-            .description-text { font-size: 1rem; }
-            .workplace-btn { padding: 16px 36px; font-size: 16px; }
+            .logo { height: 55px; top: 30px; }
+            .main-heading { font-size: 2.3rem; }
+            .sub-heading { font-size: 1.5rem; }
+            .tagline { font-size: 1rem; }
+            .description-box { padding: 20px 28px; }
+            .description-text { font-size: 0.95rem; }
+            .action-btn { padding: 13px 32px; font-size: 14px; }
         }
 
         @media (max-width: 768px) {
-            .logo { height: 50px; top: 20px; }
-            .main-heading { font-size: 2.2rem; }
-            .sub-heading { font-size: 1.5rem; }
-            .tagline { font-size: 1rem; }
-            .description-box { padding: 15px 20px; }
+            .logo { height: 48px; top: 20px; }
+            .main-heading { font-size: 1.9rem; }
+            .sub-heading { font-size: 1.3rem; }
+            .tagline { font-size: 0.95rem; }
+            .description-box { padding: 18px 22px; }
             .description-text { font-size: 0.9rem; }
-            .workplace-btn { padding: 12px 30px; }
-            .modal-body { padding: 30px 24px; }
+            .action-btn { padding: 11px 28px; font-size: 13px; }
+            .modal-body { padding: 28px 24px; }
+            .button-container { gap: 14px; }
         }
 
         @media (max-width: 576px) {
             .hero-content { padding: 10px; }
             .logo { height: 40px; top: 15px; }
-            .main-heading { font-size: 1.8rem; }
-            .sub-heading { font-size: 1.3rem; }
-            .tagline { font-size: 0.9rem; }
-            .description-box { padding: 12px 15px; }
-            .description-text { font-size: 0.85rem; }
-            .workplace-btn { padding: 10px 30px; font-size: 14px; }
+            .main-heading { font-size: 1.6rem; }
+            .sub-heading { font-size: 1.1rem; }
+            .tagline { font-size: 0.85rem; }
+            .description-box { padding: 14px 18px; }
+            .description-text { font-size: 0.82rem; }
+            .action-btn { padding: 10px 22px; font-size: 13px; }
+            .button-container { 
+                flex-direction: column; 
+                gap: 12px; 
+                width: 100%;
+            }
+            .action-btn {
+                width: 90%;
+            }
         }
     </style>
 </head>
@@ -333,20 +430,34 @@
                 </p>
             </div>
             
-            <button class="workplace-btn" data-bs-toggle="modal" data-bs-target="#workplaceModal">
-                <i class="fas fa-briefcase"></i>
-                <span>My Workplace</span>
-            </button>
+            <!-- Three buttons -->
+            <div class="button-container">
+                <button class="action-btn" data-bs-toggle="modal" data-bs-target="#workplaceModal">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Compnay Portal</span>
+                </button>
+                
+                <button class="action-btn" data-bs-toggle="modal" data-bs-target="#registerModal">
+                    <i class="fas fa-building"></i>
+                    <span>Register Company</span>
+                </button>
+                
+                <button class="action-btn" data-bs-toggle="modal" data-bs-target="#demoModal">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Book Demo</span>
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- Workplace Modal -->
     <div class="modal fade" id="workplaceModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="fas fa-building"></i>
-                        Access Your Workplace
+                        Access to Company Portal
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -375,7 +486,7 @@
                                 autofocus>
                         </div>
                         
-                        <button type="submit" class="access-btn">
+                        <button type="submit" class="submit-btn">
                             <i class="fas fa-sign-in-alt"></i>
                             <span>Access Dashboard</span>
                         </button>
@@ -388,8 +499,150 @@
                     <a href="{% url 'systemadmin:system_login' %}" class="admin-link">
                         <i class="fas fa-shield-alt"></i>
                         <span>System Administrator</span>
-                    </button>
                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Company Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-building"></i>
+                        Register Your Company
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="#" method="POST" id="registerForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="companyName">Company Name *</label>
+                                    <input type="text" id="companyName" name="company_name" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="companyCode">Company Code *</label>
+                                    <input type="text" id="companyCode" name="company_code" required 
+                                           placeholder="Unique identifier">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="contactPerson">Contact Person *</label>
+                                    <input type="text" id="contactPerson" name="contact_person" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email">Email Address *</label>
+                                    <input type="email" id="email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="phone">Phone Number *</label>
+                                    <input type="tel" id="phone" name="phone" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="industry">Industry</label>
+                                    <select id="industry" name="industry">
+                                        <option value="">Select Industry</option>
+                                        <option value="manufacturing">Manufacturing</option>
+                                        <option value="energy">Energy & Utilities</option>
+                                        <option value="healthcare">Healthcare</option>
+                                        <option value="agriculture">Agriculture</option>
+                                        <option value="logistics">Logistics</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <textarea id="address" name="address" rows="3"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Submit Registration</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book Demo Modal -->
+    <div class="modal fade" id="demoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-calendar-check"></i>
+                        Book a Demo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="#" method="POST" id="demoForm">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="demoName">Your Name *</label>
+                            <input type="text" id="demoName" name="name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="demoEmail">Email Address *</label>
+                            <input type="email" id="demoEmail" name="email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="demoPhone">Phone Number *</label>
+                            <input type="tel" id="demoPhone" name="phone" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="demoCompany">Company Name</label>
+                            <input type="text" id="demoCompany" name="company">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="demoDate">Preferred Date *</label>
+                            <input type="date" id="demoDate" name="preferred_date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="demoMessage">Message (Optional)</label>
+                            <textarea id="demoMessage" name="message" rows="3" 
+                                      placeholder="Tell us about your requirements..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Submit Request</span>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -398,6 +651,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Show workplace modal if there's an error
         {% if error %}
         window.addEventListener('DOMContentLoaded', function() {
             var modal = new bootstrap.Modal(document.getElementById('workplaceModal'));
@@ -405,8 +659,9 @@
         });
         {% endif %}
         
+        // Workplace form handling
         document.getElementById('workplaceForm').addEventListener('submit', function(e) {
-            const btn = this.querySelector('.access-btn');
+            const btn = this.querySelector('.submit-btn');
             const code = document.getElementById('companyCodeInput').value.trim();
             
             if (code.length < 3) {
@@ -419,8 +674,21 @@
             btn.disabled = true;
         });
         
+        // Company code input validation
         document.getElementById('companyCodeInput').addEventListener('input', function(e) {
             this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
+        });
+        
+        // Register form placeholder (does nothing for now)
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Registration feature coming soon!');
+        });
+        
+        // Demo form placeholder (does nothing for now)
+        document.getElementById('demoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Demo booking feature coming soon!');
         });
     </script>
 </body>

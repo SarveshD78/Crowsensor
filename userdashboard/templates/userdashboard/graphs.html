@@ -1,0 +1,675 @@
+{% extends 'userdashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - User Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Page Header */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 24px 32px;
+        margin-bottom: 24px;
+        color: white;
+    }
+    
+    .page-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .page-header .device-info {
+        opacity: 0.9;
+        font-size: 0.9rem;
+        margin-top: 8px;
+    }
+    
+    .back-btn {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    
+    .back-btn:hover {
+        background: rgba(255,255,255,0.3);
+        color: white;
+    }
+    
+    /* Time Range Selector */
+    .time-range-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    
+    .time-range-label {
+        font-weight: 600;
+        color: #333;
+        margin-right: 8px;
+    }
+    
+    .time-btn {
+        padding: 8px 16px;
+        border: 1px solid #e0e0e0;
+        background: white;
+        border-radius: 8px;
+        color: #666;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .time-btn:hover {
+        border-color: #3094FF;
+        color: #3094FF;
+    }
+    
+    .time-btn.active {
+        background: #3094FF;
+        border-color: #3094FF;
+        color: white;
+    }
+    
+    /* Chart Cards */
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+    
+    .chart-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .chart-title {
+        font-weight: 600;
+        color: #333;
+        font-size: 1rem;
+        margin: 0;
+    }
+    
+    .chart-subtitle {
+        font-size: 0.8rem;
+        color: #888;
+        margin-top: 2px;
+    }
+    
+    .chart-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .badge-sensor {
+        background: #E3F2FD;
+        color: #1976D2;
+    }
+    
+    .badge-info {
+        background: #FFF3E0;
+        color: #F57C00;
+    }
+    
+    .chart-body {
+        padding: 20px;
+        min-height: 300px;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 280px;
+    }
+    
+    /* Current Value Display */
+    .current-value-box {
+        text-align: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+    
+    .current-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+    }
+    
+    .current-value .unit {
+        font-size: 1.25rem;
+        color: #666;
+        font-weight: 400;
+    }
+    
+    .value-timestamp {
+        font-size: 0.8rem;
+        color: #888;
+        margin-top: 8px;
+    }
+    
+    /* Limits Display */
+    .limits-row {
+        display: flex;
+        justify-content: space-around;
+        padding: 12px;
+        background: #fafafa;
+        border-top: 1px solid #f0f0f0;
+        font-size: 0.8rem;
+    }
+    
+    .limit-item {
+        text-align: center;
+    }
+    
+    .limit-label {
+        color: #888;
+        display: block;
+    }
+    
+    .limit-value {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .limit-value.lower {
+        color: #2196F3;
+    }
+    
+    .limit-value.center {
+        color: #4CAF50;
+    }
+    
+    .limit-value.upper {
+        color: #F44336;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #888;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #ddd;
+        margin-bottom: 16px;
+    }
+    
+    .empty-state h3 {
+        color: #666;
+        margin-bottom: 8px;
+    }
+    
+    /* Loading State */
+    .chart-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 280px;
+        color: #888;
+    }
+    
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #f0f0f0;
+        border-top-color: #3094FF;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-header {
+            padding: 16px 20px;
+        }
+        
+        .page-header h1 {
+            font-size: 1.25rem;
+        }
+        
+        .time-range-card {
+            padding: 12px 16px;
+        }
+        
+        .time-btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+        
+        .chart-body {
+            padding: 12px;
+        }
+        
+        .chart-container {
+            height: 220px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+            <h1>
+                <i class="fas fa-chart-line me-2"></i>
+                {{ device.display_name }}
+            </h1>
+            <div class="device-info">
+                <i class="fas fa-microchip me-1"></i> Device ID: {{ device.device_id }}
+                <span class="mx-2">•</span>
+                <i class="fas fa-database me-1"></i> {{ device.measurement_name }}
+                <span class="mx-2">•</span>
+                <i class="fas fa-building me-1"></i> {{ assignment.department.name }}
+            </div>
+        </div>
+        <a href="{% url 'userdashboard:user_devices' %}" class="back-btn">
+            <i class="fas fa-arrow-left me-1"></i> Back to Devices
+        </a>
+    </div>
+</div>
+
+<!-- Time Range Selector -->
+<div class="time-range-card">
+    <span class="time-range-label">
+        <i class="fas fa-clock me-1"></i> Time Range:
+    </span>
+    <button class="time-btn {% if time_range == '15m' %}active{% endif %}" data-range="15m">15 Min</button>
+    <button class="time-btn {% if time_range == '30m' %}active{% endif %}" data-range="30m">30 Min</button>
+    <button class="time-btn {% if time_range == '1h' or not time_range %}active{% endif %}" data-range="1h">1 Hour</button>
+    <button class="time-btn {% if time_range == '3h' %}active{% endif %}" data-range="3h">3 Hours</button>
+    <button class="time-btn {% if time_range == '6h' %}active{% endif %}" data-range="6h">6 Hours</button>
+    <button class="time-btn {% if time_range == '12h' %}active{% endif %}" data-range="12h">12 Hours</button>
+    <button class="time-btn {% if time_range == '24h' %}active{% endif %}" data-range="24h">24 Hours</button>
+    
+    <span class="ms-auto text-muted" style="font-size: 0.8rem;">
+        <i class="fas fa-info-circle me-1"></i>
+        {{ sensors_data|length }} sensor(s)
+    </span>
+</div>
+
+{% if sensors_data %}
+    <!-- Sensor Charts Grid -->
+    <div class="row">
+        {% for sensor in sensors_data %}
+        <div class="col-lg-6 col-xl-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <h5 class="chart-title">{{ sensor.display_name }}</h5>
+                        <div class="chart-subtitle">{{ sensor.field_name }}</div>
+                    </div>
+                    <span class="chart-badge {% if sensor.category == 'sensor' %}badge-sensor{% else %}badge-info{% endif %}">
+                        {{ sensor.category|title }}
+                    </span>
+                </div>
+                
+                <div class="chart-body">
+                    <!-- Current Value Display -->
+                    <div class="current-value-box">
+                        <div class="current-value" id="value-{{ sensor.id }}">
+                            <span class="spinner"></span>
+                        </div>
+                        <div class="value-timestamp" id="timestamp-{{ sensor.id }}">Loading...</div>
+                    </div>
+                    
+                    <!-- Chart Container -->
+                    <div class="chart-container">
+                        <canvas id="chart-{{ sensor.id }}"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Limits Display -->
+                {% if sensor.lower_limit or sensor.center_line or sensor.upper_limit %}
+                <div class="limits-row">
+                    {% if sensor.lower_limit %}
+                    <div class="limit-item">
+                        <span class="limit-label">Lower</span>
+                        <span class="limit-value lower">{{ sensor.lower_limit }} {{ sensor.unit }}</span>
+                    </div>
+                    {% endif %}
+                    {% if sensor.center_line %}
+                    <div class="limit-item">
+                        <span class="limit-label">Center</span>
+                        <span class="limit-value center">{{ sensor.center_line }} {{ sensor.unit }}</span>
+                    </div>
+                    {% endif %}
+                    {% if sensor.upper_limit %}
+                    <div class="limit-item">
+                        <span class="limit-label">Upper</span>
+                        <span class="limit-value upper">{{ sensor.upper_limit }} {{ sensor.unit }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <!-- Empty State -->
+    <div class="chart-card">
+        <div class="empty-state">
+            <i class="fas fa-chart-area"></i>
+            <h3>No Sensors Found</h3>
+            <p>This device doesn't have any active sensors configured.</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<script>
+    // Sensor data from Django
+    const sensorsData = {{ sensors_data|safe }};
+    const deviceId = '{{ device.device_id }}';
+    const measurementName = '{{ device.measurement_name }}';
+    let currentTimeRange = '{{ time_range|default:"1h" }}';
+    
+    // Store chart instances
+    const charts = {};
+    
+    // Time range button handlers
+    document.querySelectorAll('.time-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active state
+            document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Get new time range
+            currentTimeRange = this.dataset.range;
+            
+            // Update URL without reload
+            const url = new URL(window.location);
+            url.searchParams.set('time_range', currentTimeRange);
+            window.history.replaceState({}, '', url);
+            
+            // Reload data for all charts
+            loadAllSensorData();
+        });
+    });
+    
+    // Initialize charts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+        loadAllSensorData();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadAllSensorData, 30000);
+    });
+    
+    function initializeCharts() {
+        sensorsData.forEach(sensor => {
+            const ctx = document.getElementById(`chart-${sensor.id}`);
+            if (!ctx) return;
+            
+            const config = {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: sensor.display_name,
+                        data: [],
+                        borderColor: '#3094FF',
+                        backgroundColor: 'rgba(48, 148, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            padding: 12,
+                            titleFont: { size: 12 },
+                            bodyFont: { size: 14, weight: 'bold' },
+                            callbacks: {
+                                label: function(context) {
+                                    let value = context.parsed.y;
+                                    if (value !== null) {
+                                        return `${value.toFixed(2)} ${sensor.unit || ''}`;
+                                    }
+                                    return 'No data';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                displayFormats: {
+                                    minute: 'HH:mm',
+                                    hour: 'HH:mm',
+                                    day: 'MMM dd'
+                                }
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 6,
+                                font: { size: 10 }
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            },
+                            ticks: {
+                                font: { size: 10 },
+                                callback: function(value) {
+                                    return value.toFixed(1);
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            
+            // Add limit lines if configured
+            if (sensor.upper_limit || sensor.lower_limit || sensor.center_line) {
+                config.options.plugins.annotation = {
+                    annotations: {}
+                };
+                
+                if (sensor.upper_limit) {
+                    config.options.plugins.annotation.annotations.upperLimit = {
+                        type: 'line',
+                        yMin: sensor.upper_limit,
+                        yMax: sensor.upper_limit,
+                        borderColor: 'rgba(244, 67, 54, 0.7)',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        label: {
+                            display: true,
+                            content: 'Upper',
+                            position: 'end',
+                            font: { size: 9 }
+                        }
+                    };
+                }
+                
+                if (sensor.lower_limit) {
+                    config.options.plugins.annotation.annotations.lowerLimit = {
+                        type: 'line',
+                        yMin: sensor.lower_limit,
+                        yMax: sensor.lower_limit,
+                        borderColor: 'rgba(33, 150, 243, 0.7)',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        label: {
+                            display: true,
+                            content: 'Lower',
+                            position: 'end',
+                            font: { size: 9 }
+                        }
+                    };
+                }
+                
+                if (sensor.center_line) {
+                    config.options.plugins.annotation.annotations.centerLine = {
+                        type: 'line',
+                        yMin: sensor.center_line,
+                        yMax: sensor.center_line,
+                        borderColor: 'rgba(76, 175, 80, 0.7)',
+                        borderWidth: 1,
+                        borderDash: [3, 3],
+                        label: {
+                            display: true,
+                            content: 'Center',
+                            position: 'end',
+                            font: { size: 9 }
+                        }
+                    };
+                }
+            }
+            
+            charts[sensor.id] = new Chart(ctx, config);
+        });
+    }
+    
+    function loadAllSensorData() {
+        sensorsData.forEach(sensor => {
+            loadSensorData(sensor);
+        });
+    }
+    
+    function loadSensorData(sensor) {
+        // Build API URL - adjust this based on your actual data endpoint
+        const apiUrl = `/api/sensor-data/?device_id=${deviceId}&measurement=${measurementName}&field=${sensor.field_name}&time_range=${currentTimeRange}`;
+        
+        // For now, generate sample data (replace with actual API call)
+        // In production, you would fetch from your InfluxDB API
+        generateSampleData(sensor);
+    }
+    
+    function generateSampleData(sensor) {
+        // Generate sample data for demonstration
+        // Replace this with actual API call to your InfluxDB endpoint
+        
+        const now = new Date();
+        const dataPoints = [];
+        const pointCount = 30;
+        
+        // Calculate time range in milliseconds
+        const rangeMap = {
+            '15m': 15 * 60 * 1000,
+            '30m': 30 * 60 * 1000,
+            '1h': 60 * 60 * 1000,
+            '3h': 3 * 60 * 60 * 1000,
+            '6h': 6 * 60 * 60 * 1000,
+            '12h': 12 * 60 * 60 * 1000,
+            '24h': 24 * 60 * 60 * 1000
+        };
+        
+        const rangeMs = rangeMap[currentTimeRange] || rangeMap['1h'];
+        const interval = rangeMs / pointCount;
+        
+        // Generate random data around center line or base value
+        const baseValue = sensor.center_line || 50;
+        const variance = (sensor.upper_limit && sensor.lower_limit) 
+            ? (sensor.upper_limit - sensor.lower_limit) / 4 
+            : 10;
+        
+        for (let i = 0; i < pointCount; i++) {
+            const time = new Date(now.getTime() - rangeMs + (i * interval));
+            const value = baseValue + (Math.random() - 0.5) * variance * 2;
+            dataPoints.push({ x: time, y: value });
+        }
+        
+        // Update chart
+        if (charts[sensor.id]) {
+            charts[sensor.id].data.datasets[0].data = dataPoints;
+            charts[sensor.id].update('none');
+        }
+        
+        // Update current value display
+        const latestValue = dataPoints[dataPoints.length - 1];
+        const valueEl = document.getElementById(`value-${sensor.id}`);
+        const timestampEl = document.getElementById(`timestamp-${sensor.id}`);
+        
+        if (valueEl && latestValue) {
+            valueEl.innerHTML = `${latestValue.y.toFixed(2)} <span class="unit">${sensor.unit || ''}</span>`;
+        }
+        
+        if (timestampEl && latestValue) {
+            timestampEl.textContent = `Last updated: ${latestValue.x.toLocaleTimeString()}`;
+        }
+    }
+    
+    // TODO: Replace generateSampleData with actual API call
+    // Example of actual API call:
+    /*
+    async function loadSensorData(sensor) {
+        try {
+            const response = await fetch(`/api/sensor-data/?device_id=${deviceId}&measurement=${measurementName}&field=${sensor.field_name}&time_range=${currentTimeRange}`);
+            const data = await response.json();
+            
+            if (data.success && charts[sensor.id]) {
+                const dataPoints = data.values.map(point => ({
+                    x: new Date(point.time),
+                    y: point.value
+                }));
+                
+                charts[sensor.id].data.datasets[0].data = dataPoints;
+                charts[sensor.id].update('none');
+                
+                // Update current value
+                if (dataPoints.length > 0) {
+                    const latest = dataPoints[dataPoints.length - 1];
+                    document.getElementById(`value-${sensor.id}`).innerHTML = 
+                        `${latest.y.toFixed(2)} <span class="unit">${sensor.unit || ''}</span>`;
+                    document.getElementById(`timestamp-${sensor.id}`).textContent = 
+                        `Last updated: ${latest.x.toLocaleTimeString()}`;
+                }
+            }
+        } catch (error) {
+            console.error(`Error loading data for sensor ${sensor.id}:`, error);
+        }
+    }
+    */
+</script>
+{% endblock %}

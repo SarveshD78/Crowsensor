@@ -6,441 +6,418 @@
 
 {% block extra_css %}
 <style>
-    /* ============================================================================
-       PROFESSIONAL INDUSTRIAL IoT DASHBOARD - REFERENCE IMAGE STYLE
-       ============================================================================ */
-    
-    /* ===== ROOT VARIABLES ===== */
-    :root {
-        /* Primary Colors */
-        --primary-blue: #2563eb;
-        --primary-blue-dark: #1d4ed8;
-        
-        /* Status Colors */
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --info: #3b82f6;
-        
-        /* Neutral Colors */
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-500: #6b7280;
-        --gray-700: #374151;
-        --gray-900: #111827;
-        
-        /* Text Colors */
-        --text-primary: #111827;
-        --text-secondary: #6b7280;
-        --text-tertiary: #9ca3af;
-        
-        /* Background */
-        --bg-primary: #ffffff;
-        --bg-secondary: #f9fafb;
-        
-        /* Borders */
-        --border-light: #e5e7eb;
-        
-        /* Spacing */
-        --space-2: 0.5rem;
-        --space-3: 0.75rem;
-        --space-4: 1rem;
-        --space-5: 1.25rem;
-        --space-6: 1.5rem;
-        
-        /* Radius */
-        --radius-md: 0.5rem;
-        --radius-lg: 0.75rem;
-        
-        /* Shadows */
-        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* ===== CONTAINER ===== */
-    .graphs-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: var(--space-6);
-        background: var(--bg-secondary);
-    }
-    
-    /* ===== MINIMAL TOP HEADER ===== */
-    .minimal-header {
-        background: var(--bg-primary);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-lg);
-        padding: var(--space-4) var(--space-6);
-        margin-bottom: var(--space-6);
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: var(--space-4);
-    }
-    
-    .header-device-id {
-        font-size: 1.125rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        font-family: 'Courier New', monospace;
-    }
-    
-    .header-last-update {
-        background: var(--success);
-        color: white;
-        padding: var(--space-2) var(--space-4);
-        border-radius: var(--radius-md);
-        font-size: 0.875rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--space-2);
-    }
-    
-    /* ===== TIME RANGE SELECTOR ===== */
-    .time-range-card {
-        background: var(--bg-primary);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-lg);
-        padding: var(--space-5);
-        margin-bottom: var(--space-6);
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .time-range-card h5 {
-        font-size: 1.125rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin: 0 0 var(--space-4) 0;
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
-    }
-    
-    .time-range-card h5 i {
-        color: var(--primary-blue);
-    }
-    
-    .time-range-buttons {
-        display: flex;
-        gap: var(--space-2);
-        flex-wrap: wrap;
-    }
-    
-    .time-range-btn {
-        padding: var(--space-3) var(--space-5);
-        border: 2px solid var(--border-light);
-        background: var(--bg-primary);
-        color: var(--text-primary);
-        border-radius: var(--radius-md);
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 0.875rem;
-        transition: all 0.2s ease;
-    }
-    
-    .time-range-btn:hover {
-        border-color: var(--primary-blue);
-        color: var(--primary-blue);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-    }
-    
-    .time-range-btn.active {
-        background: var(--primary-blue);
-        color: white;
-        border-color: var(--primary-blue);
-        box-shadow: var(--shadow-md);
-    }
-    
-    /* ===== LOADING & ERROR STATES ===== */
-    .loading-state,
-    .error-state {
-        background: var(--bg-primary);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-lg);
-        padding: 2.5rem;
-        text-align: center;
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .loading-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: var(--space-4);
-    }
-    
-    .spinner {
-        border: 4px solid var(--gray-200);
-        border-top: 4px solid var(--primary-blue);
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    .loading-state h5 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin: 0;
-    }
-    
-    .loading-state p {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        margin: 0;
-    }
-    
-    .error-state {
-        border-color: var(--danger);
-        background: rgba(239, 68, 68, 0.05);
-    }
-    
-    .error-state i {
-        font-size: 64px;
-        color: var(--danger);
-        margin-bottom: var(--space-4);
-        display: block;
-    }
-    
-    .error-state h4 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--danger);
-        margin: 0 0 var(--space-3) 0;
-    }
-    
-    .error-state p {
-        font-size: 0.875rem;
-        color: var(--text-secondary);
-        margin-bottom: 1.25rem;
-    }
-    
-    .error-state .btn {
-        background: var(--danger);
-        color: white;
-        border: none;
-        padding: var(--space-3) var(--space-6);
-        border-radius: var(--radius-md);
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    
-    .error-state .btn:hover {
-        background: #dc2626;
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-    }
-    
-    /* ===== SECTION CARDS ===== */
-    .section-card {
-        background: var(--bg-primary);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-lg);
-        margin-bottom: var(--space-6);
-        box-shadow: var(--shadow-sm);
-        overflow: hidden;
-    }
-    
-    .section-header {
-        background: var(--gray-50);
-        border-left: 4px solid var(--primary-blue);
-        padding: var(--space-4) var(--space-5);
-        border-bottom: 1px solid var(--border-light);
-    }
-    
-    .section-header h4 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: var(--space-3);
-    }
-    
-    .section-header h4 i {
-        color: var(--primary-blue);
-    }
-    
-    .section-body {
-        padding: var(--space-6);
-    }
-    
-    /* ============================================================================
-       GAUGE SECTION - REFERENCE IMAGE STYLE (4 PER ROW)
-       ============================================================================ */
-    .gauge-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: var(--space-5);
-    }
-    
-    .gauge-card {
-        background: var(--bg-primary);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-lg);
-        padding: var(--space-5);
-        position: relative;
-        transition: all 0.2s ease;
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .gauge-card:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-2px);
-    }
-    
-    .gauge-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: var(--space-4);
-    }
-    
-    .gauge-sensor-name {
-        font-weight: 700;
-        font-size: 1rem;
-        color: var(--text-primary);
-    }
-    
-    .gauge-menu-icon {
-        color: var(--text-tertiary);
-        cursor: pointer;
-        font-size: 1.25rem;
-    }
-    
-    .gauge-menu-icon:hover {
-        color: var(--text-primary);
-    }
-    
-    .gauge-chart-wrapper {
-        position: relative;
-        height: 200px;
-        margin: var(--space-4) 0;
-    }
-    
-    .gauge-value-display {
-        position: absolute;
-        top: 65%;
-        left: 40%;
-        transform: translate(-50%, -50%);
-        text-align: center;
-    }
-    
-    .gauge-current-value {
-        font-weight: 1000;
-        color: var(--text-primary);
-        line-height: 1;
-    }
-    
-    .gauge-unit-label {
-        color: var(--text-secondary);
-        margin-top: var(--space-2);
-    }
-    
-    /* ============================================================================
-       DIGITAL STATUS - HORIZONTAL LAYOUT (3 PER ROW)
-       ============================================================================ */
-    .digital-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: var(--space-5);
-    }
-    
-    .digital-card {
-        background: var(--bg-primary);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-lg);
-        padding: var(--space-5);
-        transition: all 0.2s ease;
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .digital-card:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-2px);
-    }
-    
-    /* HORIZONTAL LAYOUT */
-    .digital-content {
-        display: flex;
-        align-items: center;
-        gap: var(--space-5);
-    }
-    
-    .digital-indicator-wrapper {
-        flex-shrink: 0;
-    }
-    
-    .digital-indicator {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 36px;
-        transition: all 0.3s ease;
-    }
-    
-    .digital-indicator.on {
-        background: var(--success);
-        color: white;
-        box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
-    }
-    
-    .digital-indicator.off {
-        background: var(--gray-200);
-        color: var(--gray-500);
-    }
-    
-    .digital-info {
-        flex: 1;
-        min-width: 0;
-    }
-    
-    .digital-name {
-        font-weight: 700;
-        font-size: 1.125rem;
-        color: var(--text-primary);
-        margin-bottom: var(--space-2);
-    }
-    
-    .digital-status-label {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: var(--space-2);
-    }
-    
-    .digital-status-label.on {
-        color: var(--success);
-    }
-    
-    .digital-status-label.off {
-        color: var(--gray-500);
-    }
-    
-    .digital-timestamp {
-        font-size: 0.75rem;
-        color: var(--text-tertiary);
-    }
-    
-    /* ============================================================================
-       TIME SERIES CHARTS (3 PER ROW) - DROPDOWN LEFT, TITLE RIGHT
-       ============================================================================ */
+/* ============================================================================
+   PROFESSIONAL INDUSTRIAL IoT DASHBOARD - CLEAN UI
+   ============================================================================ */
+
+/* ===== ROOT VARIABLES ===== */
+:root {
+    --primary-blue: #2563eb;
+    --primary-blue-dark: #1d4ed8;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-tertiary: #9ca3af;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --border-light: #e5e7eb;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== CONTAINER ===== */
+.graphs-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-6);
+    background: var(--bg-secondary);
+}
+
+/* ===== MINIMAL TOP HEADER ===== */
+.minimal-header {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-6);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.header-device-id {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+}
+
+.header-last-update {
+    background: var(--success);
+    color: white;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* ===== TIME RANGE SELECTOR ===== */
+.time-range-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.time-range-card h5 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-4) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.time-range-card h5 i {
+    color: var(--primary-blue);
+}
+
+.time-range-buttons {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.time-range-btn {
+    padding: var(--space-3) var(--space-5);
+    border: 2px solid var(--border-light);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.time-range-btn:hover {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.time-range-btn.active {
+    background: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-md);
+}
+
+/* ===== LOADING & ERROR STATES ===== */
+.loading-state, .error-state {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.spinner {
+    border: 4px solid var(--gray-200);
+    border-top: 4px solid var(--primary-blue);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-state h5 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.loading-state p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.error-state {
+    border-color: var(--danger);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.error-state i {
+    font-size: 64px;
+    color: var(--danger);
+    margin-bottom: var(--space-4);
+    display: block;
+}
+
+.error-state h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--danger);
+    margin: 0 0 var(--space-3) 0;
+}
+
+.error-state p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+}
+
+.error-state .btn {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.error-state .btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ===== SECTION CARDS ===== */
+.section-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.section-header {
+    background: var(--gray-50);
+    border-left: 4px solid var(--primary-blue);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.section-header h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.section-header h4 i {
+    color: var(--primary-blue);
+}
+
+.section-body {
+    padding: var(--space-6);
+}
+
+/* ===== GAUGE SECTION ===== */
+.gauge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-5);
+}
+
+.gauge-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    position: relative;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.gauge-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.gauge-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+}
+
+.gauge-sensor-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.gauge-menu-icon {
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-size: 1.25rem;
+}
+
+.gauge-menu-icon:hover {
+    color: var(--text-primary);
+}
+
+.gauge-chart-wrapper {
+    position: relative;
+    height: 200px;
+    margin: var(--space-4) 0;
+}
+
+.gauge-value-display {
+    position: absolute;
+    top: 65%;
+    left: 40%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.gauge-current-value {
+    font-weight: 1000;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.gauge-unit-label {
+    color: var(--text-secondary);
+    margin-top: var(--space-2);
+}
+
+/* ===== DIGITAL STATUS ===== */
+.digital-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-5);
+}
+
+.digital-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.digital-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.digital-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+}
+
+.digital-indicator-wrapper {
+    flex-shrink: 0;
+}
+
+.digital-indicator {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    transition: all 0.3s ease;
+}
+
+.digital-indicator.on {
+    background: var(--success);
+    color: white;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.digital-indicator.off {
+    background: var(--gray-200);
+    color: var(--gray-500);
+}
+
+.digital-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.digital-name {
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+}
+
+.digital-status-label {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-2);
+}
+
+.digital-status-label.on {
+    color: var(--success);
+}
+
+.digital-status-label.off {
+    color: var(--gray-500);
+}
+
+.digital-timestamp {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+</style>
+
+<style>
+    /* ===== TIME SERIES CHARTS - CLEAN UI WITH LIMIT LEGEND IN HEADER ===== */
     .charts-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -470,7 +447,15 @@
         gap: var(--space-3);
     }
     
-    /* TITLE ON TOP */
+    /* CHART HEADER TOP ROW - Title + Limit Legend */
+    .chart-header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+    }
+    
     .chart-title {
         margin: 0;
         font-size: 1.125rem;
@@ -485,7 +470,46 @@
         color: var(--primary-blue);
     }
     
-    /* CONTROLS ROW: Unit | Points | Dropdown */
+    /* LIMIT LEGEND BADGES IN HEADER */
+    .chart-limits-legend {
+        display: flex;
+        gap: var(--space-2);
+        flex-wrap: wrap;
+    }
+    
+    .limit-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    
+    .limit-badge i {
+        font-size: 10px;
+    }
+    
+    .limit-upper {
+        background: rgba(239, 68, 68, 0.15);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    
+    .limit-center {
+        background: rgba(16, 185, 129, 0.15);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .limit-lower {
+        background: rgba(245, 158, 11, 0.15);
+        color: #d97706;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    
+    /* CONTROLS ROW */
     .chart-controls-row {
         display: flex;
         align-items: center;
@@ -565,11 +589,9 @@
         .gauge-grid {
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         }
-        
         .digital-grid {
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         }
-        
         .charts-grid {
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
         }
@@ -579,19 +601,15 @@
         .graphs-container {
             padding: var(--space-4);
         }
-        
         .gauge-grid {
             grid-template-columns: repeat(2, 1fr);
         }
-        
         .digital-grid {
             grid-template-columns: 1fr;
         }
-        
         .charts-grid {
             grid-template-columns: 1fr;
         }
-        
         .chart-body {
             height: 280px;
         }
@@ -602,22 +620,25 @@
             flex-direction: column;
             align-items: flex-start;
         }
-        
         .gauge-grid {
             grid-template-columns: 1fr;
         }
-        
         .digital-content {
             flex-direction: column;
             text-align: center;
         }
-        
+        .chart-header-top {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .chart-limits-legend {
+            width: 100%;
+        }
         .chart-controls-row {
             flex-direction: column;
             align-items: flex-start;
             width: 100%;
         }
-        
         .chart-type-selector {
             margin-left: 0;
             width: 100%;
@@ -629,215 +650,243 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
         }
+        .limit-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+        }
     }
     </style>
-{% endblock %}
-
-{% block content %}
-<div class="graphs-container">
-
-    <!-- Minimal Header - Device ID + Last Update ONLY -->
-    <div class="minimal-header">
-        <div class="header-device-id">
-            Device Name: {{ device.measurement_name }} ({{ device.device_id }})
+    {% endblock %}
+    
+    {% block content %}
+    <div class="graphs-container">
+    
+        <!-- Minimal Header -->
+        <div class="minimal-header">
+            <div class="header-device-id">
+                Device Name: {{ device.measurement_name }} ({{ device.device_id }})
+            </div>
+            <div class="header-last-update">
+                <i class="fas fa-sync-alt"></i>
+                Last Updated: <span id="last-update-time">--</span>
+            </div>
         </div>
-        <div class="header-last-update">
-            <i class="fas fa-sync-alt"></i>
-            Last Updated: <span id="last-update-time">--</span>
+    
+        <!-- Time Range Selector -->
+        <div class="time-range-card">
+            <h5>
+                <i class="fas fa-clock"></i>
+                Select Time Range
+            </h5>
+            <div class="time-range-buttons">
+                <button class="time-range-btn active" data-range="now() - 1h">1 Hour</button>
+                <button class="time-range-btn" data-range="now() - 3h">3 Hours</button>
+                <button class="time-range-btn" data-range="now() - 6h">6 Hours</button>
+                <button class="time-range-btn" data-range="now() - 12h">12 Hours</button>
+                <button class="time-range-btn" data-range="now() - 24h">24 Hours</button>
+                <button class="time-range-btn" data-range="now() - 2d">2 Days</button>
+                <button class="time-range-btn" data-range="now() - 7d">7 Days</button>
+                <button class="time-range-btn" data-range="now() - 30d">30 Days</button>
+            </div>
         </div>
+    
+        <!-- Loading State -->
+        <div id="loading-state" class="loading-state">
+            <div class="spinner"></div>
+            <h5>Loading sensor data...</h5>
+            <p>Please wait while we fetch the latest readings</p>
+        </div>
+    
+        <!-- Error State -->
+        <div id="error-state" class="error-state" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h4>Error Loading Data</h4>
+            <p id="error-message">An error occurred while loading the sensor data.</p>
+            <button class="btn" onclick="loadGraphData()">
+                <i class="fas fa-sync-alt me-2"></i>Retry
+            </button>
+        </div>
+    
+        <!-- Graphs Content -->
+        <div id="graphs-content" style="display: none;">
+            
+            <!-- Gauge Section -->
+            <div id="gauge-section" class="section-card" style="display: none;">
+                <div class="section-header">
+                    <h4>
+                        <i class="fas fa-tachometer-alt"></i>
+                        Live Sensor Readings
+                    </h4>
+                </div>
+                <div class="section-body">
+                    <div class="gauge-grid" id="gauge-container"></div>
+                </div>
+            </div>
+    
+            <!-- Digital Status Section -->
+            <div id="digital-section" class="section-card" style="display: none;">
+                <div class="section-header">
+                    <h4>
+                        <i class="fas fa-toggle-on"></i>
+                        Digital Status Indicators
+                    </h4>
+                </div>
+                <div class="section-body">
+                    <div class="digital-grid" id="digital-container"></div>
+                </div>
+            </div>
+    
+            <!-- Time Series Charts Section -->
+            <div id="charts-section" class="section-card" style="display: none;">
+                <div class="section-header">
+                    <h4>
+                        <i class="fas fa-chart-area"></i>
+                        Time Series Trends
+                    </h4>
+                </div>
+                <div class="section-body">
+                    <div class="charts-grid" id="charts-container"></div>
+                </div>
+            </div>
+    
+        </div>
+    
     </div>
-
-    <!-- Time Range Selector -->
-    <div class="time-range-card">
-        <h5>
-            <i class="fas fa-clock"></i>
-            Select Time Range
-        </h5>
-        <div class="time-range-buttons">
-            <button class="time-range-btn active" data-range="now() - 1h">1 Hour</button>
-            <button class="time-range-btn" data-range="now() - 3h">3 Hours</button>
-            <button class="time-range-btn" data-range="now() - 6h">6 Hours</button>
-            <button class="time-range-btn" data-range="now() - 12h">12 Hours</button>
-            <button class="time-range-btn" data-range="now() - 24h">24 Hours</button>
-            <button class="time-range-btn" data-range="now() - 2d">2 Days</button>
-            <button class="time-range-btn" data-range="now() - 7d">7 Days</button>
-            <button class="time-range-btn" data-range="now() - 30d">30 Days</button>
-        </div>
-    </div>
-
-    <!-- Loading State -->
-    <div id="loading-state" class="loading-state">
-        <div class="spinner"></div>
-        <h5>Loading sensor data...</h5>
-        <p>Please wait while we fetch the latest readings</p>
-    </div>
-
-    <!-- Error State -->
-    <div id="error-state" class="error-state" style="display: none;">
-        <i class="fas fa-exclamation-triangle"></i>
-        <h4>Error Loading Data</h4>
-        <p id="error-message">An error occurred while loading the sensor data.</p>
-        <button class="btn" onclick="loadGraphData()">
-            <i class="fas fa-sync-alt me-2"></i>Retry
-        </button>
-    </div>
-
-    <!-- Graphs Content -->
-    <div id="graphs-content" style="display: none;">
-        
-        <!-- Gauge Section - Reference Image Style -->
-        <div id="gauge-section" class="section-card" style="display: none;">
-            <div class="section-header">
-                <h4>
-                    <i class="fas fa-tachometer-alt"></i>
-                    Live Sensor Readings
-                </h4>
-            </div>
-            <div class="section-body">
-                <div class="gauge-grid" id="gauge-container"></div>
-            </div>
-        </div>
-
-        <!-- Digital Status - Horizontal Layout (3 per row) -->
-        <div id="digital-section" class="section-card" style="display: none;">
-            <div class="section-header">
-                <h4>
-                    <i class="fas fa-toggle-on"></i>
-                    Digital Status Indicators
-                </h4>
-            </div>
-            <div class="section-body">
-                <div class="digital-grid" id="digital-container"></div>
-            </div>
-        </div>
-
-        <!-- Time Series Charts -->
-        <div id="charts-section" class="section-card" style="display: none;">
-            <div class="section-header">
-                <h4>
-                    <i class="fas fa-chart-area"></i>
-                    Time Series Trends
-                </h4>
-            </div>
-            <div class="section-body">
-                <div class="charts-grid" id="charts-container"></div>
-            </div>
-        </div>
-
-    </div>
-
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<!-- Chart.js and Plugins -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
-
-<script>
-/* ============================================================================
-   PROFESSIONAL INDUSTRIAL IoT DASHBOARD - REFERENCE IMAGE STYLE
-   ============================================================================ */
-
-console.log('=== GRAPH SCRIPT LOADING ===');
-
-// CSRF Token
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+    {% endblock %}
+    
+    {% block extra_js %}
+    <!-- Chart.js and Plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    
+    <script>
+    /* ============================================================================
+       PROFESSIONAL INDUSTRIAL IoT DASHBOARD - CLEAN UI
+       ============================================================================ */
+    
+    console.log('=== GRAPH SCRIPT LOADING ===');
+    
+    // CSRF Token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
-const csrftoken = getCookie('csrftoken');
-
-// Global variables
-const deviceId = {{ device.id }};
-let currentTimeRange = 'now() - 1h';
-let chartInstances = [];
-let gaugeChartInstances = [];
-
-// Time Range Buttons
-document.querySelectorAll('.time-range-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        currentTimeRange = this.dataset.range;
-        loadGraphData();
+    const csrftoken = getCookie('csrftoken');
+    
+    // Global variables
+    const deviceId = {{ device.id }};
+    let currentTimeRange = 'now() - 1h';
+    let chartInstances = [];
+    let gaugeChartInstances = [];
+    
+    // Time Range Button Event Listeners
+    document.querySelectorAll('.time-range-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentTimeRange = this.dataset.range;
+            loadGraphData();
+        });
     });
-});
-
-// Load Graph Data
-function loadGraphData() {
-    console.log('\n=== LOADING GRAPH DATA ===');
     
-    // Show loading
-    document.getElementById('loading-state').style.display = 'block';
-    document.getElementById('error-state').style.display = 'none';
-    document.getElementById('graphs-content').style.display = 'none';
-    
-    // Destroy existing charts
-    chartInstances.forEach(chart => {
-        try { chart.destroy(); } catch(e) {}
-    });
-    chartInstances = [];
-    
-    gaugeChartInstances.forEach(chart => {
-        try { chart.destroy(); } catch(e) {}
-    });
-    gaugeChartInstances = [];
-    
-    // Fetch data
-    const fetchUrl = `/department/devices/graphs/${deviceId}/?time_range=${encodeURIComponent(currentTimeRange)}`;
-    
-    fetch(fetchUrl, {
-        method: 'GET',
-        headers: {
-            'X-CSRFToken': csrftoken,
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            renderGraphs(data);
-            document.getElementById('last-update-time').textContent = new Date().toLocaleString('en-IN');
+    // Load Graph Data Function
+    function loadGraphData() {
+        console.log('\n=== LOADING GRAPH DATA ===');
+        
+        // Show loading state
+        document.getElementById('loading-state').style.display = 'block';
+        document.getElementById('error-state').style.display = 'none';
+        document.getElementById('graphs-content').style.display = 'none';
+        
+        // Destroy existing charts
+        chartInstances.forEach(chart => {
+            try { chart.chart.destroy(); } catch(e) {}
+        });
+        chartInstances = [];
+        
+        gaugeChartInstances.forEach(chart => {
+            try { chart.destroy(); } catch(e) {}
+        });
+        gaugeChartInstances = [];
+        
+        // Fetch data from API
+        const fetchUrl = `/department/devices/graphs/${deviceId}/?time_range=${encodeURIComponent(currentTimeRange)}`;
+        
+        fetch(fetchUrl, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                renderGraphs(data);
+                document.getElementById('last-update-time').textContent = new Date().toLocaleString('en-IN');
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('graphs-content').style.display = 'block';
+            } else {
+                throw new Error(data.message || 'Unknown error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
             document.getElementById('loading-state').style.display = 'none';
-            document.getElementById('graphs-content').style.display = 'block';
-        } else {
-            throw new Error(data.message || 'Unknown error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('loading-state').style.display = 'none';
-        document.getElementById('error-state').style.display = 'block';
-        document.getElementById('error-message').textContent = error.message;
-    });
-}
+            document.getElementById('error-state').style.display = 'block';
+            document.getElementById('error-message').textContent = error.message;
+        });
+    }
 
-/* ============================================================================
+    /* ============================================================================
    HELPER FUNCTIONS
    ============================================================================ */
+
 function hasMetadata(sensor) {
     if (!sensor.metadata) return false;
+    // Check for data_types array (new format)
+    if (sensor.metadata.data_types && Array.isArray(sensor.metadata.data_types)) {
+        return sensor.metadata.data_types.length > 0;
+    }
+    // Fallback to old format
     return (
         sensor.metadata.show_time_series !== undefined ||
         sensor.metadata.show_latest_value !== undefined ||
         sensor.metadata.show_digital !== undefined
     );
+}
+
+function getSensorDataTypes(sensor) {
+    // Returns array of enabled visualization types
+    if (!sensor.metadata) return ['trend']; // default
+    
+    // New format: data_types is an array like ['trend', 'latest_value', 'digital']
+    if (sensor.metadata.data_types && Array.isArray(sensor.metadata.data_types)) {
+        return sensor.metadata.data_types;
+    }
+    
+    // Old format: individual boolean flags
+    const types = [];
+    if (sensor.metadata.show_time_series === true) types.push('trend');
+    if (sensor.metadata.show_latest_value === true) types.push('latest_value');
+    if (sensor.metadata.show_digital === true) types.push('digital');
+    
+    return types.length > 0 ? types : ['trend'];
 }
 
 function calculateStats(values) {
@@ -876,8 +925,9 @@ function getAlarmStatus(currentValue, metadata) {
 }
 
 /* ============================================================================
-   RENDER ALL GRAPHS
+   RENDER ALL GRAPHS - MAIN ORCHESTRATOR
    ============================================================================ */
+
 function renderGraphs(data) {
     console.log('\n=== RENDER GRAPHS CALLED ===');
     
@@ -889,7 +939,7 @@ function renderGraphs(data) {
         return;
     }
     
-    // Clear containers
+    // Clear all containers
     document.getElementById('gauge-container').innerHTML = '';
     document.getElementById('digital-container').innerHTML = '';
     document.getElementById('charts-container').innerHTML = '';
@@ -898,57 +948,57 @@ function renderGraphs(data) {
     let hasDigital = false;
     let hasCharts = false;
     
-    // CRITICAL FIX: Track actual chart array index
+    // Track chart array index separately (only increments when chart is created)
     let chartCounter = 0;
     
     sensors.forEach((sensor, index) => {
         if (!sensor.values || !Array.isArray(sensor.values)) return;
         
+        // Calculate stats for this sensor
         const stats = calculateStats(sensor.values);
         sensor.stats = stats;
         
+        // Get enabled visualization types
+        const dataTypes = getSensorDataTypes(sensor);
         const sensorHasMetadata = hasMetadata(sensor);
-        let hasAnyVisualizationEnabled = false;
         
-        if (sensorHasMetadata) {
-            hasAnyVisualizationEnabled = (
-                sensor.metadata.show_time_series === true ||
-                sensor.metadata.show_latest_value === true ||
-                sensor.metadata.show_digital === true
-            );
-        }
+        console.log(`Sensor ${sensor.display_name}: dataTypes =`, dataTypes);
         
-        if (sensorHasMetadata && hasAnyVisualizationEnabled) {
-            if (sensor.metadata.show_latest_value === true) {
+        if (sensorHasMetadata && dataTypes.length > 0) {
+            // Render based on configured data types
+            if (dataTypes.includes('latest_value')) {
                 renderReferenceGauge(sensor, index);
                 hasGauges = true;
             }
-            if (sensor.metadata.show_digital === true) {
+            if (dataTypes.includes('digital')) {
                 renderHorizontalDigital(sensor);
                 hasDigital = true;
             }
-            if (sensor.metadata.show_time_series === true) {
-                // Use chartCounter instead of index
+            if (dataTypes.includes('trend')) {
                 renderIndustrialChart(sensor, timestamps, chartCounter);
-                chartCounter++; // Increment only when chart is created
+                chartCounter++;
                 hasCharts = true;
             }
         } else {
-            // Use chartCounter instead of index
+            // No metadata - default to time series chart
             renderIndustrialChart(sensor, timestamps, chartCounter);
-            chartCounter++; // Increment only when chart is created
+            chartCounter++;
             hasCharts = true;
         }
     });
     
+    // Show/hide sections based on content
     document.getElementById('gauge-section').style.display = hasGauges ? 'block' : 'none';
     document.getElementById('digital-section').style.display = hasDigital ? 'block' : 'none';
     document.getElementById('charts-section').style.display = hasCharts ? 'block' : 'none';
+    
+    console.log(`Rendered: Gauges=${hasGauges}, Digital=${hasDigital}, Charts=${hasCharts}`);
 }
 
 /* ============================================================================
-   REFERENCE IMAGE GAUGE - COLORED ARC STYLE
+   GAUGE CHART - COLORED ARC STYLE
    ============================================================================ */
+
 function renderReferenceGauge(sensor, index) {
     const container = document.getElementById('gauge-container');
     const gaugeId = `gauge-${sensor.id}`;
@@ -974,7 +1024,7 @@ function renderReferenceGauge(sensor, index) {
     
     container.insertAdjacentHTML('beforeend', gaugeHtml);
     
-    // Create gauge with colored segments (like reference image)
+    // Create gauge with colored segments
     const ctx = document.getElementById(gaugeId).getContext('2d');
     
     const lowerLimit = sensor.metadata?.lower_limit || 0;
@@ -982,12 +1032,8 @@ function renderReferenceGauge(sensor, index) {
     const maxValue = Math.max(upperLimit, stats.max * 1.1);
     const percentage = ((currentValue - lowerLimit) / (maxValue - lowerLimit)) * 100;
     
-    // Color segments like reference: Green -> Yellow -> Red
-    const segmentColors = [
-        '#10b981',  // Green (0-33%)
-        '#fbbf24',  // Yellow (33-66%)
-        '#ef4444'   // Red (66-100%)
-    ];
+    // Color segments: Green -> Yellow -> Red
+    const segmentColors = ['#10b981', '#fbbf24', '#ef4444'];
     
     const gaugeChart = new Chart(ctx, {
         type: 'doughnut',
@@ -1021,7 +1067,7 @@ function renderReferenceGauge(sensor, index) {
                 ctx.translate(cx, cy);
                 ctx.rotate(angle);
                 
-                // Needle
+                // Draw needle
                 ctx.beginPath();
                 ctx.strokeStyle = '#1f2937';
                 ctx.fillStyle = '#1f2937';
@@ -1044,8 +1090,9 @@ function renderReferenceGauge(sensor, index) {
 }
 
 /* ============================================================================
-   HORIZONTAL DIGITAL STATUS (3 PER ROW)
+   DIGITAL STATUS - HORIZONTAL LAYOUT
    ============================================================================ */
+
 function renderHorizontalDigital(sensor) {
     const container = document.getElementById('digital-container');
     const isOn = sensor.latest_value >= 1;
@@ -1074,21 +1121,51 @@ function renderHorizontalDigital(sensor) {
 }
 
 /* ============================================================================
-   TIME SERIES CHART WITH CHART TYPE SELECTOR (5 TYPES)
+   TIME SERIES CHART - RENDER CARD WITH LIMIT LEGEND IN HEADER
    ============================================================================ */
+
 function renderIndustrialChart(sensor, timestamps, chartArrayIndex) {
     const container = document.getElementById('charts-container');
     const chartId = `chart-${chartArrayIndex}`;
     const canvasId = `canvas-${chartArrayIndex}`;
     const selectorId = `chart-type-${chartArrayIndex}`;
     
+    // Build limit legend for header (only if limits exist)
+    let limitLegendHtml = '';
+    if (sensor.metadata) {
+        const legends = [];
+        
+        // Upper Limit - Red badge
+        if (sensor.metadata.upper_limit !== null && sensor.metadata.upper_limit !== undefined) {
+            legends.push(`<span class="limit-badge limit-upper"><i class="fas fa-arrow-up"></i> Upper: ${sensor.metadata.upper_limit}</span>`);
+        }
+        
+        // Center Line - Green badge (check both field names)
+        const centerValue = sensor.metadata.center_line ?? sensor.metadata.central_line ?? null;
+        if (centerValue !== null && centerValue !== undefined) {
+            legends.push(`<span class="limit-badge limit-center"><i class="fas fa-minus"></i> Center: ${centerValue}</span>`);
+        }
+        
+        // Lower Limit - Yellow badge
+        if (sensor.metadata.lower_limit !== null && sensor.metadata.lower_limit !== undefined) {
+            legends.push(`<span class="limit-badge limit-lower"><i class="fas fa-arrow-down"></i> Lower: ${sensor.metadata.lower_limit}</span>`);
+        }
+        
+        if (legends.length > 0) {
+            limitLegendHtml = `<div class="chart-limits-legend">${legends.join('')}</div>`;
+        }
+    }
+    
     const chartHtml = `
         <div class="chart-card" id="${chartId}">
             <div class="chart-header">
-                <h5 class="chart-title">
-                    <i class="fas fa-chart-line"></i>
-                    ${sensor.display_name}
-                </h5>
+                <div class="chart-header-top">
+                    <h5 class="chart-title">
+                        <i class="fas fa-chart-line"></i>
+                        ${sensor.display_name}
+                    </h5>
+                    ${limitLegendHtml}
+                </div>
                 <div class="chart-controls-row">
                     <div class="chart-meta">
                         ${sensor.unit ? `<span class="badge bg-info"><i class="fas fa-tag"></i> ${sensor.unit}</span>` : ''}
@@ -1125,7 +1202,7 @@ function renderIndustrialChart(sensor, timestamps, chartArrayIndex) {
         });
     }
     
-    // Add change event listener
+    // Add change event listener for chart type selector
     document.getElementById(selectorId).addEventListener('change', function() {
         const chartType = this.value;
         const chartIndex = parseInt(this.dataset.chartIndex);
@@ -1134,8 +1211,9 @@ function renderIndustrialChart(sensor, timestamps, chartArrayIndex) {
 }
 
 /* ============================================================================
-   UPDATE CHART TYPE
+   UPDATE CHART TYPE - WHEN DROPDOWN CHANGES
    ============================================================================ */
+
 function updateChartType(chartIndex, chartType) {
     const chartData = chartInstances[chartIndex];
     if (!chartData) {
@@ -1152,345 +1230,417 @@ function updateChartType(chartIndex, chartType) {
     const newChart = createChart(chartData.canvasId, chartData.sensor, chartData.timestamps, chartType);
     chartData.chart = newChart;
 }
-
 /* ============================================================================
-   CREATE CHART BASED ON TYPE
+   CREATE CHART - SINGLE FUNCTION (NO DUPLICATES!)
+   
+   CRITICAL: This is the ONLY createChart function in this template.
+   - Limit lines use label.display: false (no overlays on chart)
+   - Limit values shown in header badges only
+   - Breach detection in tooltip.afterLabel
+   - Point color coding for breach highlighting
    ============================================================================ */
-function createChart(canvasId, sensor, timestamps, chartType) {
-    const ctx = document.getElementById(canvasId);
-    if (!ctx) return null;
+
+   function createChart(canvasId, sensor, timestamps, chartType) {
+    console.log(`Creating ${chartType} chart for ${sensor.display_name}`);
     
-    // Handle comparison chart (special case)
-    if (chartType === 'comparison') {
-        return createComparisonChart(ctx, sensor);
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) {
+        console.error('Canvas not found:', canvasId);
+        return null;
     }
     
-    const labels = timestamps.map(ts => {
-        const date = new Date(ts);
-        return date.toLocaleTimeString('en-IN', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: false 
-        });
+    // Prepare data
+    const values = sensor.values || [];
+    const stats = sensor.stats || calculateStats(values);
+    const metadata = sensor.metadata || {};
+    
+    // Parse limits (handle both field names for center)
+    const upperLimit = metadata.upper_limit ?? null;
+    const lowerLimit = metadata.lower_limit ?? null;
+    const centerLine = metadata.center_line ?? metadata.central_line ?? null;
+    
+    // Format timestamps for display
+    const formattedTimestamps = timestamps.map(ts => {
+        try {
+            const date = new Date(ts);
+            return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            return ts;
+        }
     });
     
-    // Configure chart based on type
-    let type = 'line';
-    let stepped = false;
-    let fill = false;
-    let pointRadius = 4;
-    let tension = 0.4;
+    // Handle comparison chart type (special case)
+    if (chartType === 'comparison') {
+        return createComparisonChart(ctx, sensor, timestamps, values, formattedTimestamps);
+    }
     
-    switch(chartType) {
-        case 'bar':
-            type = 'bar';
-            pointRadius = 0;
-            break;
-        case 'step':
-            stepped = true;
-            tension = 0;
-            break;
+    // Determine chart configuration based on type
+    let fill = false;
+    let stepped = false;
+    let actualChartType = 'line';
+    let borderWidth = 2;
+    let tension = 0.3;
+    let pointRadius = 0;
+    let pointHoverRadius = 6;
+    
+    switch (chartType) {
         case 'area':
             fill = true;
             break;
+        case 'step':
+            stepped = 'before';
+            tension = 0;
+            break;
+        case 'bar':
+            actualChartType = 'bar';
+            borderWidth = 1;
+            break;
         case 'line':
         default:
-            // Default line chart settings
+            // Use defaults
             break;
     }
     
-    const config = {
-        type: type,
+    // Point background color function - highlights breaches
+    const pointBackgroundColorFn = function(context) {
+        const value = context.raw;
+        if (value === null || value === undefined) return 'transparent';
+        
+        // Check for breach
+        if (upperLimit !== null && value > upperLimit) {
+            return '#ef4444'; // Red for upper breach
+        }
+        if (lowerLimit !== null && value < lowerLimit) {
+            return '#f59e0b'; // Yellow/Orange for lower breach
+        }
+        return '#2563eb'; // Normal blue
+    };
+    
+    // Build annotation lines (LABELS HIDDEN - displayed in header badges only)
+    const annotations = {};
+    
+    if (upperLimit !== null) {
+        annotations.upperLimit = {
+            type: 'line',
+            yMin: upperLimit,
+            yMax: upperLimit,
+            borderColor: 'rgba(239, 68, 68, 0.8)',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            label: {
+                display: false  // CRITICAL: No label overlay on chart
+            }
+        };
+    }
+    
+    if (centerLine !== null) {
+        annotations.centerLine = {
+            type: 'line',
+            yMin: centerLine,
+            yMax: centerLine,
+            borderColor: 'rgba(16, 185, 129, 0.8)',
+            borderWidth: 2,
+            borderDash: [4, 4],
+            label: {
+                display: false  // CRITICAL: No label overlay on chart
+            }
+        };
+    }
+    
+    if (lowerLimit !== null) {
+        annotations.lowerLimit = {
+            type: 'line',
+            yMin: lowerLimit,
+            yMax: lowerLimit,
+            borderColor: 'rgba(245, 158, 11, 0.8)',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            label: {
+                display: false  // CRITICAL: No label overlay on chart
+            }
+        };
+    }
+    
+    // Dataset configuration
+    const dataset = {
+        label: sensor.display_name,
+        data: values,
+        spanGaps: true,
+        borderColor: '#2563eb',
+        backgroundColor: fill ? 'rgba(37, 99, 235, 0.15)' : 'rgba(37, 99, 235, 0.8)',
+        borderWidth: borderWidth,
+        fill: fill,
+        tension: tension,
+        stepped: stepped,
+        pointRadius: pointRadius,
+        pointHoverRadius: pointHoverRadius,
+        pointBackgroundColor: pointBackgroundColorFn,
+        pointBorderColor: 'transparent',
+        pointHoverBackgroundColor: pointBackgroundColorFn,
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 2
+    };
+    
+    // Calculate Y-axis range
+    let yMin = stats.min;
+    let yMax = stats.max;
+    
+    // Include limits in range if they exist
+    if (upperLimit !== null) yMax = Math.max(yMax, upperLimit * 1.05);
+    if (lowerLimit !== null) yMin = Math.min(yMin, lowerLimit * 0.95);
+    if (centerLine !== null) {
+        yMax = Math.max(yMax, centerLine * 1.05);
+        yMin = Math.min(yMin, centerLine * 0.95);
+    }
+    
+    // Add padding
+    const range = yMax - yMin;
+    const padding = range * 0.1;
+    yMin = yMin - padding;
+    yMax = yMax + padding;
+    
+    // Create and return chart
+    return new Chart(ctx, {
+        type: actualChartType,
         data: {
-            labels: labels,
-            datasets: [{
-                label: sensor.display_name || sensor.sensor_name,
-                data: sensor.values,
-                borderColor: '#2563eb',
-                borderWidth: 3,
-                backgroundColor: fill ? 'rgba(37, 99, 235, 0.3)' : (type === 'bar' ? '#2563eb' : 'rgba(37, 99, 235, 0.1)'),
-                fill: fill,
-                stepped: stepped,
-                pointRadius: pointRadius,
-                pointHoverRadius: 8,
-                pointBackgroundColor: '#2563eb',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                tension: tension,
-                spanGaps: true,
-            }]
+            labels: formattedTimestamps,
+            datasets: [dataset]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 300
+            },
             interaction: {
                 mode: 'index',
-                intersect: false,
+                intersect: false
+            },
+            scales: {
+                x: {
+                    display: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 12,
+                        font: { size: 11 },
+                        color: '#6b7280'
+                    }
+                },
+                y: {
+                    display: true,
+                    min: yMin,
+                    max: yMax,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        font: { size: 11 },
+                        color: '#6b7280',
+                        callback: function(value) {
+                            return value.toFixed(1);
+                        }
+                    },
+                    title: {
+                        display: sensor.unit ? true : false,
+                        text: sensor.unit || '',
+                        font: { size: 12, weight: '600' },
+                        color: '#374151'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false  // Hide legend - sensor name is in header
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#2563eb',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            return tooltipItems[0].label;
+                        },
+                        label: function(context) {
+                            const value = context.raw;
+                            const unit = sensor.unit || '';
+                            return `${sensor.display_name}: ${value !== null ? value.toFixed(2) : 'N/A'} ${unit}`;
+                        },
+                        afterLabel: function(context) {
+                            // BREACH DETECTION IN TOOLTIP
+                            const value = context.raw;
+                            if (value === null || value === undefined) return '';
+                            
+                            const warnings = [];
+                            
+                            if (upperLimit !== null && value > upperLimit) {
+                                const exceed = (value - upperLimit).toFixed(2);
+                                warnings.push(`⚠️ ABOVE UPPER LIMIT (+${exceed})`);
+                            }
+                            
+                            if (lowerLimit !== null && value < lowerLimit) {
+                                const below = (lowerLimit - value).toFixed(2);
+                                warnings.push(`⚠️ BELOW LOWER LIMIT (-${below})`);
+                            }
+                            
+                            if (warnings.length > 0) {
+                                return warnings.join('\n');
+                            }
+                            
+                            // Show status info even when normal
+                            if (upperLimit !== null || lowerLimit !== null) {
+                                return '✓ Within limits';
+                            }
+                            
+                            return '';
+                        }
+                    }
+                },
+                annotation: {
+                    annotations: annotations
+                }
+            }
+        }
+    });
+}
+
+/* ============================================================================
+   COMPARISON CHART - SPLIT VIEW FOR LAST 2 TIME PERIODS
+   ============================================================================ */
+
+function createComparisonChart(ctx, sensor, timestamps, values, formattedTimestamps) {
+    // Split data into two halves for comparison
+    const midpoint = Math.floor(values.length / 2);
+    
+    const firstHalfValues = values.slice(0, midpoint);
+    const secondHalfValues = values.slice(midpoint);
+    const firstHalfLabels = formattedTimestamps.slice(0, midpoint);
+    const secondHalfLabels = formattedTimestamps.slice(midpoint);
+    
+    // Use the longer array for labels (pad shorter one)
+    const maxLen = Math.max(firstHalfLabels.length, secondHalfLabels.length);
+    const labels = Array.from({ length: maxLen }, (_, i) => `Point ${i + 1}`);
+    
+    // Pad arrays to same length
+    while (firstHalfValues.length < maxLen) firstHalfValues.push(null);
+    while (secondHalfValues.length < maxLen) secondHalfValues.push(null);
+    
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'First Half',
+                    data: firstHalfValues,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    pointHoverRadius: 5
+                },
+                {
+                    label: 'Second Half',
+                    data: secondHalfValues,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    pointHoverRadius: 5
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 300 },
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            scales: {
+                x: {
+                    display: true,
+                    grid: { display: true, color: 'rgba(0, 0, 0, 0.05)' },
+                    ticks: {
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 10,
+                        font: { size: 11 },
+                        color: '#6b7280'
+                    }
+                },
+                y: {
+                    display: true,
+                    grid: { display: true, color: 'rgba(0, 0, 0, 0.05)' },
+                    ticks: {
+                        font: { size: 11 },
+                        color: '#6b7280'
+                    },
+                    title: {
+                        display: sensor.unit ? true : false,
+                        text: sensor.unit || '',
+                        font: { size: 12, weight: '600' },
+                        color: '#374151'
+                    }
+                }
             },
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
                     labels: {
-                        font: { size: 12 },
-                        color: '#1f2937',
                         usePointStyle: true,
-                        padding: 15
+                        padding: 15,
+                        font: { size: 12 }
                     }
                 },
                 tooltip: {
                     enabled: true,
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) label += ': ';
-                            if (context.parsed.y !== null) {
-                                label += context.parsed.y.toFixed(2);
-                                if (sensor.unit) label += ' ' + sensor.unit;
-                            }
-                            return label;
-                        }
-                    }
+                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#374151',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    padding: 12
                 },
                 annotation: {
-                    annotations: (() => {
-                        const annotations = {};
-                        if (sensor.metadata) {
-                            if (sensor.metadata.upper_limit !== null) {
-                                annotations.upperLimit = {
-                                    type: 'line',
-                                    yMin: sensor.metadata.upper_limit,
-                                    yMax: sensor.metadata.upper_limit,
-                                    borderColor: '#ef4444',
-                                    borderWidth: 2,
-                                    borderDash: [5, 5],
-                                    label: {
-                                        display: true,
-                                        content: `Upper: ${sensor.metadata.upper_limit}`,
-                                        position: 'end',
-                                        backgroundColor: '#ef4444',
-                                        color: '#ffffff',
-                                        font: { size: 10 }
-                                    }
-                                };
-                            }
-                            if (sensor.metadata.lower_limit !== null) {
-                                annotations.lowerLimit = {
-                                    type: 'line',
-                                    yMin: sensor.metadata.lower_limit,
-                                    yMax: sensor.metadata.lower_limit,
-                                    borderColor: '#f59e0b',
-                                    borderWidth: 2,
-                                    borderDash: [5, 5],
-                                    label: {
-                                        display: true,
-                                        content: `Lower: ${sensor.metadata.lower_limit}`,
-                                        position: 'start',
-                                        backgroundColor: '#f59e0b',
-                                        color: '#ffffff',
-                                        font: { size: 10 }
-                                    }
-                                };
-                            }
-                            if (sensor.metadata.central_line !== null) {
-                                annotations.centralLine = {
-                                    type: 'line',
-                                    yMin: sensor.metadata.central_line,
-                                    yMax: sensor.metadata.central_line,
-                                    borderColor: '#10b981',
-                                    borderWidth: 1,
-                                    borderDash: [3, 3],
-                                    label: {
-                                        display: true,
-                                        content: `Target: ${sensor.metadata.central_line}`,
-                                        position: 'center',
-                                        backgroundColor: '#10b981',
-                                        color: '#ffffff',
-                                        font: { size: 10 }
-                                    }
-                                };
-                            }
-                        }
-                        return annotations;
-                    })()
-                }
-            },
-            scales: {
-                x: {
-                    display: true,
-                    title: {
-                        display: true,
-                        text: 'Time',
-                        color: '#6b7280',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        display: true,
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    },
-                    ticks: {
-                        color: '#6b7280',
-                        maxRotation: 45,
-                        autoSkip: true,
-                        maxTicksLimit: 10
-                    }
-                },
-                y: {
-                    display: true,
-                    title: {
-                        display: true,
-                        text: sensor.unit ? `Value (${sensor.unit})` : 'Value',
-                        color: '#6b7280',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        display: true,
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    },
-                    ticks: {
-                        color: '#6b7280',
-                        callback: function(value) {
-                            return value.toFixed(1);
-                        }
-                    },
-                    beginAtZero: false,
-                    grace: '10%'
+                    annotations: {}
                 }
             }
         }
-    };
-    
-    try {
-        const chart = new Chart(ctx, config);
-        return chart;
-    } catch (error) {
-        console.error('Chart error:', error);
-        return null;
-    }
+    });
 }
 
 /* ============================================================================
-   LAST 2 POINTS COMPARISON CHART
+   PAGE INITIALIZATION
    ============================================================================ */
-function createComparisonChart(ctx, sensor) {
-    const values = sensor.values.filter(v => v !== null && v !== undefined);
-    
-    if (values.length < 2) {
-        // Not enough data - show message
-        ctx.getContext('2d').font = '16px Arial';
-        ctx.getContext('2d').fillStyle = '#6b7280';
-        ctx.getContext('2d').textAlign = 'center';
-        ctx.getContext('2d').fillText('Not enough data for comparison', ctx.width / 2, ctx.height / 2);
-        return null;
-    }
-    
-    const lastValue = values[values.length - 1];
-    const secondLastValue = values[values.length - 2];
-    const difference = lastValue - secondLastValue;
-    const percentChange = ((difference / secondLastValue) * 100).toFixed(2);
-    
-    const config = {
-        type: 'bar',
-        data: {
-            labels: ['Previous', 'Current'],
-            datasets: [{
-                label: sensor.display_name || sensor.sensor_name,
-                data: [secondLastValue, lastValue],
-                backgroundColor: [
-                    difference < 0 ? '#ef4444' : '#10b981',
-                    difference >= 0 ? '#10b981' : '#ef4444'
-                ],
-                borderColor: [
-                    difference < 0 ? '#dc2626' : '#059669',
-                    difference >= 0 ? '#059669' : '#dc2626'
-                ],
-                borderWidth: 2,
-                barThickness: 80
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) label += ': ';
-                            label += context.parsed.y.toFixed(2);
-                            if (sensor.unit) label += ' ' + sensor.unit;
-                            return label;
-                        },
-                        afterLabel: function(context) {
-                            if (context.dataIndex === 1) {
-                                return `Change: ${difference >= 0 ? '+' : ''}${difference.toFixed(2)} (${percentChange}%)`;
-                            }
-                            return '';
-                        }
-                    }
-                },
-                title: {
-                    display: true,
-                    text: `Change: ${difference >= 0 ? '+' : ''}${difference.toFixed(2)} ${sensor.unit || ''} (${percentChange}%)`,
-                    color: difference >= 0 ? '#10b981' : '#ef4444',
-                    font: {
-                        size: 16,
-                        weight: 'bold'
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    title: {
-                        display: true,
-                        text: sensor.unit ? `Value (${sensor.unit})` : 'Value',
-                        color: '#6b7280',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        display: true,
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    },
-                    ticks: {
-                        color: '#6b7280',
-                        callback: function(value) {
-                            return value.toFixed(1);
-                        }
-                    },
-                    grace: '15%',
-                    suggestedMin: Math.min(secondLastValue, lastValue) * 0.9,
-                    suggestedMax: Math.max(secondLastValue, lastValue) * 1.1
-                },
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        color: '#6b7280',
-                        font: { size: 14, weight: 'bold' }
-                    }
-                }
-            }
-        }
-    };
-    
-    try {
-        const chart = new Chart(ctx, config);
-        return chart;
-    } catch (error) {
-        console.error('Comparison chart error:', error);
-        return null;
-    }
-}
-// Load on page load
+
+// Load data when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== PAGE LOADED - INITIALIZING GRAPHS ===');
     loadGraphData();
 });
+
+// Auto-refresh every 60 seconds (optional - uncomment if needed)
+// setInterval(loadGraphData, 60000);
+
 </script>
 {% endblock %}

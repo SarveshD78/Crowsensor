@@ -1,0 +1,1360 @@
+{% extends 'departmentadmin/base.html' %}
+
+{% block title %}{{ device.display_name }} - Asset Map{% endblock %}
+{% block page_heading %}Asset Tracking{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@1.0.1/Control.FullScreen.css" />
+
+<style>
+/* ========================================
+   ASSET MAP - PERFECT 50/50 ALIGNMENT
+   ======================================== */
+
+/* ===== CONTAINER ===== */
+.asset-map-container {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* ===== PAGE HEADER ===== */
+.page-header-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.page-header-left h2 {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.page-header-left h2 i {
+    color: var(--text-secondary);
+    font-size: var(--text-2xl);
+}
+
+.page-header-left p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.back-btn {
+    background: var(--gray-200);
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: var(--gray-300);
+    transform: translateY(-1px);
+}
+
+/* ===== CRITICAL: PERFECT 50/50 GRID ===== */
+.asset-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+    margin-bottom: var(--space-5);
+    align-items: stretch;
+}
+
+/* ===== BOTH CARDS: IDENTICAL STRUCTURE ===== */
+.info-card-single,
+.map-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* ===== CARD HEADERS: IDENTICAL ===== */
+.info-card-header,
+.map-header {
+    background: var(--gray-50);
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+}
+
+.info-card-header h4,
+.map-title {
+    color: var(--text-primary);
+    font-size: var(--text-base);
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.info-card-header h4 i,
+.map-title i {
+    color: var(--text-secondary);
+    font-size: var(--text-base);
+}
+
+/* ===== MAP HEADER CONTROLS ===== */
+.map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.map-controls {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.time-range-select {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    padding: 6px var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.time-range-select:focus {
+    outline: none;
+    border-color: var(--text-secondary);
+}
+
+.time-range-select:hover {
+    border-color: var(--text-secondary);
+}
+
+.map-refresh-btn {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    padding: 6px var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.map-refresh-btn:hover {
+    background: var(--gray-100);
+    border-color: var(--text-secondary);
+}
+
+.map-refresh-btn i {
+    color: var(--text-secondary);
+}
+
+/* ===== CARD BODIES: IDENTICAL FLEX BEHAVIOR ===== */
+.info-card-body,
+.map-body {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+}
+
+.map-body {
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+/* ===== INFO LIST ===== */
+.info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-list-item {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s ease;
+}
+
+.info-list-item:last-child {
+    border-bottom: none;
+}
+
+.info-list-item:hover {
+    background: var(--gray-50);
+}
+
+.info-label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.info-label i {
+    color: var(--text-tertiary);
+    width: 16px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.info-value {
+    font-size: var(--text-base);
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.info-unit {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--text-tertiary);
+}
+
+.info-loading {
+    padding: var(--space-5);
+    text-align: center;
+}
+
+.info-loading .spinner-border {
+    width: 2rem;
+    height: 2rem;
+    border-width: 3px;
+    color: var(--text-secondary);
+}
+
+.info-loading p {
+    margin-top: var(--space-3);
+    color: var(--text-secondary);
+    font-size: var(--text-xs);
+}
+
+.no-info-message {
+    padding: var(--space-5);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+}
+
+/* ===== MAP CONTAINER ===== */
+#asset-map {
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+}
+
+.map-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.map-loading .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 4px;
+    color: var(--text-secondary);
+}
+
+.map-loading p {
+    margin-top: var(--space-4);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    font-weight: 600;
+}
+
+/* ===== CRITICAL FIX: FULLSCREEN BUTTON STYLING ===== */
+.leaflet-control-fullscreen {
+    background: white !important;
+    border: 2px solid rgba(0,0,0,0.2) !important;
+    border-radius: 4px !important;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4) !important;
+    width: 34px !important;
+    height: 34px !important;
+    cursor: pointer !important;
+}
+
+.leaflet-control-fullscreen a {
+    background: white !important;
+    color: #333 !important;
+    font-size: 18px !important;
+    line-height: 34px !important;
+    width: 34px !important;
+    height: 34px !important;
+    display: block !important;
+    text-align: center !important;
+    text-decoration: none !important;
+}
+
+.leaflet-control-fullscreen a:hover {
+    background: #f4f4f4 !important;
+    color: #000 !important;
+}
+
+/* Fullscreen icon */
+.leaflet-control-fullscreen a:before {
+    content: "⛶" !important;
+    font-size: 20px !important;
+}
+
+.leaflet-fullscreen-on .leaflet-control-fullscreen a:before {
+    content: "⤧" !important;
+}
+
+/* ===== BOTTOM SECTION - CHARTS ===== */
+.charts-section {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+}
+
+.charts-header {
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: var(--space-5);
+}
+
+.charts-header h3 {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.charts-header h3 i {
+    color: var(--text-secondary);
+    font-size: var(--text-xl);
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: var(--space-5);
+}
+
+.chart-card {
+    background: var(--gray-50);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+}
+
+.chart-title {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.chart-title i {
+    color: var(--text-secondary);
+}
+
+.chart-canvas {
+    max-height: 280px;
+}
+
+.charts-loading {
+    text-align: center;
+    padding: var(--space-6);
+}
+
+.charts-loading .spinner-border {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-width: 3px;
+    color: var(--text-secondary);
+}
+
+.charts-loading p {
+    margin-top: var(--space-3);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+}
+
+.no-charts-message {
+    text-align: center;
+    padding: var(--space-6);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+}
+
+/* ===== CONFIG WARNING ===== */
+.config-warning {
+    background: var(--bg-primary);
+    border: 2px dashed var(--border-medium);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    text-align: center;
+}
+
+.config-warning i {
+    font-size: 64px;
+    color: var(--warning);
+    margin-bottom: var(--space-4);
+    display: block;
+}
+
+.config-warning h3 {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+}
+
+.config-warning p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ===== LEAFLET POPUP CUSTOMIZATION ===== */
+.leaflet-popup-content-wrapper {
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+}
+
+.custom-popup {
+    font-size: var(--text-xs);
+    min-width: 220px;
+}
+
+.popup-header {
+    font-weight: 700;
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-2);
+    border-bottom: 2px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.popup-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.popup-row:last-child {
+    border-bottom: none;
+}
+
+.popup-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: var(--text-xs);
+}
+
+.popup-value {
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: right;
+    font-size: var(--text-xs);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 992px) {
+    .asset-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    #asset-map {
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .asset-map-container {
+        padding: var(--space-4);
+    }
+    
+    .page-header-card {
+        padding: var(--space-4);
+    }
+    
+    .page-header-left h2 {
+        font-size: var(--text-xl);
+    }
+}
+
+@media (max-width: 480px) {
+    .map-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .map-controls {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .time-range-select,
+    .map-refresh-btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="asset-map-container">
+
+    <!-- Page Header -->
+    <div class="page-header-card">
+        <div class="page-header-left">
+            <h2>
+                <i class="fas fa-map-marked-alt"></i>
+                {{ device.display_name }}
+            </h2>
+            <p>Real-time asset tracking and sensor monitoring</p>
+        </div>
+        <a href="{% url 'departmentadmin:devices' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Devices
+        </a>
+    </div>
+
+    {% if not has_config %}
+    
+    <!-- No Configuration Warning -->
+    <div class="config-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>Asset Tracking Not Configured</h3>
+        <p>
+            This device doesn't have asset tracking configuration yet.<br>
+            Contact your Company Admin to configure location sensors and display options.
+        </p>
+    </div>
+
+    {% else %}
+
+    {% if has_location %}
+    
+    <!-- Main Layout: PERFECT 50/50 Split -->
+    <div class="asset-layout">
+        
+        <!-- LEFT SIDE - INFO CARD -->
+        <div class="info-card-single">
+            
+            <!-- Card Header -->
+            <div class="info-card-header">
+                <h4>
+                    <i class="fas fa-info-circle"></i>
+                    Live Sensor Data
+                </h4>
+            </div>
+
+            <!-- Card Body -->
+            <div class="info-card-body">
+                {% if has_info_cards %}
+                <div id="info-list-container">
+                    <div class="info-loading">
+                        <div class="spinner-border" role="status"></div>
+                        <p>Loading sensors...</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-info-message">
+                    No info sensors configured
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- RIGHT SIDE - MAP -->
+        <div class="map-card">
+            
+            <!-- Map Header -->
+            <div class="map-header">
+                <h3 class="map-title">
+                    <i class="fas fa-map"></i>
+                    Live Location Tracking
+                </h3>
+                <div class="map-controls">
+                    <select id="timeRangeSelect" class="time-range-select">
+                        <option value="now() - 1h" selected>Last 1 Hour</option>
+                        <option value="now() - 2h">Last 2 Hours</option>
+                        <option value="now() - 3h">Last 3 Hours</option>
+                        <option value="now() - 6h">Last 6 Hours</option>
+                        <option value="now() - 12h">Last 12 Hours</option>
+                        <option value="now() - 24h">Last 24 Hours</option>
+                    </select>
+                    <button id="refreshMapBtn" class="map-refresh-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Map Body -->
+            <div class="map-body">
+                <div id="asset-map"></div>
+                <div id="map-loading" class="map-loading">
+                    <div class="spinner-border" role="status"></div>
+                    <p>Loading location data...</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+    <!-- BOTTOM SECTION - TIME SERIES CHARTS -->
+    {% if has_time_series %}
+    <div class="charts-section">
+        
+        <!-- Charts Header -->
+        <div class="charts-header">
+            <h3>
+                <i class="fas fa-chart-line"></i>
+                Time Series Data
+            </h3>
+        </div>
+
+        <!-- Charts Container -->
+        <div id="charts-container">
+            <div class="charts-loading">
+                <div class="spinner-border" role="status"></div>
+                <p>Loading charts...</p>
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+<script>
+// ==========================================
+// 🗺️  ASSET MAP - COMPLETE REWRITE
+// ==========================================
+console.log('🗺️  Asset Map Initialized');
+
+// ==========================================
+// CONFIGURATION
+// ==========================================
+const DEVICE_ID = {{ device.id }};
+const API_URL = "{% url 'departmentadmin:device_asset_map_data' device.id %}";
+const HAS_INFO_CARDS = {{ has_info_cards|lower }};
+const HAS_TIME_SERIES = {{ has_time_series|lower }};
+
+// ==========================================
+// GLOBAL STATE
+// ==========================================
+let map = null;
+let markersLayer = null;
+let pathLayer = null;
+let allPoints = [];
+let isFullscreen = false;
+let fullscreenControl = null;
+
+// ==========================================
+// 🔲 CUSTOM FULLSCREEN CONTROL
+// ==========================================
+L.Control.CustomFullscreen = L.Control.extend({
+    options: {
+        position: 'topleft'
+    },
+    
+    onAdd: function(map) {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        const button = L.DomUtil.create('a', 'leaflet-control-fullscreen', container);
+        
+        button.href = '#';
+        button.title = 'Toggle Fullscreen';
+        button.innerHTML = '⛶';
+        button.style.cssText = `
+            font-size: 20px;
+            line-height: 30px;
+            width: 34px;
+            height: 34px;
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            cursor: pointer;
+        `;
+        
+        L.DomEvent.on(button, 'click', function(e) {
+            L.DomEvent.stopPropagation(e);
+            L.DomEvent.preventDefault(e);
+            toggleFullscreen();
+        });
+        
+        this._button = button;
+        return container;
+    },
+    
+    updateIcon: function(isFS) {
+        if (this._button) {
+            this._button.innerHTML = isFS ? '⤧' : '⛶';
+        }
+    }
+});
+
+L.control.customFullscreen = function(opts) {
+    return new L.Control.CustomFullscreen(opts);
+};
+
+// ==========================================
+// 🔲 FULLSCREEN TOGGLE
+// ==========================================
+function toggleFullscreen() {
+    const mapElement = document.getElementById('asset-map');
+    
+    if (!isFullscreen) {
+        // Enter fullscreen
+        if (mapElement.requestFullscreen) {
+            mapElement.requestFullscreen();
+        } else if (mapElement.webkitRequestFullscreen) {
+            mapElement.webkitRequestFullscreen();
+        } else if (mapElement.mozRequestFullScreen) {
+            mapElement.mozRequestFullScreen();
+        } else if (mapElement.msRequestFullscreen) {
+            mapElement.msRequestFullscreen();
+        }
+    } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// ==========================================
+// 🔲 FULLSCREEN CHANGE HANDLER
+// ==========================================
+function handleFullscreenChange() {
+    const isCurrentlyFullscreen = !!(
+        document.fullscreenElement || 
+        document.webkitFullscreenElement || 
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+    );
+    
+    if (isCurrentlyFullscreen !== isFullscreen) {
+        isFullscreen = isCurrentlyFullscreen;
+        
+        console.log(isFullscreen ? '🔲 FULLSCREEN MODE ACTIVE' : '🔳 NORMAL MODE ACTIVE');
+        
+        // Update control icon
+        if (fullscreenControl) {
+            fullscreenControl.updateIcon(isFullscreen);
+        }
+        
+        // Re-render map with stored points
+        if (allPoints.length > 0) {
+            renderMapData(allPoints);
+        }
+        
+        // Fix map size after transition
+        setTimeout(() => {
+            if (map) {
+                map.invalidateSize();
+            }
+        }, 100);
+    }
+}
+
+// Register fullscreen listeners
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+// ==========================================
+// 🗺️  MAP INITIALIZATION
+// ==========================================
+function initMap() {
+    console.log('🗺️  Initializing map...');
+    
+    // Create map
+    map = L.map('asset-map', {
+        center: [20.5937, 78.9629],
+        zoom: 5,
+        zoomControl: true,
+        preferCanvas: true  // Enable canvas renderer for performance
+    });
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Add custom fullscreen control
+    fullscreenControl = L.control.customFullscreen().addTo(map);
+    
+    // Create layer groups - MARKERS ON TOP OF PATH
+    pathLayer = L.layerGroup().addTo(map);
+    markersLayer = L.layerGroup().addTo(map);
+    
+    console.log('✅ Map initialized successfully');
+}
+
+// ==========================================
+// 🔄 FETCH MAP DATA FROM API
+// ==========================================
+function loadMapData() {
+    const timeRange = document.getElementById('timeRangeSelect').value;
+    
+    console.log(`🔄 Fetching data for: ${timeRange}`);
+    
+    // Show loading
+    document.getElementById('map-loading').style.display = 'flex';
+    
+    // Fetch data
+    fetch(`${API_URL}?time_range=${encodeURIComponent(timeRange)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.message || 'Unknown error');
+            }
+            
+            const points = data.data.points;
+            
+            if (!points || points.length === 0) {
+                alert('No location data found for selected time range');
+                return;
+            }
+            
+            console.log(`✅ Received ${points.length} points`);
+            
+            // Store points globally
+            allPoints = points;
+            
+            // Update map title with point count
+            updateMapTitle(points.length);
+            
+            // Render map
+            renderMapData(points);
+            
+            // Update info cards
+            if (HAS_INFO_CARDS && points.length > 0) {
+                updateInfoList(points[points.length - 1]);
+            }
+            
+            // Update charts
+            if (HAS_TIME_SERIES) {
+                updateTimeSeriesCharts(points);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error:', error);
+            alert(`Error loading map data: ${error.message}`);
+        })
+        .finally(() => {
+            document.getElementById('map-loading').style.display = 'none';
+        });
+}
+
+// ==========================================
+// 📊 UPDATE MAP TITLE WITH POINT COUNT
+// ==========================================
+function updateMapTitle(pointCount) {
+    const mapTitle = document.querySelector('.map-title');
+    if (mapTitle) {
+        mapTitle.innerHTML = `
+            <i class="fas fa-map"></i>
+            Live Location Tracking
+            <span style="margin-left: 12px; padding: 4px 10px; background: #3b82f6; color: white; border-radius: 12px; font-size: 13px; font-weight: 700;">
+                ${pointCount} Points
+            </span>
+        `;
+    }
+}
+
+// ==========================================
+// 🗺️  RENDER MAP DATA - SMART MODE
+// ==========================================
+function renderMapData(points) {
+    console.log(`🗺️  Rendering ${points.length} points (Mode: ${isFullscreen ? 'FULLSCREEN' : 'NORMAL'})`);
+    
+    // Clear existing layers
+    markersLayer.clearLayers();
+    pathLayer.clearLayers();
+    
+    if (isFullscreen) {
+        // ==========================================
+        // 🔲 FULLSCREEN MODE - 30 SAMPLED MARKERS + FULL POLYLINE
+        // ==========================================
+        
+        const MAX_MARKERS = 30;
+        const totalPoints = points.length;
+        const sampledPoints = [];
+        
+        // Always include start point
+        sampledPoints.push({
+            point: points[0],
+            index: 0,
+            isStart: true,
+            isEnd: false
+        });
+        
+        // Sample middle points
+        if (totalPoints > MAX_MARKERS) {
+            const interval = Math.floor((totalPoints - 2) / (MAX_MARKERS - 2));
+            
+            for (let i = interval; i < totalPoints - 1; i += interval) {
+                if (sampledPoints.length < MAX_MARKERS - 1) {
+                    sampledPoints.push({
+                        point: points[i],
+                        index: i,
+                        isStart: false,
+                        isEnd: false
+                    });
+                }
+            }
+        } else {
+            // If less than 30 points, include all middle points
+            for (let i = 1; i < totalPoints - 1; i++) {
+                sampledPoints.push({
+                    point: points[i],
+                    index: i,
+                    isStart: false,
+                    isEnd: false
+                });
+            }
+        }
+        
+        // Always include end point
+        sampledPoints.push({
+            point: points[totalPoints - 1],
+            index: totalPoints - 1,
+            isStart: false,
+            isEnd: true
+        });
+        
+        console.log(`📊 Sampled ${sampledPoints.length} markers from ${totalPoints} points`);
+        
+        // STEP 1: Draw polyline FIRST (behind markers) using ALL points
+        const pathCoordinates = points.map(p => [p.lat, p.lng]);
+        
+        // FIX: Check if last point is same as first (would create closed loop) - remove it
+        const firstCoord = pathCoordinates[0];
+        const lastCoord = pathCoordinates[pathCoordinates.length - 1];
+        if (firstCoord[0] === lastCoord[0] && firstCoord[1] === lastCoord[1] && pathCoordinates.length > 2) {
+            pathCoordinates.pop();
+            console.log('⚠️ Removed duplicate end point to prevent closed loop');
+        }
+        
+        const polyline = L.polyline(pathCoordinates, {
+            color: '#3b82f6',
+            weight: 4,
+            opacity: 0.7,
+            smoothFactor: 1.0
+        });
+        polyline.addTo(pathLayer);
+        
+        console.log(`✅ Polyline added with ${pathCoordinates.length} coordinates`);
+        
+        // STEP 2: Draw markers ON TOP
+        sampledPoints.forEach((item) => {
+            const { point, index, isStart, isEnd } = item;
+            
+            let radius, fillColor;
+            
+            if (isStart) {
+                radius = 14;
+                fillColor = '#10b981';  // Green
+            } else if (isEnd) {
+                radius = 14;
+                fillColor = '#ef4444';  // Red
+            } else {
+                radius = 8;
+                fillColor = '#3b82f6';  // Blue
+            }
+            
+            const marker = L.circleMarker([point.lat, point.lng], {
+                radius: radius,
+                fillColor: fillColor,
+                color: '#ffffff',
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 1,
+                interactive: true
+            });
+            
+            // Add popup
+            marker.bindPopup(createPopupContent(point, index, isStart, isEnd));
+            
+            // Add to layer
+            marker.addTo(markersLayer);
+        });
+        
+        console.log(`✅ Added ${sampledPoints.length} markers to map`);
+        
+        // Fit map to polyline bounds
+        map.fitBounds(polyline.getBounds(), { padding: [80, 80] });
+        
+    } else {
+        // ==========================================
+        // 🔳 NORMAL MODE - START + END ONLY
+        // ==========================================
+        
+        const startPoint = points[0];
+        const endPoint = points[points.length - 1];
+        
+        console.log(`📍 Start: [${startPoint.lat}, ${startPoint.lng}]`);
+        console.log(`📍 End: [${endPoint.lat}, ${endPoint.lng}]`);
+        
+        // Draw dashed line
+        const straightLine = L.polyline(
+            [[startPoint.lat, startPoint.lng], [endPoint.lat, endPoint.lng]], 
+            {
+                color: '#3b82f6',
+                weight: 3,
+                opacity: 0.7,
+                dashArray: '10, 10'
+            }
+        );
+        straightLine.addTo(pathLayer);
+        
+        // Start marker (green)
+        const startMarker = L.circleMarker([startPoint.lat, startPoint.lng], {
+            radius: 16,
+            fillColor: '#10b981',
+            color: '#ffffff',
+            weight: 5,
+            opacity: 1,
+            fillOpacity: 1
+        });
+        startMarker.bindPopup(createPopupContent(startPoint, 0, true, false));
+        startMarker.addTo(markersLayer);
+        
+        // End marker (red)
+        const endMarker = L.circleMarker([endPoint.lat, endPoint.lng], {
+            radius: 16,
+            fillColor: '#ef4444',
+            color: '#ffffff',
+            weight: 5,
+            opacity: 1,
+            fillOpacity: 1
+        });
+        endMarker.bindPopup(createPopupContent(endPoint, points.length - 1, false, true));
+        endMarker.addTo(markersLayer);
+        
+        console.log(`✅ Added start and end markers`);
+        
+        // Fit map to line bounds
+        map.fitBounds(straightLine.getBounds(), { padding: [100, 100] });
+    }
+    
+    console.log(`✅ Map rendering complete`);
+}
+
+// ==========================================
+// 🏷️  CREATE POPUP CONTENT
+// ==========================================
+function createPopupContent(point, index, isStart, isEnd) {
+    let label = isStart ? '🟢 Start Point' : 
+                isEnd ? `🔴 Current Location (Point ${index})` : 
+                `⚪ Point ${index}`;
+    
+    let popupHtml = `
+        <div class="custom-popup">
+            <div class="popup-header">${label}</div>
+            <div class="popup-row">
+                <span class="popup-label">Time:</span>
+                <span class="popup-value">${point.time || 'N/A'}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Date:</span>
+                <span class="popup-value">${point.date || 'N/A'}</span>
+            </div>
+            <div class="popup-row">
+                <span class="popup-label">Coordinates:</span>
+                <span class="popup-value">${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}</span>
+            </div>
+    `;
+    
+    // Add sensor data if available
+    if (point.popup_data) {
+        for (const [key, sensorData] of Object.entries(point.popup_data)) {
+            let value = sensorData.value !== null ? sensorData.value : 'N/A';
+            if (typeof value === 'number') {
+                value = value.toFixed(2);
+            }
+            
+            popupHtml += `
+                <div class="popup-row">
+                    <span class="popup-label">${sensorData.display_name}:</span>
+                    <span class="popup-value">${value} ${sensorData.unit || ''}</span>
+                </div>
+            `;
+        }
+    }
+    
+    popupHtml += `</div>`;
+    return popupHtml;
+}
+
+// ==========================================
+// 📋 UPDATE INFO LIST (LEFT CARD)
+// ==========================================
+function updateInfoList(latestPoint) {
+    const container = document.getElementById('info-list-container');
+    if (!container) return;
+    
+    const infoData = latestPoint.info_data || {};
+    
+    if (Object.keys(infoData).length === 0) {
+        container.innerHTML = '<div class="no-info-message">No sensor data available</div>';
+        return;
+    }
+    
+    let html = '<ul class="info-list">';
+    
+    for (const [key, sensorData] of Object.entries(infoData)) {
+        let value = sensorData.value !== null ? sensorData.value : 'N/A';
+        if (typeof value === 'number') {
+            value = value.toFixed(2);
+        }
+        
+        html += `
+            <li class="info-list-item">
+                <span class="info-label">
+                    <i class="fas fa-circle"></i>
+                    ${sensorData.display_name}
+                </span>
+                <span class="info-value">
+                    ${value}
+                    <span class="info-unit">${sensorData.unit || ''}</span>
+                </span>
+            </li>
+        `;
+    }
+    
+    html += '</ul>';
+    container.innerHTML = html;
+}
+
+// ==========================================
+// 📈 UPDATE TIME SERIES CHARTS
+// ==========================================
+function updateTimeSeriesCharts(points) {
+    const container = document.getElementById('charts-container');
+    if (!container) return;
+    
+    // Get all unique sensor keys
+    const sensorNames = new Set();
+    points.forEach(point => {
+        if (point.timeseries_data) {
+            Object.keys(point.timeseries_data).forEach(key => sensorNames.add(key));
+        }
+    });
+    
+    if (sensorNames.size === 0) {
+        container.innerHTML = '<div class="no-charts-message">No time series sensors configured</div>';
+        return;
+    }
+    
+    // Create chart containers
+    let html = '<div class="charts-grid">';
+    
+    Array.from(sensorNames).forEach((sensorKey, index) => {
+        const sensorData = points[0].timeseries_data[sensorKey];
+        if (!sensorData) return;
+        
+        html += `
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    ${sensorData.display_name} ${sensorData.unit ? '(' + sensorData.unit + ')' : ''}
+                </div>
+                <canvas id="chart-${index}" class="chart-canvas"></canvas>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+    // Render charts after DOM update
+    setTimeout(() => {
+        Array.from(sensorNames).forEach((sensorKey, index) => {
+            renderChart(sensorKey, index, points);
+        });
+    }, 100);
+}
+
+// ==========================================
+// 📊 RENDER INDIVIDUAL CHART
+// ==========================================
+function renderChart(sensorKey, chartIndex, points) {
+    const ctx = document.getElementById(`chart-${chartIndex}`);
+    if (!ctx) return;
+    
+    const labels = points.map(p => p.time || '');
+    const data = points.map(p => {
+        const sensorData = p.timeseries_data ? p.timeseries_data[sensorKey] : null;
+        return sensorData && sensorData.value !== null ? sensorData.value : null;
+    });
+    
+    const firstPoint = points.find(p => p.timeseries_data && p.timeseries_data[sensorKey]);
+    if (!firstPoint) return;
+    
+    const sensorData = firstPoint.timeseries_data[sensorKey];
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: sensorData.display_name,
+                data: data,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                spanGaps: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toFixed(2) + ' ' + (sensorData.unit || '');
+                        }
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ==========================================
+// 🎬 EVENT LISTENERS
+// ==========================================
+document.getElementById('refreshMapBtn').addEventListener('click', function() {
+    console.log('🔄 Manual refresh triggered');
+    loadMapData();
+});
+
+document.getElementById('timeRangeSelect').addEventListener('change', function() {
+    console.log(`🕒 Time range changed to: ${this.value}`);
+    loadMapData();
+});
+
+// ==========================================
+// 🚀 INITIALIZATION
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 DOM loaded');
+    
+    {% if has_location %}
+    console.log('🗺️  Starting map initialization...');
+    initMap();
+    loadMapData();
+    {% else %}
+    console.log('⚠️  No location sensors configured');
+    {% endif %}
+});
+</script>
+{% endblock %}

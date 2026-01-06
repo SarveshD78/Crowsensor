@@ -332,31 +332,64 @@
             </div>
         </div>
 
-        <!-- Danger Zone -->
-        <div class="danger-zone">
-            <div class="danger-zone-header">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h5>Danger Zone</h5>
+<!-- Danger Zone -->
+<div class="danger-zone">
+    <div class="danger-zone-header">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h5>Danger Zone</h5>
+    </div>
+    <div class="danger-zone-content">
+        
+        <!-- SECTION 1: Deactivate/Activate -->
+        <div class="danger-zone-section">
+            <div class="danger-zone-text">
+                <p>
+                    <strong>{% if tenant.is_active %}Deactivate{% else %}Activate{% endif %} this tenant:</strong><br>
+                    {% if tenant.is_active %}
+                        Users will not be able to login. All data will be preserved.
+                    {% else %}
+                        Enable user login and restore full access to this tenant.
+                    {% endif %}
+                </p>
             </div>
-            <div class="danger-zone-content">
-                <div class="danger-zone-text">
-                    <p>
-                        <strong>{% if tenant.is_active %}Deactivate{% else %}Activate{% endif %} this tenant:</strong><br>
-                        {% if tenant.is_active %}
-                            Users will not be able to login. All data will be preserved.
-                        {% else %}
-                            Enable user login and restore full access to this tenant.
-                        {% endif %}
-                    </p>
-                </div>
-                <a href="{% url 'systemadmin:tenant_toggle_status' tenant.id %}" 
-                   class="btn btn-{% if tenant.is_active %}warning{% else %}success{% endif %} w-100"
-                   onclick="return confirm('Are you sure you want to {% if tenant.is_active %}deactivate{% else %}activate{% endif %} this tenant?')">
-                    <i class="fas fa-power-off me-2"></i>
-                    {% if tenant.is_active %}Deactivate Tenant{% else %}Activate Tenant{% endif %}
-                </a>
-            </div>
+            <a href="{% url 'systemadmin:tenant_toggle_status' tenant.id %}" 
+               class="btn btn-{% if tenant.is_active %}warning{% else %}success{% endif %} w-100"
+               onclick="return confirm('Are you sure you want to {% if tenant.is_active %}deactivate{% else %}activate{% endif %} this tenant?')">
+                <i class="fas fa-power-off me-2"></i>
+                {% if tenant.is_active %}Deactivate Tenant{% else %}Activate Tenant{% endif %}
+            </a>
         </div>
+
+        <!-- Divider -->
+        <hr class="my-4" style="border-color: #dc3545; opacity: 0.3;">
+
+        <!-- SECTION 2: Delete Tenant -->
+        <div class="danger-zone-section">
+            <div class="danger-zone-text">
+                <p class="text-danger fw-bold mb-2">
+                    <i class="fas fa-skull-crossbones me-2"></i>
+                    Delete this tenant permanently
+                </p>
+                <p class="small mb-2">
+                    Once deleted, this action <strong>CANNOT be undone</strong>. This will:
+                </p>
+                <ul class="small mb-3" style="color: #666;">
+                    <li>Drop the PostgreSQL schema: <code>{{ tenant.schema_name }}</code></li>
+                    <li>Delete all users, departments, and IoT data</li>
+                    <li>Remove subdomain: <code>{{ tenant.subdomain }}.{{ request.get_host }}</code></li>
+                    <li>Terminate all active user sessions</li>
+                </ul>
+            </div>
+            <button type="button" 
+                    class="btn btn-danger w-100"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#deleteTenantModal">
+                <i class="fas fa-trash-alt me-2"></i>
+                Delete Tenant Permanently
+            </button>
+        </div>
+    </div>
+</div>
     </div>
 
     <!-- 4 CARDS GRID: Company Info, Contact, Admin, Plan -->
@@ -536,6 +569,94 @@
     <span>Tenant access code copied to clipboard!</span>
 </div>
 
+
+<!-- Delete Tenant Confirmation Modal -->
+<div class="modal fade" id="deleteTenantModal" tabindex="-1" aria-labelledby="deleteTenantModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <!-- Header -->
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteTenantModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirm Tenant Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <!-- Body -->
+            <div class="modal-body">
+                <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <div class="fw-bold">This action CANNOT be undone!</div>
+                </div>
+
+                <p class="mb-3">
+                    You are about to <strong class="text-danger">permanently delete</strong> the following tenant:
+                </p>
+
+                <div class="card bg-light mb-3">
+                    <div class="card-body">
+                        <p class="mb-1"><strong>Company:</strong> {{ tenant.company_name }}</p>
+                        <p class="mb-1"><strong>Schema:</strong> <code>{{ tenant.schema_name }}</code></p>
+                        <p class="mb-1"><strong>Subdomain:</strong> <code>{{ tenant.subdomain }}</code></p>
+                        <p class="mb-0"><strong>Tenant Code:</strong> <code>{{ tenant.tenant_code }}</code></p>
+                    </div>
+                </div>
+
+                <p class="mb-2 text-danger fw-bold">This will permanently delete:</p>
+                <ul class="small mb-3">
+                    <li>PostgreSQL schema and all tables</li>
+                    <li>All user accounts and permissions</li>
+                    <li>All departments and configurations</li>
+                    <li>All IoT devices and sensor data</li>
+                    <li>All alerts, reports, and historical data</li>
+                </ul>
+
+                <hr>
+
+                <form id="deleteTenantForm" method="post" action="{% url 'systemadmin:tenant_delete' tenant.id %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="confirmCompanyName" class="form-label fw-bold">
+                            To confirm, type the company name exactly as shown:
+                        </label>
+                        <div class="alert alert-secondary py-2 mb-2">
+                            <code class="text-dark">{{ tenant.company_name }}</code>
+                        </div>
+                        <input type="text" 
+                               class="form-control" 
+                               id="confirmCompanyName" 
+                               name="confirm_company_name"
+                               placeholder="Type company name here"
+                               autocomplete="off"
+                               required>
+                        <div class="form-text">
+                            This is case-sensitive and must match exactly.
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>
+                    Cancel
+                </button>
+                <button type="submit" 
+                        form="deleteTenantForm"
+                        class="btn btn-danger" 
+                        id="confirmDeleteBtn"
+                        disabled>
+                    <i class="fas fa-trash-alt me-2"></i>
+                    Yes, Delete Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -559,5 +680,34 @@ function copyToClipboard(text) {
         toast.classList.remove('show');
     }, 2500);
 }
+
+// Delete confirmation validation
+document.getElementById('confirmCompanyName').addEventListener('input', function() {
+    const expectedName = '{{ tenant.company_name }}';
+    const typedName = this.value;
+    const deleteBtn = document.getElementById('confirmDeleteBtn');
+    
+    // Enable button only if exact match (case-sensitive)
+    if (typedName === expectedName) {
+        deleteBtn.disabled = false;
+        deleteBtn.classList.remove('btn-secondary');
+        deleteBtn.classList.add('btn-danger');
+    } else {
+        deleteBtn.disabled = true;
+        deleteBtn.classList.remove('btn-danger');
+        deleteBtn.classList.add('btn-secondary');
+    }
+});
+
+// Reset modal when closed
+document.getElementById('deleteTenantModal').addEventListener('hidden.bs.modal', function() {
+    const input = document.getElementById('confirmCompanyName');
+    const deleteBtn = document.getElementById('confirmDeleteBtn');
+    
+    input.value = '';
+    deleteBtn.disabled = true;
+    deleteBtn.classList.remove('btn-danger');
+    deleteBtn.classList.add('btn-secondary');
+});
 </script>
 {% endblock %}

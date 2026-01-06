@@ -1,13 +1,13 @@
 {% extends 'companyadmin/base.html' %}
 
-{% block title %}Department Management{% endblock %}
-{% block page_heading %}Departments{% endblock %}
+{% block title %}Workspace Management{% endblock %}
+{% block page_heading %}Workspaces{% endblock %}
 
 {% block extra_css %}
 <style>
 /* ========================================
-   DEPARTMENTS PAGE - PRIMARY BLUE THEME
-   Matches Department Admin design exactly
+   WORKSPACES PAGE - PRIMARY BLUE THEME
+   Matches Workspace Supervisor design exactly
    ======================================== */
 
 /* ===== CONTAINER ===== */
@@ -175,7 +175,7 @@
     margin: 0;
 }
 
-/* ===== DEPARTMENT SECTION HEADER ===== */
+/* ===== WORKSPACE SECTION HEADER ===== */
 .dept-section {
     margin-bottom: var(--space-6);
 }
@@ -217,14 +217,14 @@
     font-weight: 600;
 }
 
-/* ===== DEPARTMENT CARDS GRID ===== */
+/* ===== WORKSPACE CARDS GRID ===== */
 .dept-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: var(--space-4);
 }
 
-/* ===== DEPARTMENT CARD ===== */
+/* ===== WORKSPACE CARD ===== */
 .dept-card {
     background: var(--bg-primary);
     border: 1px solid var(--primary-blue);
@@ -274,7 +274,7 @@
     padding: var(--space-4);
 }
 
-/* ===== DEPARTMENT INFO ===== */
+/* ===== WORKSPACE INFO ===== */
 .dept-info-compact {
     display: grid;
     gap: var(--space-2);
@@ -334,7 +334,7 @@
     word-break: break-word;
 }
 
-/* ===== DEPARTMENT BADGES ===== */
+/* ===== WORKSPACE BADGES ===== */
 .dept-badge {
     padding: 3px var(--space-2);
     border-radius: var(--radius-sm);
@@ -544,19 +544,19 @@
         <div class="welcome-card-header">
             <div>
                 <h3>
-                    <i class="fas fa-building"></i>
-                    Department Management
+                    <i class="fas fa-briefcase"></i>
+                    Workspace Management
                 </h3>
-                <p>Manage company departments and organizational structure</p>
+                <p>Manage company workspaces and organizational structure</p>
             </div>
             <span class="stats-badge">
-                <i class="fas fa-building"></i>
-                {{ total_departments|default:0 }} Department{{ total_departments|default:0|pluralize }}
+                <i class="fas fa-briefcase"></i>
+                {{ total_departments|default:0 }} Workspace{{ total_departments|default:0|pluralize }}
             </span>
         </div>
     </div>
 
-    <!-- Quick Add Department Section -->
+    <!-- Quick Add Workspace Section -->
     <div class="dept-add-section">
         
         <!-- Add Form Card -->
@@ -564,10 +564,10 @@
             <div class="info-alert">
                 <h4 class="add-form-title">
                     <i class="fas fa-plus-circle"></i>
-                    Add New Department
+                    Add New Workspace
                 </h4>
                 <p class="add-form-subtitle">
-                    Create a new department for your organization
+                    Create a new workspace for your organization
                 </p>
             </div>
             
@@ -580,7 +580,7 @@
                     <div class="col-md-3">
                         <div class="floating-label-group">
                             <input type="text" name="name" placeholder=" " required>
-                            <label>Department Name <span class="required-mark">*</span></label>
+                            <label>Workspace Name <span class="required-mark">*</span></label>
                         </div>
                     </div>
                     <div class="col-md-2">
@@ -603,7 +603,7 @@
                     </div>
                     <div class="col-md-2">
                         <button type="submit" class="btn-primary-submit w-100" style="margin-top: 0;">
-                            <i class="fas fa-plus"></i> Add Department
+                            <i class="fas fa-plus"></i> Add Workspace
                         </button>
                     </div>
                 </div>
@@ -611,21 +611,21 @@
         </div>
     </div>
 
-    <!-- Departments Section -->
+    <!-- Workspaces Section -->
     <div class="dept-section">
         
         <!-- Section Header -->
         <div class="section-header">
             <div class="section-title">
                 <i class="fas fa-list"></i>
-                All Departments
+                All Workspaces
             </div>
             <span class="section-badge">
-                {{ total_departments|default:0 }} Department{{ total_departments|default:0|pluralize }}
+                {{ total_departments|default:0 }} Workspace{{ total_departments|default:0|pluralize }}
             </span>
         </div>
 
-        <!-- Department Cards Grid -->
+        <!-- Workspace Cards Grid -->
         <div class="dept-grid">
             {% for department in departments %}
             <div class="dept-card">
@@ -633,7 +633,7 @@
                 <!-- Card Header -->
                 <div class="dept-card-header">
                     <h3 class="dept-title">
-                        <i class="fas fa-building"></i>
+                        <i class="fas fa-briefcase"></i>
                         {{ department.name }}
                     </h3>
                     <span class="dept-type-label">
@@ -644,7 +644,7 @@
                 <!-- Card Body -->
                 <div class="dept-card-body">
                     
-                    <!-- Department Info -->
+                    <!-- Workspace Info -->
                     <div class="dept-info-compact">
                         
                         <!-- Type Row -->
@@ -732,9 +732,9 @@
             </div>
             {% empty %}
             <div class="empty-state">
-                <i class="fas fa-building"></i>
-                <h3>No Departments Yet</h3>
-                <p>Use the form above to create your first department.</p>
+                <i class="fas fa-briefcase"></i>
+                <h3>No Workspaces Yet</h3>
+                <p>Use the form above to create your first workspace.</p>
             </div>
             {% endfor %}
         </div>
@@ -743,7 +743,7 @@
 
 </div>
 
-<!-- Edit Department Modal -->
+<!-- Edit Workspace Modal -->
 <div class="modal fade" id="departmentModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -754,7 +754,7 @@
                 
                 <div class="modal-header">
                     <h6 class="modal-title">
-                        <i class="fas fa-edit"></i>Edit Department
+                        <i class="fas fa-edit"></i>Edit Workspace
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -762,12 +762,12 @@
                 <div class="modal-body">
                     <div class="floating-label-group">
                         <input type="text" name="name" id="modal_name" placeholder=" " required>
-                        <label>Department Name <span class="required-mark">*</span></label>
+                        <label>Workspace Name <span class="required-mark">*</span></label>
                     </div>
                     
                     <div class="floating-label-group">
                         <input type="text" name="department_type" id="modal_type" placeholder=" " required>
-                        <label>Department Type <span class="required-mark">*</span></label>
+                        <label>Workspace Type <span class="required-mark">*</span></label>
                     </div>
                     
                     <div class="floating-label-group">
@@ -786,7 +786,7 @@
                         <i class="fas fa-times me-1"></i>Cancel
                     </button>
                     <button type="submit" class="btn-primary-submit">
-                        <i class="fas fa-save"></i>Update Department
+                        <i class="fas fa-save"></i>Update Workspace
                     </button>
                 </div>
             </form>
@@ -798,7 +798,7 @@
 
 {% block extra_js %}
 <script>
-// ========== EDIT DEPARTMENT FUNCTION ==========
+// ========== EDIT WORKSPACE FUNCTION ==========
 function editDepartment(id, name, type, location, email) {
     document.getElementById('modal_department_id').value = id;
     document.getElementById('modal_name').value = name;

@@ -1,0 +1,809 @@
+{% extends 'companyadmin/base.html' %}
+
+{% block title %}Asset Tracking Config - {{ device.display_name }}{% endblock %}
+{% block page_heading %}Asset Tracking Configuration{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========================================
+   ASSET TRACKING CONFIG - PRIMARY BLUE THEME
+   Matches Workspace design exactly
+   ======================================== */
+
+/* ===== CONTAINER ===== */
+.config-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* ===== FLOATING LABEL INPUTS ===== */
+.floating-label-group {
+    position: relative;
+    margin-bottom: var(--space-4);
+}
+
+.floating-label-group select {
+    width: 100%;
+    padding: 16px 12px 8px 12px;
+    font-size: 14px;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    cursor: pointer;
+}
+
+.floating-label-group label {
+    position: absolute;
+    left: 12px;
+    top: 0;
+    transform: translateY(0);
+    font-size: 11px;
+    color: var(--primary-blue);
+    pointer-events: none;
+    background: white;
+    padding: 0 4px;
+    font-weight: 600;
+}
+
+.floating-label-group select:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.floating-label-group label .required-mark {
+    color: var(--danger);
+    margin-left: 2px;
+}
+
+/* ===== DEVICE HEADER CARD ===== */
+.device-header-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.device-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.device-title-section h3 {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.device-title-section h3 i {
+    color: var(--primary-blue);
+}
+
+.device-subtitle {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.device-meta {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.meta-badge {
+    background: var(--bg-primary);
+    border: 2px solid var(--primary-blue);
+    color: var(--primary-blue);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.meta-badge i {
+    color: var(--primary-blue);
+}
+
+/* ===== INFO ALERT ===== */
+.info-alert {
+    background: var(--gray-50);
+    border: 1px solid var(--border-light);
+    border-left: 4px solid var(--primary-blue);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-5);
+}
+
+.info-alert p {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+}
+
+/* ===== CONFIG GROUPS ===== */
+.config-groups {
+    display: grid;
+    gap: var(--space-5);
+}
+
+/* ===== CONFIG GROUP CARD ===== */
+.config-group-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.config-group-header {
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--border-light);
+    padding: var(--space-4) var(--space-5);
+}
+
+.config-group-title {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.config-group-title i {
+    color: var(--primary-blue);
+    font-size: var(--text-xl);
+}
+
+.config-group-subtitle {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.config-group-body {
+    padding: var(--space-5);
+}
+
+/* ===== SENSOR SELECTION ===== */
+.sensor-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+}
+
+.sensor-checkbox-item {
+    background: var(--gray-50);
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.sensor-checkbox-item:hover {
+    border-color: var(--primary-blue);
+    background: white;
+}
+
+.sensor-checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--primary-blue);
+}
+
+.sensor-checkbox-item.checked {
+    background: var(--bg-primary);
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.sensor-checkbox-label {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    margin: 0;
+    flex: 1;
+}
+
+/* ===== SELECTION COUNT ===== */
+.selection-count {
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+}
+
+.selection-count.active {
+    background: var(--primary-blue);
+    color: white;
+}
+
+/* ===== SUBMIT BUTTON ===== */
+.btn-primary-submit {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 14px var(--space-6);
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    cursor: pointer;
+    width: 100%;
+    margin-top: var(--space-5);
+}
+
+.btn-primary-submit:hover {
+    background: var(--primary-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.btn-primary-submit:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ===== BACK BUTTON ===== */
+.btn-back {
+    background: var(--gray-200);
+    color: var(--text-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 10px var(--space-4);
+    font-weight: 600;
+    font-size: var(--text-sm);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    background: var(--gray-300);
+    color: var(--text-primary);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .config-container {
+        padding: var(--space-4);
+    }
+    
+    .device-header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .device-meta {
+        width: 100%;
+    }
+    
+    .sensor-selection-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="config-container">
+
+    <!-- Device Header Card -->
+    <div class="device-header-card">
+        <div class="device-header-content">
+            <div class="device-title-section">
+                <h3>
+                    <i class="fas fa-map-marked-alt"></i>
+                    {{ device.display_name }}
+                </h3>
+                <p class="device-subtitle">
+                    Configure asset tracking visualization and display settings
+                </p>
+            </div>
+            <div class="device-meta">
+                <span class="meta-badge">
+                    <i class="fas fa-tag"></i>
+                    {{ device.measurement_name }}
+                </span>
+                <span class="meta-badge">
+                    <i class="fas fa-hashtag"></i>
+                    ID: {{ device.device_id }}
+                </span>
+                <!-- ADD THIS BADGE -->
+                <span class="meta-badge">
+                    <i class="fas fa-check-circle"></i>
+                    {{ all_sensors.count }} Available
+                </span>
+                <a href="{% url 'companyadmin:device_list' %}" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Devices
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Alert -->
+    <div class="info-alert">
+        <p>
+            <i class="fas fa-info-circle me-2" style="color: var(--primary-blue);"></i>
+            Configure which sensors to display on the map, info cards, and time series charts for this asset tracking device.
+        </p>
+    </div>
+
+    <!-- Configuration Form -->
+    <form method="POST" id="configForm">
+        {% csrf_token %}
+        
+        <div class="config-groups">
+
+            <!-- GROUP 1: MAP CONFIGURATION -->
+            <div class="config-group-card">
+                <div class="config-group-header">
+                    <h4 class="config-group-title">
+                        <i class="fas fa-map"></i>
+                        Map Configuration
+                    </h4>
+                    <p class="config-group-subtitle">
+                        Select latitude, longitude, and sensors to display in map popup
+                    </p>
+                </div>
+                <div class="config-group-body">
+                    
+                    <!-- Latitude Sensor -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="floating-label-group">
+                                <select name="latitude_sensor_id" required>
+                                    <option value="">-- Select Latitude Sensor --</option>
+                                    {% for sensor in available_for_location %}
+                                        <option value="{{ sensor.id }}" 
+                                                {% if sensor.id == selected_latitude_id %}selected{% endif %}>
+                                            {{ sensor.field_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <label>Latitude Sensor <span class="required-mark">*</span></label>
+                            </div>
+                        </div>
+                        
+                        <!-- Longitude Sensor -->
+                        <div class="col-md-6">
+                            <div class="floating-label-group">
+                                <select name="longitude_sensor_id" required>
+                                    <option value="">-- Select Longitude Sensor --</option>
+                                    {% for sensor in available_for_location %}
+                                        <option value="{{ sensor.id }}" 
+                                                {% if sensor.id == selected_longitude_id %}selected{% endif %}>
+                                            {{ sensor.field_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <label>Longitude Sensor <span class="required-mark">*</span></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Map Popup Sensors -->
+                    <div style="margin-top: var(--space-4);">
+                        <label style="font-weight: 600; color: var(--text-secondary); font-size: var(--text-sm); display: block; margin-bottom: var(--space-2);">
+                            Map Popup Sensors (optional)
+                        </label>
+                        <div class="sensor-selection-grid">
+                            {% for sensor in available_for_map_popup %}
+                            <div class="sensor-checkbox-item" data-type="popup">
+                                <input type="checkbox" 
+                                       name="map_popup_sensor_ids" 
+                                       value="{{ sensor.id }}"
+                                       id="popup_{{ sensor.id }}"
+                                       {% if sensor.id in selected_map_popup_ids %}checked{% endif %}>
+                                <label for="popup_{{ sensor.id }}" class="sensor-checkbox-label">
+                                    {{ sensor.field_name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="selection-count" id="popup-count">
+                            <i class="fas fa-check-circle"></i>
+                            <span>0 selected</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- GROUP 2: INFO CARDS -->
+            <div class="config-group-card">
+                <div class="config-group-header">
+                    <h4 class="config-group-title">
+                        <i class="fas fa-info-circle"></i>
+                        Info Card Configuration
+                    </h4>
+                    <p class="config-group-subtitle">
+                        Select sensors to display as information cards
+                    </p>
+                </div>
+                <div class="config-group-body">
+                    
+                    <div class="sensor-selection-grid">
+                        {% for sensor in available_for_info_card %}
+                        <div class="sensor-checkbox-item" data-type="info">
+                            <input type="checkbox" 
+                                   name="info_card_sensor_ids" 
+                                   value="{{ sensor.id }}"
+                                   id="info_{{ sensor.id }}"
+                                   {% if sensor.id in selected_info_card_ids %}checked{% endif %}>
+                            <label for="info_{{ sensor.id }}" class="sensor-checkbox-label">
+                                {{ sensor.field_name }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="selection-count" id="info-count">
+                        <i class="fas fa-check-circle"></i>
+                        <span>0 selected</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- GROUP 3: TIME SERIES CHARTS -->
+            <div class="config-group-card">
+                <div class="config-group-header">
+                    <h4 class="config-group-title">
+                        <i class="fas fa-chart-line"></i>
+                        Time Series Configuration
+                    </h4>
+                    <p class="config-group-subtitle">
+                        Select sensors to display as time series charts
+                    </p>
+                </div>
+                <div class="config-group-body">
+                    
+                    <div class="sensor-selection-grid">
+                        {% for sensor in available_for_time_series %}
+                        <div class="sensor-checkbox-item" data-type="timeseries">
+                            <input type="checkbox" 
+                                   name="time_series_sensor_ids" 
+                                   value="{{ sensor.id }}"
+                                   id="ts_{{ sensor.id }}"
+                                   {% if sensor.id in selected_time_series_ids %}checked{% endif %}>
+                            <label for="ts_{{ sensor.id }}" class="sensor-checkbox-label">
+                                {{ sensor.field_name }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="selection-count" id="timeseries-count">
+                        <i class="fas fa-check-circle"></i>
+                        <span>0 selected</span>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-primary-submit">
+            <i class="fas fa-save"></i>
+            Save Configuration
+        </button>
+
+    </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 Asset Tracking Config JS Loaded');
+    
+    // ===== GET ALL ELEMENTS =====
+    const latSelect = document.querySelector('[name="latitude_sensor_id"]');
+    const lngSelect = document.querySelector('[name="longitude_sensor_id"]');
+    const popupCheckboxes = document.querySelectorAll('[name="map_popup_sensor_ids"]');
+    const infoCheckboxes = document.querySelectorAll('[name="info_card_sensor_ids"]');
+    const timeseriesCheckboxes = document.querySelectorAll('[name="time_series_sensor_ids"]');
+    
+    // ✅ DEBUG: Log what we found
+    console.log('Lat/Lng selects:', latSelect, lngSelect);
+    console.log('Popup checkboxes:', popupCheckboxes.length);
+    console.log('Info checkboxes:', infoCheckboxes.length);
+    console.log('Timeseries checkboxes:', timeseriesCheckboxes.length);
+    
+    // Store all sensor IDs for each group
+    const allSensorGroups = {
+        popup: Array.from(popupCheckboxes).map(cb => ({
+            id: cb.value, 
+            element: cb.closest('.sensor-checkbox-item')
+        })),
+        info: Array.from(infoCheckboxes).map(cb => ({
+            id: cb.value, 
+            element: cb.closest('.sensor-checkbox-item')
+        })),
+        timeseries: Array.from(timeseriesCheckboxes).map(cb => ({
+            id: cb.value, 
+            element: cb.closest('.sensor-checkbox-item')
+        }))
+    };
+    
+    // Get all currently selected sensor IDs
+    function getAllSelectedIds() {
+        const selected = new Set();
+        
+        // Add lat/lng
+        if (latSelect && latSelect.value) selected.add(latSelect.value);
+        if (lngSelect && lngSelect.value) selected.add(lngSelect.value);
+        
+        // Add checked popup sensors
+        popupCheckboxes.forEach(cb => {
+            if (cb.checked) selected.add(cb.value);
+        });
+        
+        // Add checked info sensors
+        infoCheckboxes.forEach(cb => {
+            if (cb.checked) selected.add(cb.value);
+        });
+        
+        // Add checked timeseries sensors
+        timeseriesCheckboxes.forEach(cb => {
+            if (cb.checked) selected.add(cb.value);
+        });
+        
+        console.log('Selected IDs:', Array.from(selected));
+        return selected;
+    }
+    
+    // Update visibility of sensor checkboxes based on what's selected
+    function updateSensorVisibility() {
+        console.log('🔄 Updating sensor visibility...');
+        
+        const latValue = latSelect ? latSelect.value : '';
+        const lngValue = lngSelect ? lngSelect.value : '';
+        
+        // Update POPUP sensors (exclude lat/lng)
+        const excludeForPopup = new Set([latValue, lngValue].filter(Boolean));
+        console.log('Exclude for popup:', Array.from(excludeForPopup));
+        
+        allSensorGroups.popup.forEach(({id, element}) => {
+            if (excludeForPopup.has(id)) {
+                element.style.display = 'none';
+                const checkbox = element.querySelector('input[type="checkbox"]');
+                if (checkbox && checkbox.checked) {
+                    console.log('Unchecking hidden popup sensor:', id);
+                    checkbox.checked = false;
+                }
+            } else {
+                element.style.display = 'flex';
+            }
+        });
+        
+        // Update INFO sensors (exclude lat/lng + checked popup)
+        const checkedPopup = Array.from(popupCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        
+        const excludeForInfo = new Set([
+            latValue, 
+            lngValue,
+            ...checkedPopup
+        ].filter(Boolean));
+        console.log('Exclude for info:', Array.from(excludeForInfo));
+        
+        allSensorGroups.info.forEach(({id, element}) => {
+            if (excludeForInfo.has(id)) {
+                element.style.display = 'none';
+                const checkbox = element.querySelector('input[type="checkbox"]');
+                if (checkbox && checkbox.checked) {
+                    console.log('Unchecking hidden info sensor:', id);
+                    checkbox.checked = false;
+                }
+            } else {
+                element.style.display = 'flex';
+            }
+        });
+        
+        // Update TIMESERIES sensors (exclude lat/lng + checked popup + checked info)
+        const checkedInfo = Array.from(infoCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        
+        const excludeForTimeseries = new Set([
+            latValue,
+            lngValue,
+            ...checkedPopup,
+            ...checkedInfo
+        ].filter(Boolean));
+        console.log('Exclude for timeseries:', Array.from(excludeForTimeseries));
+        
+        allSensorGroups.timeseries.forEach(({id, element}) => {
+            if (excludeForTimeseries.has(id)) {
+                element.style.display = 'none';
+                const checkbox = element.querySelector('input[type="checkbox"]');
+                if (checkbox && checkbox.checked) {
+                    console.log('Unchecking hidden timeseries sensor:', id);
+                    checkbox.checked = false;
+                }
+            } else {
+                element.style.display = 'flex';
+            }
+        });
+        
+        // Update counts and styling
+        updateCounts();
+        updateCheckboxStyling();
+    }
+    
+    // Update selection counts
+    function updateCounts() {
+        const allSelected = getAllSelectedIds();
+        const totalSensors = {{ all_sensors.count }};
+        
+        console.log('📊 Updating counts...');
+        
+        // Update individual group counts
+        ['popup', 'info', 'timeseries'].forEach(type => {
+            const checkboxes = document.querySelectorAll(`.sensor-checkbox-item[data-type="${type}"] input[type="checkbox"]`);
+            const visibleCheckboxes = Array.from(checkboxes).filter(cb => {
+                const item = cb.closest('.sensor-checkbox-item');
+                return item.style.display !== 'none';
+            });
+            const checkedCount = visibleCheckboxes.filter(cb => cb.checked).length;
+            const availableCount = visibleCheckboxes.length;
+            
+            const countEl = document.getElementById(`${type}-count`);
+            if (countEl) {
+                const spanEl = countEl.querySelector('span');
+                spanEl.textContent = `${checkedCount} selected / ${availableCount} available`;
+                
+                if (checkedCount > 0) {
+                    countEl.classList.add('active');
+                } else {
+                    countEl.classList.remove('active');
+                }
+            }
+            
+            console.log(`${type}: ${checkedCount}/${availableCount}`);
+        });
+        
+        // Update overall available sensor count in header
+        const availableCount = totalSensors - allSelected.size;
+        const headerBadge = document.querySelector('.device-meta .meta-badge:nth-child(3)');
+        if (headerBadge) {
+            headerBadge.innerHTML = `<i class="fas fa-check-circle"></i> ${availableCount} Available`;
+        }
+        
+        console.log(`Total available: ${availableCount}/${totalSensors}`);
+    }
+
+    // Update checkbox item styling
+    function updateCheckboxStyling() {
+        document.querySelectorAll('.sensor-checkbox-item').forEach(item => {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            if (checkbox && checkbox.checked) {
+                item.classList.add('checked');
+            } else {
+                item.classList.remove('checked');
+            }
+        });
+    }
+
+    // ✅ ATTACH EVENT LISTENERS
+    if (latSelect) {
+        latSelect.addEventListener('change', updateSensorVisibility);
+    }
+    if (lngSelect) {
+        lngSelect.addEventListener('change', updateSensorVisibility);
+    }
+    
+    popupCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            console.log('Popup checkbox changed:', this.value, this.checked);
+            updateSensorVisibility();
+        });
+    });
+    
+    infoCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            console.log('Info checkbox changed:', this.value, this.checked);
+            updateSensorVisibility();
+        });
+    });
+    
+    timeseriesCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            console.log('Timeseries checkbox changed:', this.value, this.checked);
+            updateSensorVisibility();
+        });
+    });
+
+    // Add click handler to checkbox items (click anywhere to toggle)
+    document.querySelectorAll('.sensor-checkbox-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            if (e.target.type !== 'checkbox' && e.target.tagName !== 'LABEL') {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox && item.style.display !== 'none') {
+                    checkbox.checked = !checkbox.checked;
+                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        });
+    });
+
+    // ✅ CRITICAL: Initial update on page load
+    console.log('🚀 Running initial update...');
+    updateSensorVisibility();
+    
+    // Form submission handler
+    const form = document.getElementById('configForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const btn = form.querySelector('button[type="submit"]');
+            
+            // Validate lat/lng selection
+            const latVal = latSelect ? latSelect.value : '';
+            const lngVal = lngSelect ? lngSelect.value : '';
+            
+            if (!latVal || !lngVal) {
+                e.preventDefault();
+                alert('⚠️ Please select both Latitude and Longitude sensors');
+                return false;
+            }
+            
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving Configuration...';
+                
+                // Re-enable after 10 seconds as fallback
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }, 10000);
+            }
+        });
+    }
+    
+    console.log('✅ Initialization complete');
+});
+</script>
+{% endblock %}
