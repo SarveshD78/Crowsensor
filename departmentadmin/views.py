@@ -1034,8 +1034,7 @@ def device_asset_map_view(request, device_id):
 # ============================================================================
 # DEVICE ASSET MAP DATA VIEW (JSON API - NO CHANGES NEEDED)
 # ============================================================================
-
-
+@require_department_admin
 def device_asset_map_data_view(request, device_id):
     """
     ✨ API ENDPOINT: Fetch asset tracking data for map
@@ -1043,21 +1042,33 @@ def device_asset_map_data_view(request, device_id):
     """
     
     print(f"\n{'='*80}")
-    print(f"🗺️  USER ASSET MAP DATA API CALLED")
+    print(f"🗺️  ASSET MAP DATA API CALLED")
     print(f"{'='*80}")
     print(f"User: {request.user.email}")
     print(f"Device ID: {device_id}")
     
     try:
-        # Check user has access to this device
-        assignment = get_user_device_assignment(request.user, device_id)
-        if not assignment:
+        # ✅ FIX: Use the same pattern as other views
+        department, _, _ = get_current_department(request)
+        
+        if not department:
             return JsonResponse({
                 'success': False,
-                'message': 'Access denied to this device'
+                'message': 'You are not assigned to any department.'
             }, status=403)
         
-        device = assignment.device
+        # Get device - must be in user's department
+        device = Device.objects.filter(
+            id=device_id,
+            departments=department,
+            is_active=True
+        ).first()
+        
+        if not device:
+            return JsonResponse({
+                'success': False,
+                'message': 'Device not found or access denied'
+            }, status=404)
         
         # Verify this is an asset tracking device
         if device.device_type != 'asset_tracking':
@@ -1066,15 +1077,46 @@ def device_asset_map_data_view(request, device_id):
                 'message': 'This device is not configured for asset tracking'
             }, status=400)
         
-        # Get time range from request (default: 24 hours)
-        time_range = request.GET.get('time_range', 'now() - 24h')
+        # Get time range from request (default: 1 hour)
+        time_range = request.GET.get('time_range', 'now() - 1h')
         
         print(f"⏱️  Time range: {time_range}")
+        print(f"📱 Device: {device.display_name}")
         
-        # Fetch asset tracking data from InfluxDB using user-specific helper
-        data = fetch_asset_tracking_data_for_user(device, time_range)
+        # ✅ FIX: Get asset tracking config
+        try:
+            from companyadmin.models import AssetTrackingConfig
+            asset_config = AssetTrackingConfig.objects.get(device=device)
+        except AssetTrackingConfig.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Asset tracking not configured for this device'
+            }, status=400)
         
-        # Return data with flattened structure
+        # ✅ FIX: Get InfluxDB config
+        influx_config = device.asset_config
+        if not influx_config or not influx_config.is_connected:
+            return JsonResponse({
+                'success': False,
+                'message': 'InfluxDB not configured'
+            }, status=500)
+        
+        # ✅ FIX: Use the existing function from asset_map_func.py
+        result = fetch_asset_tracking_data_from_influx(
+            device=device,
+            asset_config=asset_config,
+            influx_config=influx_config,
+            time_range=time_range
+        )
+        
+        if not result['success']:
+            return JsonResponse({
+                'success': False,
+                'message': result['message']
+            }, status=500)
+        
+        # Return data
+        data = result['data']
         response_data = {
             'success': True,
             'device': {
@@ -1085,17 +1127,13 @@ def device_asset_map_data_view(request, device_id):
             'time_range': time_range,
             'data': {
                 'points': data.get('points', []),
-                'locations': data.get('locations', []),
-                'info_card_data': data.get('info_card_data', {}),
                 'total_points': data.get('total_points', 0),
                 'start_point': data.get('start_point'),
                 'end_point': data.get('end_point'),
-                'current_location': data.get('current_location'),
             }
         }
         
         print(f"✅ Returning {data.get('total_points', 0)} location points")
-        print(f"📊 Info card data: {data.get('info_card_data', {})}")
         print(f"{'='*80}\n")
         
         return JsonResponse(response_data)

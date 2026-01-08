@@ -55,7 +55,6 @@ def logout_view(request):
 # =============================================================================
 # DASHBOARD HOME
 # =============================================================================
-
 @require_user
 def user_home_view(request):
     """
@@ -82,7 +81,6 @@ def user_home_view(request):
     device_ids = list(assigned_devices.values_list('device_id', flat=True))
     
     # Get active alerts for assigned devices
-    # Path: SensorAlert → sensor_metadata → sensor → device
     active_alerts = 0
     recent_alerts = 0
     
@@ -106,6 +104,26 @@ def user_home_view(request):
             device_id__in=device_ids
         ).count()
     
+    # ✅ FIX: Add sensor_count and alert_count to each assignment
+    assigned_devices_with_stats = []
+    for assignment in assigned_devices[:5]:
+        # Get sensor count for device
+        sensor_count = Sensor.objects.filter(
+            device=assignment.device,
+            is_active=True
+        ).count()
+        
+        # Get active alerts for device
+        alert_count = SensorAlert.objects.filter(
+            sensor_metadata__sensor__device=assignment.device,
+            status__in=['initial', 'medium', 'high']
+        ).count()
+        
+        # Attach to assignment object
+        assignment.sensor_count = sensor_count
+        assignment.alert_count = alert_count
+        assigned_devices_with_stats.append(assignment)
+    
     # Stats
     stats = {
         'total_departments': user_departments.count(),
@@ -117,15 +135,13 @@ def user_home_view(request):
     
     context = {
         'user_departments': user_departments,
-        'assigned_devices': assigned_devices[:5],
+        'assigned_devices': assigned_devices_with_stats,  # ✅ Now has sensor_count & alert_count
         'stats': stats,
         'page_title': 'Dashboard',
         'active_tab': 'home',
     }
     
     return render(request, 'userdashboard/dashboard.html', context)
-
-
 # =============================================================================
 # DEVICES VIEW
 # =============================================================================

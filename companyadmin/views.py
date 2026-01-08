@@ -252,7 +252,6 @@ def dashboard_view(request):
 # =============================================================================
 # DEPARTMENT MANAGEMENT
 # =============================================================================
-
 @require_company_admin
 def departments_view(request):
     """
@@ -276,13 +275,14 @@ def departments_view(request):
             ),
             distinct=True
         ),
-        user_count=Count(  # ← Changed: Count 'user' role only
+        # FIX: Changed from 'user_count' to 'total_users' to match template
+        # FIX: Now counts ALL users (department_admin + user) excluding company_admin
+        total_users=Count(
             'user_memberships',
             filter=Q(
-                user_memberships__user__role='user',
                 user_memberships__user__is_active=True,
                 user_memberships__is_active=True
-            ),
+            ) & ~Q(user_memberships__user__role='company_admin'),
             distinct=True
         )
     ).order_by('name')
@@ -377,8 +377,12 @@ def departments_view(request):
                 dept_id = request.POST.get('department_id')
                 department = get_object_or_404(Department, id=dept_id, is_active=True)
                 
-                # Check if has users
-                user_count = department.user_memberships.filter(is_active=True).count()
+                # Check if has users (using total_users logic - all except company_admin)
+                user_count = department.user_memberships.filter(
+                    is_active=True,
+                    user__is_active=True
+                ).exclude(user__role='company_admin').count()
+                
                 if user_count > 0:
                     messages.warning(
                         request,
@@ -407,8 +411,6 @@ def departments_view(request):
     }
     
     return render(request, 'companyadmin/departments.html', context)
-
-
 # =============================================================================
 # USER MANAGEMENT - DEPARTMENT ADMINS ONLY
 # =============================================================================
@@ -1491,7 +1493,6 @@ def device_edit_modal_view(request, device_id):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
-
 @require_company_admin
 def device_sensors_modal_view(request, device_id):
     """Return all sensors for a device (for modal display)"""
@@ -1512,8 +1513,15 @@ def device_sensors_modal_view(request, device_id):
                 'category': sensor.category,
                 'unit': sensor.unit,
                 'is_active': sensor.is_active,
-                'sample_value': sensor.metadata.get('sample_value', 'N/A')
+                'sample_value': sensor.metadata.get('sample_value', 'N/A') if sensor.metadata else 'N/A'
             })
+        
+        # ✅ FIX: Add sensor_breakdown that JavaScript expects
+        sensor_breakdown = {
+            'sensors': len([s for s in sensor_list if s['category'] == 'sensor']),
+            'slaves': len([s for s in sensor_list if s['category'] == 'slave']),
+            'info': len([s for s in sensor_list if s['category'] == 'info']),
+        }
         
         return JsonResponse({
             'success': True,
@@ -1523,7 +1531,8 @@ def device_sensors_modal_view(request, device_id):
                 'measurement_name': device.measurement_name
             },
             'sensors': sensor_list,
-            'total_sensors': len([s for s in sensor_list if s['category'] == 'sensor']),
+            'sensor_breakdown': sensor_breakdown,  # ✅ ADD THIS
+            'total_sensors': sensor_breakdown['sensors'],
             'total_fields': len(sensor_list)
         })
     
@@ -1531,8 +1540,6 @@ def device_sensors_modal_view(request, device_id):
         return JsonResponse({'success': False, 'message': 'Device not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
-
-
 @require_company_admin
 def device_delete_view(request, device_id):
     """Delete device and all associated sensors"""
