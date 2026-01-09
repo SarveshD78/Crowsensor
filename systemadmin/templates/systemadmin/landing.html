@@ -20,7 +20,7 @@
             font-weight: 400;
         }
 
-        /* Hero Section - NO OVERLAY */
+        /* Hero Section */
         .hero-section {
             position: relative;
             width: 100%;
@@ -35,6 +35,17 @@
             object-position: center;
         }
 
+        /* Logo - Fixed at top */
+        .logo {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 60px;
+            z-index: 10;
+        }
+
+        /* Hero Content - Centered with top padding for logo */
         .hero-content {
             position: absolute;
             top: 0;
@@ -47,16 +58,8 @@
             align-items: center;
             text-align: center;
             padding: 20px;
+            padding-top: 120px;
             z-index: 2;
-        }
-
-        .logo {
-            position: absolute;
-            top: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            height: 70px;
-            z-index: 3;
         }
 
         .main-heading {
@@ -113,7 +116,6 @@
             align-items: center;
         }
 
-        /* Sleeker, smaller buttons */
         .action-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -217,7 +219,6 @@
             background: white;
         }
 
-        /* Submit button in modals */
         .submit-btn {
             width: 100%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -370,44 +371,100 @@
             background: white;
         }
 
-        /* Responsive */
-        @media (max-width: 992px) {
+        /* ============================================
+           RESPONSIVE - ALL SCREEN SIZES
+           ============================================ */
+        
+        /* Extra Large screens (1400px+) */
+        @media (min-width: 1400px) {
+            .logo { height: 70px; top: 40px; }
+            .hero-content { padding-top: 140px; }
+            .main-heading { font-size: 3.2rem; }
+            .tagline { font-size: 1.2rem; }
+            .description-box { padding: 30px 45px; max-width: 1100px; }
+            .description-text { font-size: 1.1rem; }
+        }
+
+        /* Large screens (1200px - 1399px) */
+        @media (min-width: 1200px) and (max-width: 1399px) {
+            .logo { height: 65px; top: 35px; }
+            .hero-content { padding-top: 130px; }
+            .main-heading { font-size: 2.9rem; }
+        }
+
+        /* Medium-Large screens (992px - 1199px) */
+        @media (min-width: 992px) and (max-width: 1199px) {
             .logo { height: 55px; top: 30px; }
-            .main-heading { font-size: 2.3rem; }
-            .sub-heading { font-size: 1.5rem; }
+            .hero-content { padding-top: 110px; }
+            .main-heading { font-size: 2.5rem; }
+            .sub-heading { font-size: 1.6rem; }
             .tagline { font-size: 1rem; }
-            .description-box { padding: 20px 28px; }
+            .description-box { padding: 22px 32px; }
             .description-text { font-size: 0.95rem; }
-            .action-btn { padding: 13px 32px; font-size: 14px; }
         }
 
-        @media (max-width: 768px) {
-            .logo { height: 48px; top: 20px; }
-            .main-heading { font-size: 1.9rem; }
-            .sub-heading { font-size: 1.3rem; }
+        /* Tablets (768px - 991px) */
+        @media (min-width: 768px) and (max-width: 991px) {
+            .logo { height: 50px; top: 25px; }
+            .hero-content { padding-top: 100px; }
+            .main-heading { font-size: 2.2rem; }
+            .sub-heading { font-size: 1.4rem; }
             .tagline { font-size: 0.95rem; }
-            .description-box { padding: 18px 22px; }
+            .description-box { padding: 20px 28px; max-width: 90%; }
             .description-text { font-size: 0.9rem; }
-            .action-btn { padding: 11px 28px; font-size: 13px; }
-            .modal-body { padding: 28px 24px; }
-            .button-container { gap: 14px; }
+            .action-btn { padding: 12px 30px; font-size: 14px; }
         }
 
-        @media (max-width: 576px) {
-            .hero-content { padding: 10px; }
+        /* Large phones (576px - 767px) */
+        @media (min-width: 576px) and (max-width: 767px) {
+            .logo { height: 45px; top: 20px; }
+            .hero-content { padding-top: 90px; }
+            .main-heading { font-size: 1.9rem; }
+            .sub-heading { font-size: 1.2rem; }
+            .tagline { font-size: 0.9rem; }
+            .description-box { padding: 18px 24px; max-width: 95%; }
+            .description-text { font-size: 0.85rem; }
+            .action-btn { padding: 11px 26px; font-size: 13px; }
+            .button-container { gap: 12px; }
+            .modal-body { padding: 26px 22px; }
+        }
+
+        /* Small phones (up to 575px) */
+        @media (max-width: 575px) {
             .logo { height: 40px; top: 15px; }
-            .main-heading { font-size: 1.6rem; }
-            .sub-heading { font-size: 1.1rem; }
-            .tagline { font-size: 0.85rem; }
-            .description-box { padding: 14px 18px; }
-            .description-text { font-size: 0.82rem; }
-            .action-btn { padding: 10px 22px; font-size: 13px; }
+            .hero-content { padding: 15px; padding-top: 75px; }
+            .main-heading { font-size: 1.5rem; letter-spacing: 0.5px; }
+            .sub-heading { font-size: 1rem; margin-bottom: 15px; }
+            .tagline { font-size: 0.82rem; margin-bottom: 20px; }
+            .description-box { padding: 15px 18px; max-width: 98%; margin-bottom: 25px; }
+            .description-text { font-size: 0.8rem; line-height: 1.5; }
+            .action-btn { 
+                padding: 12px 24px; 
+                font-size: 13px; 
+                width: 85%;
+            }
             .button-container { 
                 flex-direction: column; 
                 gap: 12px; 
                 width: 100%;
             }
-            .action-btn {
+            .modal-body { padding: 24px 20px; }
+            .modal-header { padding: 18px 22px; }
+            .modal-title { font-size: 17px; }
+        }
+
+        /* Extra small phones (up to 375px) */
+        @media (max-width: 375px) {
+            .logo { height: 35px; top: 12px; }
+            .hero-content { padding: 10px; padding-top: 65px; }
+            .main-heading { font-size: 1.3rem; }
+            .sub-heading { font-size: 0.9rem; }
+            .tagline { font-size: 0.75rem; }
+            .description-box { padding: 12px 14px; }
+            .description-text { font-size: 0.75rem; }
+            .action-btn { 
+                padding: 10px 20px; 
+                font-size: 12px;
                 width: 90%;
             }
         }
@@ -679,13 +736,13 @@
             this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
         });
         
-        // Register form placeholder (does nothing for now)
+        // Register form placeholder
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
             alert('Registration feature coming soon!');
         });
         
-        // Demo form placeholder (does nothing for now)
+        // Demo form placeholder
         document.getElementById('demoForm').addEventListener('submit', function(e) {
             e.preventDefault();
             alert('Demo booking feature coming soon!');

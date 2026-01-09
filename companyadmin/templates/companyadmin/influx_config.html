@@ -55,7 +55,7 @@
 .floating-label-group textarea:focus + label,
 .floating-label-group textarea:not(:placeholder-shown) + label {
     top: 0;
-    transform: translateY(0);
+    transform: translateY(-50%);
     font-size: 11px;
     color: var(--primary-blue);
     font-weight: 600;
@@ -71,17 +71,16 @@
     color: var(--danger);
 }
 
-/* ✅ FIXED: Password field styling */
-.password-field-container {
+/* ✅ FIXED: Password field - special handling for floating label */
+.floating-label-group.password-group {
     position: relative;
 }
 
-.password-field-container input {
-    width: 100%;
-    padding-right: 45px; /* Space for toggle button */
+.floating-label-group.password-group input {
+    padding-right: 50px; /* Space for toggle button */
 }
 
-.password-toggle-btn {
+.floating-label-group.password-group .password-toggle-btn {
     position: absolute;
     right: 12px;
     top: 50%;
@@ -95,8 +94,25 @@
     z-index: 10;
 }
 
-.password-toggle-btn:hover {
+.floating-label-group.password-group .password-toggle-btn:hover {
     color: var(--primary-blue);
+}
+
+/* ✅ FIXED: Label positioning for password fields */
+.floating-label-group.password-group label {
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.floating-label-group.password-group input:focus ~ label,
+.floating-label-group.password-group input:not(:placeholder-shown) ~ label,
+.floating-label-group.password-group.has-value label {
+    top: 0;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--primary-blue);
+    font-weight: 600;
 }
 
 /* ===== WELCOME CARD ===== */
@@ -815,14 +831,12 @@
                             <label for="create_api_username">Username <span class="required-mark">*</span></label>
                         </div>
 
-                        <!-- ✅ FIXED: Password with proper structure -->
-                        <div class="floating-label-group">
-                            <div class="password-field-container">
-                                <input type="password" name="api_password" id="create_api_password" placeholder=" " required>
-                                <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('create_api_password', 'create_eye_icon')">
-                                    <i class="fas fa-eye" id="create_eye_icon"></i>
-                                </button>
-                            </div>
+                        <!-- ✅ FIXED: Password field with proper floating label -->
+                        <div class="floating-label-group password-group">
+                            <input type="password" name="api_password" id="create_api_password" placeholder=" " required>
+                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('create_api_password', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
                             <label for="create_api_password">Password <span class="required-mark">*</span></label>
                         </div>
                     </div>
@@ -896,14 +910,12 @@
                             <label for="edit_api_username">Username <span class="required-mark">*</span></label>
                         </div>
 
-                        <!-- ✅ FIXED: Password with proper structure -->
-                        <div class="floating-label-group">
-                            <div class="password-field-container">
-                                <input type="password" name="api_password" id="edit_api_password" placeholder=" ">
-                                <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('edit_api_password', 'edit_eye_icon')">
-                                    <i class="fas fa-eye" id="edit_eye_icon"></i>
-                                </button>
-                            </div>
+                        <!-- ✅ FIXED: Password field with proper floating label -->
+                        <div class="floating-label-group password-group">
+                            <input type="password" name="api_password" id="edit_api_password" placeholder=" ">
+                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('edit_api_password', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
                             <label for="edit_api_password">Password (leave blank to keep current)</label>
                         </div>
                     </div>
@@ -951,7 +963,7 @@
 
 {% block extra_js %}
 <script>
-// ✅ FIXED: Config data as JavaScript object (not inside template literal)
+// Config data as JavaScript object
 const configsData = [
     {% for config_data in configs_data %}
     {
@@ -969,13 +981,13 @@ const configsData = [
     {% endfor %}
 ];
 
-// ✅ FIXED: Password toggle function
-function togglePasswordVisibility(fieldId, iconId) {
+// ✅ FIXED: Password toggle function - simplified
+function togglePasswordVisibility(fieldId, button) {
     const field = document.getElementById(fieldId);
-    const icon = document.getElementById(iconId);
+    const icon = button.querySelector('i');
     
     if (!field || !icon) {
-        console.error('Password field or icon not found:', fieldId, iconId);
+        console.error('Password field or icon not found:', fieldId);
         return;
     }
     
@@ -990,7 +1002,7 @@ function togglePasswordVisibility(fieldId, iconId) {
     }
 }
 
-// ✅ FIXED: Test connection handler
+// Test connection handler
 function handleTestConnection(button) {
     const configId = button.getAttribute('data-config-id');
     const configName = button.getAttribute('data-config-name');
@@ -1011,7 +1023,7 @@ function handleTestConnection(button) {
     }
 }
 
-// ✅ FIXED: Edit config handler
+// Edit config handler
 function handleEditConfig(button) {
     const configId = button.getAttribute('data-config-id');
     
@@ -1039,12 +1051,31 @@ function handleEditConfig(button) {
     document.getElementById('edit_notes').value = config.notes || '';
     document.getElementById('edit_is_active').checked = config.is_active;
     
+    // ✅ Trigger label float for pre-filled fields
+    setTimeout(function() {
+        triggerFloatLabels('editModal');
+    }, 100);
+    
     // Show modal
     const editModal = new bootstrap.Modal(document.getElementById('editModal'));
     editModal.show();
 }
 
-// ✅ FIXED: Delete config handler
+// ✅ NEW: Function to trigger floating labels on pre-filled inputs
+function triggerFloatLabels(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    const inputs = modal.querySelectorAll('.floating-label-group input, .floating-label-group textarea');
+    inputs.forEach(input => {
+        // Trigger the focus/blur to activate floating label
+        if (input.value && input.value.trim() !== '') {
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+}
+
+// Delete config handler
 function handleDeleteConfig(button) {
     const configId = button.getAttribute('data-config-id');
     const configName = button.getAttribute('data-config-name');
@@ -1072,7 +1103,7 @@ function handleDeleteConfig(button) {
     }
 }
 
-// ✅ Form submission protection
+// Form submission protection
 document.addEventListener('DOMContentLoaded', function() {
     const forms = document.querySelectorAll('form');
     
@@ -1091,6 +1122,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     submitBtn.innerHTML = originalText;
                 }, 10000);
             }
+        });
+    });
+    
+    // ✅ Reset password toggle icons when modals are closed
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('hidden.bs.modal', function() {
+            const passwordFields = modal.querySelectorAll('input[type="text"][name="api_password"]');
+            passwordFields.forEach(field => {
+                field.type = 'password';
+            });
+            
+            const eyeIcons = modal.querySelectorAll('.password-toggle-btn i');
+            eyeIcons.forEach(icon => {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            });
         });
     });
 });
