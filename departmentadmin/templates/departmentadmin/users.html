@@ -77,6 +77,23 @@
     margin-left: 2px;
 }
 
+/* PHONE VALIDATION: Added styles for error state */
+.floating-label-group input.is-invalid {
+    border-color: var(--danger);
+}
+
+.phone-error-msg {
+    display: none;
+    color: var(--danger);
+    font-size: 12px;
+    margin-top: 4px;
+    padding-left: 4px;
+}
+
+.phone-error-msg.show {
+    display: block;
+}
+
 /* ===== WELCOME CARD ===== */
 .welcome-card {
     background: var(--bg-primary);
@@ -864,7 +881,7 @@
                         <div class="user-info-row">
                             <span class="user-info-label">
                                 <i class="fas fa-building"></i>
-                                Departments
+                                Workspace
                             </span>
                             <div class="dept-names-inline">
                                 {% for dept in user.departments %}
@@ -976,9 +993,13 @@
                         <label>Email <span class="required-mark">*</span></label>
                     </div>
                     
+                    <!-- PHONE VALIDATION: Updated phone field with validation -->
                     <div class="floating-label-group">
                         <input type="text" name="phone" id="modal_phone" placeholder=" ">
-                        <label>Phone</label>
+                        <label>Phone <small style="font-weight: normal; color: var(--text-tertiary);">(Numbers and + only)</small></label>
+                        <div class="phone-error-msg" id="modalPhoneError">
+                            <i class="fas fa-exclamation-circle"></i> Only numbers and + symbol allowed
+                        </div>
                     </div>
                 </div>
                 
@@ -1076,6 +1097,105 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial filter
     filterUsers();
+
+    // ==========================================
+    // PHONE VALIDATION - Modal Phone Field
+    // ==========================================
+    const modalPhoneField = document.getElementById('modal_phone');
+    const modalPhoneError = document.getElementById('modalPhoneError');
+
+    if (modalPhoneField) {
+        // Input event - filter characters as user types
+        modalPhoneField.addEventListener('input', function(e) {
+            const originalValue = this.value;
+            
+            // Remove any character that is not a digit or +
+            let cleanedValue = this.value.replace(/[^0-9+]/g, '');
+            
+            // Ensure + only appears at the start (if present)
+            if (cleanedValue.includes('+')) {
+                const hasLeadingPlus = cleanedValue.charAt(0) === '+';
+                const digitsOnly = cleanedValue.replace(/\+/g, '');
+                cleanedValue = hasLeadingPlus ? '+' + digitsOnly : digitsOnly;
+            }
+            
+            this.value = cleanedValue;
+            
+            // Show error briefly if invalid characters were removed
+            if (originalValue !== cleanedValue && originalValue.length > 0) {
+                modalPhoneError.classList.add('show');
+                this.classList.add('is-invalid');
+                
+                // Hide error after 2 seconds
+                setTimeout(() => {
+                    modalPhoneError.classList.remove('show');
+                    this.classList.remove('is-invalid');
+                }, 2000);
+            }
+        });
+        
+        // Keypress event - prevent invalid characters from being entered
+        modalPhoneField.addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            
+            // Allow: digits, + (only at start), and control keys
+            if (!/[0-9+]/.test(char)) {
+                e.preventDefault();
+                modalPhoneError.classList.add('show');
+                this.classList.add('is-invalid');
+                
+                setTimeout(() => {
+                    modalPhoneError.classList.remove('show');
+                    this.classList.remove('is-invalid');
+                }, 2000);
+                return;
+            }
+            
+            // If + is pressed, only allow at start
+            if (char === '+' && (this.value.length > 0 || this.value.includes('+'))) {
+                e.preventDefault();
+                return;
+            }
+        });
+        
+        // Paste event - filter pasted content
+        modalPhoneField.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            
+            // Clean pasted text
+            let cleanedText = pastedText.replace(/[^0-9+]/g, '');
+            
+            // Handle + in pasted text
+            if (cleanedText.includes('+')) {
+                const hasLeadingPlus = cleanedText.charAt(0) === '+';
+                const digitsOnly = cleanedText.replace(/\+/g, '');
+                cleanedText = hasLeadingPlus ? '+' + digitsOnly : digitsOnly;
+            }
+            
+            // If field already has content, don't allow + in pasted text
+            if (this.value.length > 0 || this.value.includes('+')) {
+                cleanedText = cleanedText.replace(/\+/g, '');
+            }
+            
+            // Insert at cursor position
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            const currentValue = this.value;
+            this.value = currentValue.substring(0, start) + cleanedText + currentValue.substring(end);
+            
+            // Show error if text was modified
+            if (pastedText !== cleanedText) {
+                modalPhoneError.classList.add('show');
+                this.classList.add('is-invalid');
+                
+                setTimeout(() => {
+                    modalPhoneError.classList.remove('show');
+                    this.classList.remove('is-invalid');
+                }, 2000);
+            }
+        });
+    }
 
     // ==========================================
     // FORM SUBMISSION WITH CONFIRMATION

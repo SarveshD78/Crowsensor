@@ -71,19 +71,57 @@
     color: var(--danger);
 }
 
-/* ✅ FIXED: Password field - special handling for floating label */
+/* ✅ Field helper text styling */
+.field-help {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.field-help i {
+    color: var(--primary-blue);
+    font-size: 11px;
+}
+
+/* ✅ ISSUE #8: Field error state */
+.floating-label-group.has-error input,
+.floating-label-group.has-error textarea {
+    border-color: var(--danger);
+}
+
+.floating-label-group.has-error label {
+    color: var(--danger);
+}
+
+.field-error {
+    font-size: 12px;
+    color: var(--danger);
+    margin-top: 4px;
+    display: none;
+    align-items: center;
+    gap: 4px;
+}
+
+.field-error.show {
+    display: flex;
+}
+
+/* ✅ FIXED: Password field */
 .floating-label-group.password-group {
     position: relative;
 }
 
 .floating-label-group.password-group input {
-    padding-right: 50px; /* Space for toggle button */
+    padding-right: 50px;
 }
 
 .floating-label-group.password-group .password-toggle-btn {
     position: absolute;
     right: 12px;
-    top: 50%;
+    top: 24px;
     transform: translateY(-50%);
     background: none;
     border: none;
@@ -98,10 +136,9 @@
     color: var(--primary-blue);
 }
 
-/* ✅ FIXED: Label positioning for password fields */
 .floating-label-group.password-group label {
     left: 12px;
-    top: 50%;
+    top: 24px;
     transform: translateY(-50%);
 }
 
@@ -221,21 +258,10 @@
     font-size: var(--text-xl);
 }
 
-.stat-icon.green {
-    background: var(--success);
-}
-
-.stat-icon.red {
-    background: var(--danger);
-}
-
-.stat-icon.orange {
-    background: #f59e0b;
-}
-
-.stat-icon.indigo {
-    background: #6366f1;
-}
+.stat-icon.green { background: var(--success); }
+.stat-icon.red { background: var(--danger); }
+.stat-icon.orange { background: #f59e0b; }
+.stat-icon.indigo { background: #6366f1; }
 
 .stat-info h4 {
     font-size: var(--text-xs);
@@ -276,17 +302,9 @@
     transform: translateY(-4px);
 }
 
-.config-card.connected {
-    border-left: 4px solid var(--success);
-}
-
-.config-card.disconnected {
-    border-left: 4px solid var(--danger);
-}
-
-.config-card.untested {
-    border-left: 4px solid var(--gray-400);
-}
+.config-card.connected { border-left: 4px solid var(--success); }
+.config-card.disconnected { border-left: 4px solid var(--danger); }
+.config-card.untested { border-left: 4px solid var(--gray-400); }
 
 .config-card-header {
     background: var(--gray-50);
@@ -317,20 +335,9 @@
     white-space: nowrap;
 }
 
-.status-badge.connected {
-    background: var(--success);
-    color: white;
-}
-
-.status-badge.disconnected {
-    background: var(--danger);
-    color: white;
-}
-
-.status-badge.untested {
-    background: var(--gray-400);
-    color: white;
-}
+.status-badge.connected { background: var(--success); color: white; }
+.status-badge.disconnected { background: var(--danger); color: white; }
+.status-badge.untested { background: var(--gray-400); color: white; }
 
 .config-db-name {
     font-size: var(--text-sm);
@@ -350,9 +357,7 @@
     border-bottom: 1px solid var(--border-light);
 }
 
-.config-info-row:last-child {
-    border-bottom: none;
-}
+.config-info-row:last-child { border-bottom: none; }
 
 .config-info-label {
     font-size: 13px;
@@ -402,32 +407,18 @@
     box-shadow: var(--shadow-md);
 }
 
-.btn-test {
-    background: var(--success);
-    color: white;
+.btn-config-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
-.btn-test:hover {
-    background: #059669;
-}
-
-.btn-edit {
-    background: var(--primary-blue);
-    color: white;
-}
-
-.btn-edit:hover {
-    background: var(--primary-blue-dark);
-}
-
-.btn-delete {
-    background: var(--danger);
-    color: white;
-}
-
-.btn-delete:hover {
-    background: #991b1b;
-}
+.btn-test { background: var(--success); color: white; }
+.btn-test:hover:not(:disabled) { background: #059669; }
+.btn-edit { background: var(--primary-blue); color: white; }
+.btn-edit:hover:not(:disabled) { background: var(--primary-blue-dark); }
+.btn-delete { background: var(--danger); color: white; }
+.btn-delete:hover:not(:disabled) { background: #991b1b; }
 
 /* ===== EMPTY STATE ===== */
 .empty-state {
@@ -502,6 +493,102 @@
     gap: var(--space-4);
 }
 
+/* ✅ ISSUE #8: Modal Alert Styles */
+.modal-alert {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+    display: none;
+    align-items: flex-start;
+    gap: var(--space-3);
+}
+
+.modal-alert.show {
+    display: flex;
+}
+
+.modal-alert i.alert-icon {
+    font-size: 18px;
+    margin-top: 2px;
+}
+
+.modal-alert-content {
+    flex: 1;
+}
+
+.modal-alert-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.modal-alert-message {
+    font-size: 13px;
+}
+
+.modal-alert.alert-success {
+    background: #ecfdf5;
+    border: 1px solid #10b981;
+    color: #065f46;
+}
+
+.modal-alert.alert-success i.alert-icon { color: #10b981; }
+
+.modal-alert.alert-error {
+    background: #fef2f2;
+    border: 1px solid #ef4444;
+    color: #991b1b;
+}
+
+.modal-alert.alert-error i.alert-icon { color: #ef4444; }
+
+.modal-alert.alert-warning {
+    background: #fffbeb;
+    border: 1px solid #f59e0b;
+    color: #92400e;
+}
+
+.modal-alert.alert-warning i.alert-icon { color: #f59e0b; }
+
+/* ✅ ISSUE #8: Test Connection Button in Modal */
+.test-connection-row {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--border-light);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.btn-test-inline {
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 10px var(--space-4);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    transition: all 0.2s ease;
+}
+
+.btn-test-inline:hover:not(:disabled) {
+    background: #059669;
+}
+
+.btn-test-inline:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.test-connection-row span {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
 .checkbox-container {
     display: flex;
     align-items: center;
@@ -551,33 +638,25 @@
     cursor: pointer;
 }
 
-.btn-primary-submit:hover {
+.btn-primary-submit:hover:not(:disabled) {
     background: var(--primary-blue-dark);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
+.btn-primary-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-    .config-container {
-        padding: var(--space-4);
-    }
-    
-    .stats-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .configs-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .modal-form-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .config-card-footer {
-        grid-template-columns: 1fr;
-    }
+    .config-container { padding: var(--space-4); }
+    .stats-row { grid-template-columns: 1fr; }
+    .configs-grid { grid-template-columns: 1fr; }
+    .modal-form-grid { grid-template-columns: 1fr; }
+    .config-card-footer { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
@@ -605,64 +684,45 @@
     <!-- ========== STATS ROW ========== -->
     {% if has_configs %}
     <div class="stats-row">
-        <!-- Total Configs -->
         <div class="stat-card">
             <div class="stat-card-header">
-                <div class="stat-icon">
-                    <i class="fas fa-database"></i>
-                </div>
+                <div class="stat-icon"><i class="fas fa-database"></i></div>
                 <div class="stat-info">
                     <h4>Total Instances</h4>
                     <p>{{ total_configs }}</p>
                 </div>
             </div>
         </div>
-
-        <!-- Connected -->
         <div class="stat-card">
             <div class="stat-card-header">
-                <div class="stat-icon green">
-                    <i class="fas fa-check-circle"></i>
-                </div>
+                <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
                 <div class="stat-info">
                     <h4>Connected</h4>
                     <p>{{ connected_configs }}</p>
                 </div>
             </div>
         </div>
-
-        <!-- Disconnected -->
         <div class="stat-card">
             <div class="stat-card-header">
-                <div class="stat-icon red">
-                    <i class="fas fa-times-circle"></i>
-                </div>
+                <div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
                 <div class="stat-info">
                     <h4>Disconnected</h4>
                     <p>{{ disconnected_configs }}</p>
                 </div>
             </div>
         </div>
-
-        <!-- Total Devices -->
         <div class="stat-card">
             <div class="stat-card-header">
-                <div class="stat-icon orange">
-                    <i class="fas fa-microchip"></i>
-                </div>
+                <div class="stat-icon orange"><i class="fas fa-microchip"></i></div>
                 <div class="stat-info">
                     <h4>Total Devices</h4>
                     <p>{{ total_devices }}</p>
                 </div>
             </div>
         </div>
-
-        <!-- Total Sensors -->
         <div class="stat-card">
             <div class="stat-card-header">
-                <div class="stat-icon indigo">
-                    <i class="fas fa-sliders-h"></i>
-                </div>
+                <div class="stat-icon indigo"><i class="fas fa-sliders-h"></i></div>
                 <div class="stat-info">
                     <h4>Total Sensors</h4>
                     <p>{{ total_sensors }}</p>
@@ -676,9 +736,8 @@
     {% if has_configs %}
     <div class="configs-grid">
         {% for config_data in configs_data %}
-        <div class="config-card {% if config_data.config.is_connected %}connected{% elif config_data.config.last_tested_at %}disconnected{% else %}untested{% endif %}">
+        <div class="config-card {% if config_data.config.is_connected %}connected{% elif config_data.config.last_tested_at %}disconnected{% else %}untested{% endif %}" data-config-id="{{ config_data.config.id }}">
             
-            <!-- Card Header -->
             <div class="config-card-header">
                 <div class="config-title">
                     <h3>{{ config_data.config.config_name }}</h3>
@@ -697,40 +756,25 @@
                 </p>
             </div>
 
-            <!-- Card Body -->
             <div class="config-card-body">
                 <div class="config-info-row">
-                    <span class="config-info-label">
-                        <i class="fas fa-link"></i> API Endpoint
-                    </span>
+                    <span class="config-info-label"><i class="fas fa-link"></i> API Endpoint</span>
                     <span class="config-info-value">{{ config_data.config.base_api|truncatechars:30 }}</span>
                 </div>
-
                 <div class="config-info-row">
-                    <span class="config-info-label">
-                        <i class="fas fa-user"></i> Username
-                    </span>
+                    <span class="config-info-label"><i class="fas fa-user"></i> Username</span>
                     <span class="config-info-value">{{ config_data.config.api_username }}</span>
                 </div>
-
                 <div class="config-info-row">
-                    <span class="config-info-label">
-                        <i class="fas fa-microchip"></i> Devices
-                    </span>
+                    <span class="config-info-label"><i class="fas fa-microchip"></i> Devices</span>
                     <span class="config-info-value">{{ config_data.device_count }}</span>
                 </div>
-
                 <div class="config-info-row">
-                    <span class="config-info-label">
-                        <i class="fas fa-sliders-h"></i> Sensors
-                    </span>
+                    <span class="config-info-label"><i class="fas fa-sliders-h"></i> Sensors</span>
                     <span class="config-info-value">{{ config_data.sensor_count }}</span>
                 </div>
-
                 <div class="config-info-row">
-                    <span class="config-info-label">
-                        <i class="fas fa-clock"></i> Last Tested
-                    </span>
+                    <span class="config-info-label"><i class="fas fa-clock"></i> Last Tested</span>
                     <span class="config-info-value">
                         {% if config_data.config.last_tested_at %}
                             {{ config_data.config.last_tested_at|timesince }} ago
@@ -741,24 +785,18 @@
                 </div>
             </div>
 
-            <!-- Card Footer - Actions -->
             <div class="config-card-footer">
-                <!-- Test Connection -->
                 <button type="button" class="btn-config-action btn-test" 
                         data-config-id="{{ config_data.config.id }}" 
                         data-config-name="{{ config_data.config.config_name }}"
                         onclick="handleTestConnection(this)">
                     <i class="fas fa-plug"></i> Test
                 </button>
-
-                <!-- Edit -->
                 <button type="button" class="btn-config-action btn-edit" 
                         data-config-id="{{ config_data.config.id }}"
                         onclick="handleEditConfig(this)">
                     <i class="fas fa-edit"></i> Edit
                 </button>
-
-                <!-- Delete -->
                 <button type="button" class="btn-config-action btn-delete" 
                         data-config-id="{{ config_data.config.id }}" 
                         data-config-name="{{ config_data.config.config_name }}"
@@ -767,17 +805,13 @@
                     <i class="fas fa-trash"></i> Delete
                 </button>
             </div>
-
         </div>
         {% endfor %}
     </div>
 
     {% else %}
-    <!-- ========== EMPTY STATE ========== -->
     <div class="empty-state">
-        <div class="empty-icon">
-            <i class="fas fa-database"></i>
-        </div>
+        <div class="empty-icon"><i class="fas fa-database"></i></div>
         <h3>No InfluxDB Configurations</h3>
         <p>Create your first InfluxDB configuration to start collecting sensor data</p>
         <button type="button" class="btn-primary-submit" data-bs-toggle="modal" data-bs-target="#createModal">
@@ -793,7 +827,7 @@
 <div class="modal fade" id="createModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST">
+            <form method="POST" id="createForm">
                 {% csrf_token %}
                 <input type="hidden" name="create_config" value="1">
                 
@@ -806,51 +840,72 @@
                 </div>
                 
                 <div class="modal-body">
+                    <!-- ✅ ISSUE #8: Inline Alert -->
+                    <div class="modal-alert" id="createAlert">
+                        <i class="fas fa-info-circle alert-icon"></i>
+                        <div class="modal-alert-content">
+                            <div class="modal-alert-title"></div>
+                            <div class="modal-alert-message"></div>
+                        </div>
+                    </div>
+
                     <div class="modal-form-grid">
-                        <!-- Config Name -->
-                        <div class="floating-label-group">
+                        <div class="floating-label-group" data-field="config_name">
                             <input type="text" name="config_name" id="create_config_name" placeholder=" " required>
                             <label for="create_config_name">Configuration Name <span class="required-mark">*</span></label>
+                            <div class="field-help"><i class="fas fa-info-circle"></i> e.g., Production Server, Chiller DB</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         </div>
 
-                        <!-- Database Name -->
-                        <div class="floating-label-group">
+                        <div class="floating-label-group" data-field="db_name">
                             <input type="text" name="db_name" id="create_db_name" placeholder=" " required>
                             <label for="create_db_name">Database Name <span class="required-mark">*</span></label>
+                            <div class="field-help"><i class="fas fa-info-circle"></i> e.g., sensor_data, iot_metrics</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         </div>
 
-                        <!-- API Endpoint -->
-                        <div class="floating-label-group">
+                        <div class="floating-label-group" data-field="base_api">
                             <input type="url" name="base_api" id="create_base_api" placeholder=" " required>
                             <label for="create_base_api">API Endpoint <span class="required-mark">*</span></label>
+                            <div class="field-help"><i class="fas fa-info-circle"></i> e.g., http://localhost:8086</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         </div>
 
-                        <!-- Username -->
-                        <div class="floating-label-group">
+                        <div class="floating-label-group" data-field="api_username">
                             <input type="text" name="api_username" id="create_api_username" placeholder=" " required>
                             <label for="create_api_username">Username <span class="required-mark">*</span></label>
+                            <div class="field-help"><i class="fas fa-info-circle"></i> e.g., admin, influx_user</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         </div>
 
-                        <!-- ✅ FIXED: Password field with proper floating label -->
-                        <div class="floating-label-group password-group">
+                        <div class="floating-label-group password-group" data-field="api_password">
                             <input type="password" name="api_password" id="create_api_password" placeholder=" " required>
                             <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('create_api_password', this)">
                                 <i class="fas fa-eye"></i>
                             </button>
                             <label for="create_api_password">Password <span class="required-mark">*</span></label>
+                            <div class="field-help"><i class="fas fa-info-circle"></i> Enter your InfluxDB password</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         </div>
                     </div>
 
-                    <!-- Notes -->
-                    <div class="floating-label-group">
+                    <div class="floating-label-group" data-field="notes">
                         <textarea name="notes" id="create_notes" rows="3" placeholder=" "></textarea>
                         <label for="create_notes">Notes (Optional)</label>
+                        <div class="field-help"><i class="fas fa-info-circle"></i> e.g., Temperature sensors from Building A</div>
                     </div>
 
-                    <!-- Active -->
                     <div class="checkbox-container">
                         <input type="checkbox" name="is_active" id="create_is_active" checked>
                         <label for="create_is_active">Configuration Active</label>
+                    </div>
+
+                    <!-- ✅ ISSUE #8: Test Connection Button -->
+                    <div class="test-connection-row">
+                        <button type="button" class="btn-test-inline" onclick="testConnectionLive('create')">
+                            <i class="fas fa-plug"></i> Test Connection
+                        </button>
+                        <span>Test your credentials before saving</span>
                     </div>
                 </div>
                 
@@ -858,7 +913,7 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-                    <button type="submit" class="btn-primary-submit">
+                    <button type="submit" class="btn-primary-submit" id="createSubmitBtn">
                         <i class="fas fa-save"></i> Create Configuration
                     </button>
                 </div>
@@ -885,51 +940,72 @@
                 </div>
                 
                 <div class="modal-body">
+                    <!-- ✅ ISSUE #8: Inline Alert -->
+                    <div class="modal-alert" id="editAlert">
+                        <i class="fas fa-info-circle alert-icon"></i>
+                        <div class="modal-alert-content">
+                            <div class="modal-alert-title"></div>
+                            <div class="modal-alert-message"></div>
+                        </div>
+                    </div>
+
                     <div class="modal-form-grid">
-                        <!-- Config Name -->
-                        <div class="floating-label-group">
+                        <div class="floating-label-group" data-field="config_name">
                             <input type="text" name="config_name" id="edit_config_name" placeholder=" " required>
                             <label for="edit_config_name">Configuration Name <span class="required-mark">*</span></label>
+                            <div class="field-help"><i class="fas fa-info-circle"></i> e.g., Production Server, Chiller DB</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         </div>
 
-                        <!-- Database Name -->
-                        <div class="floating-label-group">
+                        <div class="floating-label-group" data-field="db_name">
                             <input type="text" name="db_name" id="edit_db_name" placeholder=" " required>
                             <label for="edit_db_name">Database Name <span class="required-mark">*</span></label>
+                            <div class="field-help"><i class="fas fa-info-circle"></i> e.g., sensor_data, iot_metrics</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         </div>
 
-                        <!-- API Endpoint -->
-                        <div class="floating-label-group">
+                        <div class="floating-label-group" data-field="base_api">
                             <input type="url" name="base_api" id="edit_base_api" placeholder=" " required>
                             <label for="edit_base_api">API Endpoint <span class="required-mark">*</span></label>
+                            <div class="field-help"><i class="fas fa-info-circle"></i> e.g., http://localhost:8086</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         </div>
 
-                        <!-- Username -->
-                        <div class="floating-label-group">
+                        <div class="floating-label-group" data-field="api_username">
                             <input type="text" name="api_username" id="edit_api_username" placeholder=" " required>
                             <label for="edit_api_username">Username <span class="required-mark">*</span></label>
+                            <div class="field-help"><i class="fas fa-info-circle"></i> e.g., admin, influx_user</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         </div>
 
-                        <!-- ✅ FIXED: Password field with proper floating label -->
-                        <div class="floating-label-group password-group">
+                        <div class="floating-label-group password-group" data-field="api_password">
                             <input type="password" name="api_password" id="edit_api_password" placeholder=" ">
                             <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('edit_api_password', this)">
                                 <i class="fas fa-eye"></i>
                             </button>
                             <label for="edit_api_password">Password (leave blank to keep current)</label>
+                            <div class="field-help"><i class="fas fa-info-circle"></i> Leave empty to keep existing password</div>
+                            <div class="field-error"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                         </div>
                     </div>
 
-                    <!-- Notes -->
-                    <div class="floating-label-group">
+                    <div class="floating-label-group" data-field="notes">
                         <textarea name="notes" id="edit_notes" rows="3" placeholder=" "></textarea>
                         <label for="edit_notes">Notes (Optional)</label>
+                        <div class="field-help"><i class="fas fa-info-circle"></i> e.g., Temperature sensors from Building A</div>
                     </div>
 
-                    <!-- Active -->
                     <div class="checkbox-container">
                         <input type="checkbox" name="is_active" id="edit_is_active">
                         <label for="edit_is_active">Configuration Active</label>
+                    </div>
+
+                    <!-- ✅ ISSUE #8: Test Connection Button -->
+                    <div class="test-connection-row">
+                        <button type="button" class="btn-test-inline" onclick="testConnectionLive('edit')">
+                            <i class="fas fa-plug"></i> Test Connection
+                        </button>
+                        <span>Test your credentials before saving</span>
                     </div>
                 </div>
                 
@@ -937,7 +1013,7 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-                    <button type="submit" class="btn-primary-submit">
+                    <button type="submit" class="btn-primary-submit" id="editSubmitBtn">
                         <i class="fas fa-save"></i> Update Configuration
                     </button>
                 </div>
@@ -946,7 +1022,7 @@
     </div>
 </div>
 
-<!-- ========== HIDDEN FORMS ========== -->
+<!-- ========== HIDDEN FORMS FOR NON-AJAX FALLBACK ========== -->
 <form method="POST" id="testForm" style="display: none;">
     {% csrf_token %}
     <input type="hidden" name="test_connection" value="1">
@@ -963,7 +1039,7 @@
 
 {% block extra_js %}
 <script>
-// Config data as JavaScript object
+// Config data for edit modal
 const configsData = [
     {% for config_data in configs_data %}
     {
@@ -972,173 +1048,439 @@ const configsData = [
         db_name: "{{ config_data.config.db_name|escapejs }}",
         base_api: "{{ config_data.config.base_api|escapejs }}",
         api_username: "{{ config_data.config.api_username|escapejs }}",
-        api_password: "{{ config_data.config.api_password|escapejs }}",
         notes: "{{ config_data.config.notes|default:''|escapejs }}",
         is_active: {{ config_data.config.is_active|yesno:"true,false" }},
-        device_count: {{ config_data.device_count }},
-        sensor_count: {{ config_data.sensor_count }}
+        device_count: {{ config_data.device_count }}
     }{% if not forloop.last %},{% endif %}
     {% endfor %}
 ];
 
-// ✅ FIXED: Password toggle function - simplified
-function togglePasswordVisibility(fieldId, button) {
-    const field = document.getElementById(fieldId);
-    const icon = button.querySelector('i');
+// ============================================================
+// ✅ ISSUE #8: Alert Functions
+// ============================================================
+function showAlert(prefix, type, title, message) {
+    const alertEl = document.getElementById(`${prefix}Alert`);
+    if (!alertEl) return;
     
-    if (!field || !icon) {
-        console.error('Password field or icon not found:', fieldId);
-        return;
-    }
+    // Remove all type classes
+    alertEl.classList.remove('alert-success', 'alert-error', 'alert-warning', 'show');
+    alertEl.classList.add(`alert-${type}`, 'show');
     
-    if (field.type === 'password') {
-        field.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        field.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
+    // Update icon
+    const icon = alertEl.querySelector('.alert-icon');
+    const iconMap = {
+        'success': 'fa-check-circle',
+        'error': 'fa-exclamation-circle',
+        'warning': 'fa-exclamation-triangle'
+    };
+    icon.className = `fas ${iconMap[type] || 'fa-info-circle'} alert-icon`;
+    
+    // Update content
+    alertEl.querySelector('.modal-alert-title').textContent = title;
+    alertEl.querySelector('.modal-alert-message').textContent = message;
+    
+    // Scroll to alert
+    alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function hideAlert(prefix) {
+    const alertEl = document.getElementById(`${prefix}Alert`);
+    if (alertEl) alertEl.classList.remove('show');
+}
+
+// ============================================================
+// ✅ ISSUE #8: Field Error Functions
+// ============================================================
+function showFieldError(prefix, fieldName, message) {
+    const modal = document.getElementById(`${prefix}Modal`);
+    const fieldGroup = modal.querySelector(`.floating-label-group[data-field="${fieldName}"]`);
+    if (!fieldGroup) return;
+    
+    fieldGroup.classList.add('has-error');
+    const errorEl = fieldGroup.querySelector('.field-error');
+    if (errorEl) {
+        errorEl.querySelector('span').textContent = message;
+        errorEl.classList.add('show');
     }
 }
 
-// Test connection handler
-function handleTestConnection(button) {
+function clearFieldErrors(prefix) {
+    const modal = document.getElementById(`${prefix}Modal`);
+    if (!modal) return;
+    
+    modal.querySelectorAll('.floating-label-group').forEach(group => {
+        group.classList.remove('has-error');
+        const errorEl = group.querySelector('.field-error');
+        if (errorEl) errorEl.classList.remove('show');
+    });
+}
+
+// ============================================================
+// ✅ ISSUE #8: Test Connection Live (in modal, before saving)
+// ============================================================
+async function testConnectionLive(prefix) {
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    
+    // Get form values
+    const base_api = document.getElementById(`${prefix}_base_api`).value.trim();
+    const api_username = document.getElementById(`${prefix}_api_username`).value.trim();
+    const api_password = document.getElementById(`${prefix}_api_password`).value;
+    
+    // Clear previous errors
+    clearFieldErrors(prefix);
+    hideAlert(prefix);
+    
+    // Validate
+    if (!base_api || !api_username || !api_password) {
+        showAlert(prefix, 'warning', 'Missing Fields', 'Please fill in API Endpoint, Username, and Password.');
+        return;
+    }
+    
+    // Show loading
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+    
+    try {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('test_live', '1');
+        formData.append('base_api', base_api);
+        formData.append('api_username', api_username);
+        formData.append('api_password', api_password);
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const data = await response.json();
+        console.log('Test response:', data);
+        
+        if (data.success) {
+            showAlert(prefix, 'success', 'Connection Successful!', data.message);
+        } else {
+            showAlert(prefix, 'error', 'Connection Failed', data.message);
+            if (data.error_field) {
+                showFieldError(prefix, data.error_field, data.message);
+            }
+        }
+    } catch (error) {
+        console.error('Test error:', error);
+        showAlert(prefix, 'error', 'Request Failed', 'Could not connect to server.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+// ============================================================
+// ✅ ISSUE #8: Create Form - AJAX Submit
+// ============================================================
+document.getElementById('createForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const btn = document.getElementById('createSubmitBtn');
+    const originalText = btn.innerHTML;
+    
+    clearFieldErrors('create');
+    hideAlert('create');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+    
+    try {
+        const formData = new FormData(this);
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const data = await response.json();
+        console.log('Create response:', data);
+        
+        if (data.success) {
+            showAlert('create', 'success', 'Success!', data.message);
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showAlert('create', 'error', 'Error', data.message);
+            
+            if (data.errors) {
+                for (const [field, error] of Object.entries(data.errors)) {
+                    showFieldError('create', field, error);
+                }
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (error) {
+        console.error('Create error:', error);
+        showAlert('create', 'error', 'Request Failed', 'Could not connect to server.');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+// ============================================================
+// ✅ ISSUE #8: Edit Form - AJAX Submit
+// ============================================================
+document.getElementById('editForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const btn = document.getElementById('editSubmitBtn');
+    const originalText = btn.innerHTML;
+    
+    clearFieldErrors('edit');
+    hideAlert('edit');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    
+    try {
+        const formData = new FormData(this);
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const data = await response.json();
+        console.log('Edit response:', data);
+        
+        if (data.success) {
+            showAlert('edit', 'success', 'Success!', data.message);
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showAlert('edit', 'error', 'Error', data.message);
+            
+            if (data.errors) {
+                for (const [field, error] of Object.entries(data.errors)) {
+                    showFieldError('edit', field, error);
+                }
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (error) {
+        console.error('Edit error:', error);
+        showAlert('edit', 'error', 'Request Failed', 'Could not connect to server.');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+// ============================================================
+// ✅ ISSUE #8: Test Connection - AJAX (card button)
+// ============================================================
+async function handleTestConnection(button) {
     const configId = button.getAttribute('data-config-id');
     const configName = button.getAttribute('data-config-name');
+    const originalText = button.innerHTML;
     
-    if (!configId) {
-        console.error('Config ID not found');
-        return;
-    }
+    if (!confirm(`Test connection for "${configName}"?`)) return;
     
-    if (confirm(`Test connection for "${configName}"?\n\nThis will verify your database credentials and connectivity.`)) {
-        document.getElementById('test_config_id').value = configId;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('test_connection', '1');
+        formData.append('config_id', configId);
         
-        // Disable button and show loading
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
         
-        document.getElementById('testForm').submit();
+        const data = await response.json();
+        console.log('Test response:', data);
+        
+        // Update card status
+        const card = button.closest('.config-card');
+        const badge = card.querySelector('.status-badge');
+        
+        if (data.success) {
+            card.classList.remove('disconnected', 'untested');
+            card.classList.add('connected');
+            badge.classList.remove('disconnected', 'untested');
+            badge.classList.add('connected');
+            badge.innerHTML = '<i class="fas fa-check-circle"></i> Online';
+            alert(`✅ ${data.message}`);
+        } else {
+            card.classList.remove('connected', 'untested');
+            card.classList.add('disconnected');
+            badge.classList.remove('connected', 'untested');
+            badge.classList.add('disconnected');
+            badge.innerHTML = '<i class="fas fa-times-circle"></i> Offline';
+            alert(`❌ ${data.message}`);
+        }
+    } catch (error) {
+        console.error('Test error:', error);
+        alert('❌ Request failed. Please try again.');
+    } finally {
+        button.disabled = false;
+        button.innerHTML = originalText;
     }
 }
 
-// Edit config handler
-function handleEditConfig(button) {
+// ============================================================
+// ✅ ISSUE #8: Delete Config - AJAX
+// ============================================================
+async function handleDeleteConfig(button) {
     const configId = button.getAttribute('data-config-id');
+    const configName = button.getAttribute('data-config-name');
+    const deviceCount = parseInt(button.getAttribute('data-device-count')) || 0;
+    const originalText = button.innerHTML;
     
-    if (!configId) {
-        console.error('Config ID not found');
+    if (deviceCount > 0) {
+        alert(`Cannot delete "${configName}" - it has ${deviceCount} associated devices.\n\nPlease reassign or delete those devices first.`);
         return;
     }
     
-    // Find config in data array
+    if (!confirm(`Delete configuration "${configName}"?\n\nThis action cannot be undone.`)) return;
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('delete_config', '1');
+        formData.append('config_id', configId);
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const data = await response.json();
+        console.log('Delete response:', data);
+        
+        if (data.success) {
+            const card = button.closest('.config-card');
+            card.style.transition = 'opacity 0.3s, transform 0.3s';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            
+            setTimeout(() => {
+                card.remove();
+                if (document.querySelectorAll('.config-card').length === 0) {
+                    window.location.reload();
+                }
+            }, 300);
+            
+            alert(`✅ ${data.message}`);
+        } else {
+            alert(`❌ ${data.message}`);
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        alert('❌ Request failed. Please try again.');
+        button.disabled = false;
+        button.innerHTML = originalText;
+    }
+}
+
+// ============================================================
+// Edit Config Handler (populate modal)
+// ============================================================
+function handleEditConfig(button) {
+    const configId = button.getAttribute('data-config-id');
     const config = configsData.find(c => c.id == configId);
     
     if (!config) {
-        console.error('Config not found in data:', configId);
         alert('Configuration data not found. Please refresh the page.');
         return;
     }
     
-    // Populate edit form
+    clearFieldErrors('edit');
+    hideAlert('edit');
+    
     document.getElementById('edit_config_id').value = config.id;
     document.getElementById('edit_config_name').value = config.config_name;
     document.getElementById('edit_db_name').value = config.db_name;
     document.getElementById('edit_base_api').value = config.base_api;
     document.getElementById('edit_api_username').value = config.api_username;
-    document.getElementById('edit_api_password').value = ''; // Don't pre-fill password
+    document.getElementById('edit_api_password').value = '';
     document.getElementById('edit_notes').value = config.notes || '';
     document.getElementById('edit_is_active').checked = config.is_active;
     
-    // ✅ Trigger label float for pre-filled fields
-    setTimeout(function() {
-        triggerFloatLabels('editModal');
-    }, 100);
+    setTimeout(() => triggerFloatLabels('editModal'), 100);
     
-    // Show modal
     const editModal = new bootstrap.Modal(document.getElementById('editModal'));
     editModal.show();
 }
 
-// ✅ NEW: Function to trigger floating labels on pre-filled inputs
+// ============================================================
+// Helper Functions
+// ============================================================
+function togglePasswordVisibility(fieldId, button) {
+    const field = document.getElementById(fieldId);
+    const icon = button.querySelector('i');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
 function triggerFloatLabels(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
     
-    const inputs = modal.querySelectorAll('.floating-label-group input, .floating-label-group textarea');
-    inputs.forEach(input => {
-        // Trigger the focus/blur to activate floating label
+    modal.querySelectorAll('.floating-label-group input, .floating-label-group textarea').forEach(input => {
         if (input.value && input.value.trim() !== '') {
             input.dispatchEvent(new Event('input', { bubbles: true }));
         }
     });
 }
 
-// Delete config handler
-function handleDeleteConfig(button) {
-    const configId = button.getAttribute('data-config-id');
-    const configName = button.getAttribute('data-config-name');
-    const deviceCount = parseInt(button.getAttribute('data-device-count')) || 0;
-    
-    if (!configId) {
-        console.error('Config ID not found');
-        return;
-    }
-    
-    // Check if config has devices
-    if (deviceCount > 0) {
-        alert(`Cannot delete "${configName}" - it has ${deviceCount} associated devices.\n\nPlease reassign or delete those devices first.`);
-        return;
-    }
-    
-    if (confirm(`Delete configuration "${configName}"?\n\nThis action cannot be undone.`)) {
-        document.getElementById('delete_config_id').value = configId;
-        
-        // Disable button and show loading
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
-        
-        document.getElementById('deleteForm').submit();
-    }
-}
-
-// Form submission protection
+// Reset modals when closed
 document.addEventListener('DOMContentLoaded', function() {
-    const forms = document.querySelectorAll('form');
-    
-    forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const submitBtn = form.querySelector('button[type="submit"]');
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('hidden.bs.modal', function() {
+            this.querySelectorAll('input[type="text"][name="api_password"]').forEach(field => {
+                field.type = 'password';
+            });
+            this.querySelectorAll('.password-toggle-btn i').forEach(icon => {
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            });
             
-            if (submitBtn && !submitBtn.disabled) {
-                submitBtn.disabled = true;
-                const originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                
-                // Re-enable after timeout (fallback)
-                setTimeout(() => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
-                }, 10000);
-            }
+            const prefix = this.id.replace('Modal', '');
+            hideAlert(prefix);
+            clearFieldErrors(prefix);
         });
     });
     
-    // ✅ Reset password toggle icons when modals are closed
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('hidden.bs.modal', function() {
-            const passwordFields = modal.querySelectorAll('input[type="text"][name="api_password"]');
-            passwordFields.forEach(field => {
-                field.type = 'password';
-            });
-            
-            const eyeIcons = modal.querySelectorAll('.password-toggle-btn i');
-            eyeIcons.forEach(icon => {
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            });
-        });
+    document.getElementById('createModal').addEventListener('show.bs.modal', function() {
+        document.getElementById('createForm').reset();
+        document.getElementById('create_is_active').checked = true;
+        hideAlert('create');
+        clearFieldErrors('create');
     });
 });
 </script>

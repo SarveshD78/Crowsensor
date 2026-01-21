@@ -766,34 +766,49 @@ def debug_print(message):
     print(f"[{timestamp}] 🔍 DEBUG: {message}")
     import sys
     sys.stdout.flush()
+"""
+✅ ISSUE #8: Updated influx_config_view with AJAX support
+==========================================================
+Minimal changes - same logic, just returns JSON for AJAX requests
+
+⚠️ IMPORTANT: Add this import at the TOP of your views.py file:
+    from django.http import JsonResponse
+"""
+
+# ============================================================
+# ⚠️ ADD THIS IMPORT TO THE TOP OF YOUR views.py FILE:
+# ============================================================
+# from django.http import JsonResponse
+# ============================================================
+
+
+def is_ajax(request):
+    """✅ ISSUE #8: Helper to check if request is AJAX"""
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
 
 @require_company_admin
 def influx_config_view(request):
     """
     ✨ UPDATED: Manage MULTIPLE InfluxDB configurations
-    - View all configs in a list
-    - Create new configs
-    - Edit existing configs
-    - Delete/deactivate configs
-    - Test individual connections
+    ✅ ISSUE #8: Now supports AJAX requests - returns JSON instead of redirect
     """
     
+    # ✅ ISSUE #8: Import JsonResponse here if not at top of file
+    from django.http import JsonResponse
+    
     debug_print("=" * 80)
-    debug_print("influx_config_view() called - MULTI-CONFIG VERSION")
+    debug_print("influx_config_view() called")
     debug_print(f"User: {request.user.username}")
     debug_print(f"Method: {request.method}")
-    debug_print(f"Path: {request.path}")
+    debug_print(f"Is AJAX: {is_ajax(request)}")
     
-    # ✨ NEW: Get ALL active configs (not just one)
+    # Get ALL active configs
     configs = AssetConfig.objects.filter(is_active=True).order_by('config_name')
     debug_print(f"Found {configs.count()} active configurations")
     
-    for config in configs:
-        debug_print(f"  - Config: {config.config_name} | DB: {config.db_name} | Connected: {config.is_connected}")
-    
     # ==========================================
-    # POST HANDLING - All actions
+    # POST HANDLING
     # ==========================================
     if request.method == 'POST':
         debug_print("POST request detected")
@@ -803,37 +818,51 @@ def influx_config_view(request):
         if 'create_config' in request.POST:
             debug_print("CREATE CONFIG action triggered")
             
-            debug_print(f"POST data - config_name: {request.POST.get('config_name')}")
-            debug_print(f"POST data - db_name: {request.POST.get('db_name')}")
-            debug_print(f"POST data - base_api: {request.POST.get('base_api')}")
-            debug_print(f"POST data - api_username: {request.POST.get('api_username')}")
-            debug_print(f"POST data - is_active: {request.POST.get('is_active')}")
-            
             form = AssetConfigForm(request.POST)
-            debug_print(f"Form created, is_valid: {form.is_valid()}")
+            debug_print(f"Form is_valid: {form.is_valid()}")
             
             if form.is_valid():
-                debug_print("Form validation passed")
                 try:
                     config = form.save()
-                    debug_print(f"Config saved successfully! ID: {config.id}")
-                    debug_print(f"Saved - Name: {config.config_name}, DB: {config.db_name}, API: {config.base_api}")
+                    debug_print(f"Config saved! ID: {config.id}")
                     
-                    messages.success(
-                        request,
-                        f'✅ InfluxDB configuration "{config.config_name}" created successfully!'
-                    )
+                    # ✅ ISSUE #8: Return JSON for AJAX requests
+                    if is_ajax(request):
+                        return JsonResponse({
+                            'success': True,
+                            'message': f'Configuration "{config.config_name}" created successfully!',
+                            'config_id': config.id
+                        })
+                    
+                    messages.success(request, f'✅ Configuration "{config.config_name}" created successfully!')
+                    
                 except Exception as e:
-                    debug_print(f"ERROR saving config: {str(e)}")
-                    import traceback
-                    debug_print(f"Traceback: {traceback.format_exc()}")
+                    debug_print(f"ERROR: {str(e)}")
+                    
+                    if is_ajax(request):
+                        return JsonResponse({
+                            'success': False,
+                            'message': f'Error creating configuration: {str(e)}'
+                        })
+                    
                     messages.error(request, f'⛔ Error creating configuration: {str(e)}')
             else:
-                debug_print("Form validation FAILED")
                 debug_print(f"Form errors: {form.errors}")
+                
+                # ✅ ISSUE #8: Return JSON with field errors for AJAX
+                if is_ajax(request):
+                    errors = {}
+                    for field, error_list in form.errors.items():
+                        errors[field] = error_list[0]
+                    
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Please correct the errors below.',
+                        'errors': errors
+                    })
+                
                 messages.error(request, '⛔ Please correct the errors in the form.')
             
-            debug_print("Redirecting to influx_config")
             return redirect('companyadmin:influx_config')
         
         # ========== EDIT CONFIG ==========
@@ -841,43 +870,51 @@ def influx_config_view(request):
             debug_print("EDIT CONFIG action triggered")
             
             config_id = request.POST.get('config_id')
-            debug_print(f"Config ID to edit: {config_id}")
-            
             config = get_object_or_404(AssetConfig, id=config_id)
-            debug_print(f"Found config: {config.config_name}")
-            
-            debug_print(f"POST data - config_name: {request.POST.get('config_name')}")
-            debug_print(f"POST data - db_name: {request.POST.get('db_name')}")
-            debug_print(f"POST data - base_api: {request.POST.get('base_api')}")
-            debug_print(f"POST data - api_username: {request.POST.get('api_username')}")
-            debug_print(f"POST data - api_password: {'***' if request.POST.get('api_password') else '(blank)'}")
-            debug_print(f"POST data - is_active: {request.POST.get('is_active')}")
+            debug_print(f"Editing config: {config.config_name}")
             
             form = AssetConfigEditForm(request.POST, instance=config)
-            debug_print(f"Edit form created, is_valid: {form.is_valid()}")
             
             if form.is_valid():
-                debug_print("Form validation passed")
                 try:
                     updated_config = form.save()
-                    debug_print(f"Config updated successfully! ID: {updated_config.id}")
-                    debug_print(f"Updated - Name: {updated_config.config_name}, DB: {updated_config.db_name}")
+                    debug_print(f"Config updated: {updated_config.config_name}")
                     
-                    messages.success(
-                        request,
-                        f'✅ Configuration "{updated_config.config_name}" updated successfully!'
-                    )
+                    if is_ajax(request):
+                        return JsonResponse({
+                            'success': True,
+                            'message': f'Configuration "{updated_config.config_name}" updated successfully!',
+                            'config_id': updated_config.id
+                        })
+                    
+                    messages.success(request, f'✅ Configuration "{updated_config.config_name}" updated successfully!')
+                    
                 except Exception as e:
-                    debug_print(f"ERROR updating config: {str(e)}")
-                    import traceback
-                    debug_print(f"Traceback: {traceback.format_exc()}")
+                    debug_print(f"ERROR: {str(e)}")
+                    
+                    if is_ajax(request):
+                        return JsonResponse({
+                            'success': False,
+                            'message': f'Error updating configuration: {str(e)}'
+                        })
+                    
                     messages.error(request, f'⛔ Error updating configuration: {str(e)}')
             else:
-                debug_print("Form validation FAILED")
                 debug_print(f"Form errors: {form.errors}")
+                
+                if is_ajax(request):
+                    errors = {}
+                    for field, error_list in form.errors.items():
+                        errors[field] = error_list[0]
+                    
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Please correct the errors below.',
+                        'errors': errors
+                    })
+                
                 messages.error(request, '⛔ Please correct the errors in the form.')
             
-            debug_print("Redirecting to influx_config")
             return redirect('companyadmin:influx_config')
         
         # ========== DELETE CONFIG ==========
@@ -885,44 +922,50 @@ def influx_config_view(request):
             debug_print("DELETE CONFIG action triggered")
             
             config_id = request.POST.get('config_id')
-            debug_print(f"Config ID to delete: {config_id}")
-            
             config = get_object_or_404(AssetConfig, id=config_id)
-            debug_print(f"Found config: {config.config_name}")
             
-            # ✨ NEW: Check if config has associated devices
+            # Check for associated devices
             device_count = Device.objects.filter(asset_config=config).count()
-            debug_print(f"Config has {device_count} associated devices")
             
             if device_count > 0:
-                debug_print("Cannot delete - config has associated devices")
-                messages.error(
-                    request,
-                    f'⛔ Cannot delete "{config.config_name}" - it has {device_count} associated devices. '
-                    f'Please reassign or delete those devices first.'
-                )
+                debug_print(f"Cannot delete - has {device_count} devices")
+                
+                if is_ajax(request):
+                    return JsonResponse({
+                        'success': False,
+                        'message': f'Cannot delete - has {device_count} associated devices. Please reassign or delete them first.',
+                        'device_count': device_count
+                    })
+                
+                messages.error(request, f'⛔ Cannot delete "{config.config_name}" - it has {device_count} associated devices.')
                 return redirect('companyadmin:influx_config')
             
             try:
                 config_name = config.config_name
-                debug_print(f"Deactivating config: {config_name}")
-                
                 config.is_active = False
                 config.save()
                 
-                debug_print(f"Config deactivated successfully: {config_name}")
+                debug_print(f"Config deactivated: {config_name}")
                 
-                messages.success(
-                    request,
-                    f'✅ Configuration "{config_name}" deactivated successfully!'
-                )
+                if is_ajax(request):
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'Configuration "{config_name}" deleted successfully!'
+                    })
+                
+                messages.success(request, f'✅ Configuration "{config_name}" deleted successfully!')
+                
             except Exception as e:
-                debug_print(f"ERROR deactivating config: {str(e)}")
-                import traceback
-                debug_print(f"Traceback: {traceback.format_exc()}")
-                messages.error(request, f'⛔ Error deactivating configuration: {str(e)}')
+                debug_print(f"ERROR: {str(e)}")
+                
+                if is_ajax(request):
+                    return JsonResponse({
+                        'success': False,
+                        'message': f'Error deleting configuration: {str(e)}'
+                    })
+                
+                messages.error(request, f'⛔ Error deleting configuration: {str(e)}')
             
-            debug_print("Redirecting to influx_config")
             return redirect('companyadmin:influx_config')
         
         # ========== TEST CONNECTION ==========
@@ -930,73 +973,164 @@ def influx_config_view(request):
             debug_print("TEST CONNECTION action triggered")
             
             config_id = request.POST.get('config_id')
-            debug_print(f"Config ID to test: {config_id}")
-            
             config = get_object_or_404(AssetConfig, id=config_id)
-            debug_print(f"Found config: {config.config_name}")
-            debug_print(f"Testing connection to: {config.base_api}")
+            debug_print(f"Testing: {config.config_name} at {config.base_api}")
             
             try:
-                # Test InfluxDB connection via HTTP request
                 url = f"{config.base_api}/ping"
                 debug_print(f"Ping URL: {url}")
-                debug_print(f"Auth username: {config.api_username}")
-                debug_print("Sending GET request...")
                 
                 response = requests.get(
                     url,
                     auth=HTTPBasicAuth(config.api_username, config.api_password),
-                    verify=False, 
+                    verify=False,
                     timeout=5
                 )
                 
-                debug_print(f"Response status code: {response.status_code}")
-                debug_print(f"Response headers: {dict(response.headers)}")
-                debug_print(f"Response text: {response.text[:200] if response.text else '(empty)'}")
+                debug_print(f"Response status: {response.status_code}")
                 
                 if response.status_code == 204:
-                    debug_print("Connection test SUCCESSFUL (HTTP 204)")
                     config.mark_connected()
-                    debug_print("Config marked as connected")
+                    debug_print("Connection SUCCESSFUL")
                     
-                    messages.success(
-                        request,
-                        f'✅ "{config.config_name}" connection successful! InfluxDB is reachable at {config.base_api}'
-                    )
+                    if is_ajax(request):
+                        return JsonResponse({
+                            'success': True,
+                            'message': f'Connection successful! InfluxDB is reachable.',
+                            'is_connected': True
+                        })
+                    
+                    messages.success(request, f'✅ "{config.config_name}" connection successful!')
+                    
                 else:
-                    error_msg = f'HTTP {response.status_code}: {response.text}'
-                    debug_print(f"Connection test FAILED: {error_msg}")
+                    error_msg = f'HTTP {response.status_code}'
                     config.mark_disconnected(error_msg)
-                    debug_print("Config marked as disconnected")
+                    debug_print(f"Connection FAILED: {error_msg}")
                     
-                    messages.error(request, f'⛔ "{config.config_name}" connection failed! {error_msg}')
+                    if is_ajax(request):
+                        return JsonResponse({
+                            'success': False,
+                            'message': f'Connection failed: {error_msg}',
+                            'is_connected': False
+                        })
+                    
+                    messages.error(request, f'⛔ "{config.config_name}" connection failed: {error_msg}')
             
             except requests.exceptions.Timeout:
-                error_msg = 'Connection timeout - InfluxDB did not respond within 5 seconds'
-                debug_print(f"Connection test TIMEOUT: {error_msg}")
+                error_msg = 'Connection timeout - server did not respond'
                 config.mark_disconnected(error_msg)
+                
+                if is_ajax(request):
+                    return JsonResponse({
+                        'success': False,
+                        'message': error_msg,
+                        'is_connected': False
+                    })
+                
                 messages.error(request, f'⛔ "{config.config_name}" - {error_msg}')
             
-            except requests.exceptions.ConnectionError as e:
-                error_msg = f'Connection refused - Cannot reach InfluxDB server'
-                debug_print(f"Connection test ERROR: {error_msg}")
+            except requests.exceptions.ConnectionError:
+                error_msg = 'Connection refused - cannot reach server'
                 config.mark_disconnected(error_msg)
+                
+                if is_ajax(request):
+                    return JsonResponse({
+                        'success': False,
+                        'message': error_msg,
+                        'is_connected': False
+                    })
+                
                 messages.error(request, f'⛔ "{config.config_name}" - {error_msg}')
             
             except Exception as e:
-                error_msg = f'Unexpected error: {str(e)}'
-                debug_print(f"Connection test EXCEPTION: {error_msg}")
-                import traceback
-                debug_print(f"Traceback: {traceback.format_exc()}")
+                error_msg = f'Error: {str(e)}'
                 config.mark_disconnected(error_msg)
+                
+                if is_ajax(request):
+                    return JsonResponse({
+                        'success': False,
+                        'message': error_msg,
+                        'is_connected': False
+                    })
+                
                 messages.error(request, f'⛔ "{config.config_name}" - {error_msg}')
             
-            debug_print("Redirecting to influx_config")
             return redirect('companyadmin:influx_config')
         
-        else:
-            debug_print("UNKNOWN POST action - no matching button name")
-            debug_print(f"POST keys: {list(request.POST.keys())}")
+        # ========== TEST CONNECTION LIVE (without saving) ==========
+        # ✅ ISSUE #8: New action - test credentials before saving
+        elif 'test_live' in request.POST:
+            debug_print("TEST LIVE action triggered")
+            
+            base_api = request.POST.get('base_api', '').strip()
+            api_username = request.POST.get('api_username', '').strip()
+            api_password = request.POST.get('api_password', '').strip()
+            
+            debug_print(f"Testing live: {base_api} with user {api_username}")
+            
+            # Validate required fields
+            if not base_api or not api_username or not api_password:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Please fill in API Endpoint, Username, and Password.'
+                })
+            
+            try:
+                url = f"{base_api.rstrip('/')}/ping"
+                debug_print(f"Ping URL: {url}")
+                
+                response = requests.get(
+                    url,
+                    auth=HTTPBasicAuth(api_username, api_password),
+                    verify=False,
+                    timeout=5
+                )
+                
+                debug_print(f"Response status: {response.status_code}")
+                
+                if response.status_code == 204:
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Connection successful! Credentials are valid.'
+                    })
+                elif response.status_code == 401:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Authentication failed - invalid username or password.',
+                        'error_field': 'api_password'
+                    })
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'message': f'Unexpected response: HTTP {response.status_code}'
+                    })
+            
+            except requests.exceptions.Timeout:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Connection timeout - server did not respond within 5 seconds.',
+                    'error_field': 'base_api'
+                })
+            
+            except requests.exceptions.ConnectionError:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Connection refused - cannot reach server. Check the URL.',
+                    'error_field': 'base_api'
+                })
+            
+            except requests.exceptions.MissingSchema:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid URL - must start with http:// or https://',
+                    'error_field': 'base_api'
+                })
+            
+            except Exception as e:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Error: {str(e)}'
+                })
     
     # ==========================================
     # GET - Show all configs
@@ -1004,10 +1138,9 @@ def influx_config_view(request):
     
     debug_print("Preparing GET response")
     
-    # ✨ NEW: Prepare data for all configs
+    # Prepare data for all configs
     configs_data = []
     for config in configs:
-        # Count devices and sensors for this config
         device_count = Device.objects.filter(asset_config=config).count()
         sensor_count = Sensor.objects.filter(
             device__asset_config=config,
@@ -1019,14 +1152,8 @@ def influx_config_view(request):
             'device_count': device_count,
             'sensor_count': sensor_count,
         })
-        
-        debug_print(f"Config '{config.config_name}': {device_count} devices, {sensor_count} sensors")
     
-    # Create form for new config
-    create_form = AssetConfigForm(initial={'is_active': True})
-    debug_print(f"Create form prepared with fields: {list(create_form.fields.keys())}")
-    
-    # ✨ NEW: Calculate summary stats
+    # Calculate stats
     total_configs = configs.count()
     connected_configs = configs.filter(is_connected=True).count()
     disconnected_configs = total_configs - connected_configs
@@ -1037,20 +1164,17 @@ def influx_config_view(request):
     ).count()
     
     context = {
-        'configs_data': configs_data,  # ✨ NEW: List of all configs with stats
+        'configs_data': configs_data,
         'has_configs': total_configs > 0,
         'total_configs': total_configs,
         'connected_configs': connected_configs,
         'disconnected_configs': disconnected_configs,
         'total_devices': total_devices,
         'total_sensors': total_sensors,
-        'create_form': create_form,
-        'page_title': 'InfluxDB Configurations',  # Plural
+        'page_title': 'InfluxDB Configurations',
     }
     
-    debug_print(f"Context prepared - has_configs: {context['has_configs']}")
-    debug_print(f"Total configs: {total_configs}, Connected: {connected_configs}, Disconnected: {disconnected_configs}")
-    debug_print("Rendering template: companyadmin/influx_config.html")
+    debug_print(f"Rendering template with {total_configs} configs")
     debug_print("=" * 80)
     
     return render(request, 'companyadmin/influx_config.html', context)

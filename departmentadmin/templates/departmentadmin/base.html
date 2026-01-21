@@ -388,47 +388,6 @@
         }
         
         /* ========================================
-           DEBUG SECTION - REMOVE IN PRODUCTION
-           ======================================== */
-        .debug-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1e1e1e;
-            color: #00ff00;
-            font-family: monospace;
-            font-size: 11px;
-            padding: 8px 16px;
-            z-index: 99999;
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .debug-bar span {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .debug-bar .label {
-            color: #888;
-        }
-
-        .debug-bar .value {
-            color: #00ff00;
-        }
-
-        .debug-bar .value.error {
-            color: #ff4444;
-        }
-
-        .debug-bar .value.success {
-            color: #44ff44;
-        }
-        
-        /* ========================================
            SIDEBAR - DESKTOP
            ======================================== */
         .sidebar {
@@ -550,7 +509,6 @@
         .sidebar i {
             font-size: 18px;
             min-width: 24px;
-            margin-right: var(--space-3);
             text-align: center;
             display: flex;
             align-items: center;
@@ -1064,11 +1022,6 @@
                 min-width: 220px;
                 right: -10px;
             }
-
-            /* Hide debug bar on mobile */
-            .debug-bar {
-                display: none;
-            }
         }
         
         /* Mobile (576px) */
@@ -1165,7 +1118,7 @@
                 <div class="dept-dropdown-menu" id="deptDropdownMenu">
                     <div class="dept-dropdown-header">
                         <i class="fas fa-exchange-alt me-2"></i>
-                        Switch Department
+                        Switch Workspace
                     </div>
                     {% for dept in all_departments %}
                         <form method="POST" action="{% url 'departmentadmin:switch_department' %}" style="margin: 0;">
@@ -1348,35 +1301,6 @@
 <!-- Content Container -->
 <div class="content-container" id="contentContainer">
     {% block content %}{% endblock %}
-</div>
-
-<!-- ========================================
-     🔧 DEBUG BAR - Shows Context Variables
-     REMOVE THIS IN PRODUCTION!
-     ======================================== -->
-<div class="debug-bar">
-    <span>
-        <span class="label">department:</span>
-        <span class="value {% if department %}success{% else %}error{% endif %}">
-            {% if department %}{{ department.name }} (ID:{{ department.id }}){% else %}NOT SET{% endif %}
-        </span>
-    </span>
-    <span>
-        <span class="label">all_departments:</span>
-        <span class="value {% if all_departments %}success{% else %}error{% endif %}">
-            {% if all_departments %}{{ all_departments|length }} depts{% else %}NOT SET{% endif %}
-        </span>
-    </span>
-    <span>
-        <span class="label">show_department_switcher:</span>
-        <span class="value {% if show_department_switcher %}success{% else %}error{% endif %}">
-            {{ show_department_switcher|default:"NOT SET" }}
-        </span>
-    </span>
-    <span>
-        <span class="label">session_dept_id:</span>
-        <span class="value">{{ request.session.selected_department_id|default:"NOT SET" }}</span>
-    </span>
 </div>
 
 <!-- Bootstrap JS -->

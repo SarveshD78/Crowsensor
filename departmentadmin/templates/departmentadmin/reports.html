@@ -1175,7 +1175,13 @@
 
                     <!-- Size -->
                     <td style="text-align: center;">
-                        <span class="info-badge secondary">{{ report.file_size_mb }} MB</span>
+                        <span class="info-badge secondary">
+                            {% if report.csv_file and report.csv_file.size %}
+                                {{ report.csv_file.size|filesizeformat }}
+                            {% else %}
+                                0 KB
+                            {% endif %}
+                        </span>
                     </td>
 
                     <!-- Generated -->

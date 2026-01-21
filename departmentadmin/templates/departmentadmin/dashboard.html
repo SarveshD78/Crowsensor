@@ -421,7 +421,7 @@
         </h5>
         <p>
             <i class="fas fa-user-tie me-2"></i>
-            You are managing <strong>{{ total_departments|default:0 }}</strong> department{{ total_departments|pluralize }} with <strong>{{ total_users|default:0 }}</strong> user{{ total_users|pluralize }}.
+            You are managing <strong>{{ total_departments|default:0 }}</strong> Workspace{{ total_departments|pluralize }} with <strong>{{ total_users|default:0 }}</strong> user{{ total_users|pluralize }}.
         </p>
     </div>
 
@@ -433,7 +433,7 @@
             </div>
             <div class="deptadmin-stat-content">
                 <h3>{{ total_departments|default:0 }}</h3>
-                <p>My Departments</p>
+                <p>My Workspace</p>
             </div>
         </div>
 
@@ -452,7 +452,7 @@
     <div class="deptadmin-departments-card">
         <h4>
             <i class="fas fa-sitemap"></i>
-            My Departments
+            My Workspace
         </h4>
         
         {% if user_departments %}
@@ -512,7 +512,7 @@
                     <i class="fas fa-users"></i>
                     <div class="flex-grow-1 text-start">
                         <div>Manage Users</div>
-                        <small class="text-muted">Add & assign users to departments</small>
+                        <small class="text-muted">Add & assign users to Workspace</small>
                     </div>
                 </a>
             </div>

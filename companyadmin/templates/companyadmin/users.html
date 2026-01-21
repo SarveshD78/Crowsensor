@@ -20,7 +20,7 @@
 /* FLOATING LABEL INPUTS */
 .floating-label-group {
     position: relative;
-    margin-bottom: var(--space-4);
+    margin-bottom: 0;
 }
 
 .floating-label-group input,
@@ -36,6 +36,7 @@
     outline: none;
     color: var(--text-primary);
     font-family: var(--font-family);
+    height: 52px;
 }
 
 .floating-label-group label {
@@ -75,6 +76,26 @@
 .floating-label-group label .required-mark {
     color: var(--danger);
     margin-left: 2px;
+}
+
+/* PHONE VALIDATION: Added styles for error state */
+.floating-label-group input.is-invalid {
+    border-color: var(--danger);
+}
+
+.phone-error-msg {
+    display: none;
+    color: var(--danger);
+    font-size: 12px;
+    margin-top: 4px;
+    padding-left: 4px;
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+}
+
+.phone-error-msg.show {
+    display: block;
 }
 
 /* WELCOME CARD */
@@ -219,13 +240,32 @@
     margin: 0;
 }
 
-/* PRIMARY SUBMIT BUTTON */
+/* ===== ADD FORM ROW - FIXED ALIGNMENT ===== */
+.add-form-row {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.add-form-row .form-field {
+    flex: 1;
+    min-width: 150px;
+    position: relative;
+}
+
+.add-form-row .form-field-btn {
+    flex: 0 0 auto;
+    width: 160px;
+}
+
+/* PRIMARY SUBMIT BUTTON - FIXED HEIGHT TO MATCH INPUTS */
 .btn-primary-submit {
     background: var(--primary-blue);
     color: white;
     border: none;
     border-radius: var(--radius-md);
-    padding: 12px var(--space-5);
+    padding: 0 var(--space-5);
     font-weight: 600;
     font-size: 14px;
     transition: all 0.2s ease;
@@ -234,6 +274,8 @@
     justify-content: center;
     gap: var(--space-2);
     cursor: pointer;
+    height: 52px;
+    width: 100%;
 }
 
 .btn-primary-submit:hover {
@@ -587,7 +629,24 @@
     display: none !important; 
 }
 
+/* MODAL FLOATING LABEL FIX */
+.modal-body .floating-label-group {
+    margin-bottom: var(--space-4);
+}
+
 /* RESPONSIVE */
+@media (max-width: 992px) {
+    .add-form-row {
+        flex-direction: column;
+    }
+    
+    .add-form-row .form-field,
+    .add-form-row .form-field-btn {
+        width: 100%;
+        min-width: 100%;
+    }
+}
+
 @media (max-width: 768px) {
     .users-container { padding: var(--space-4); }
     .users-grid { grid-template-columns: 1fr; }
@@ -651,43 +710,49 @@
                 <p class="add-form-subtitle">Create a new supervisor who can manage multiple workspaces</p>
             </div>
 
-            <form method="POST">
+            <form method="POST" id="addUserForm">
                 {% csrf_token %}
                 <input type="hidden" name="add_user" value="1">
 
-                <div class="row">
-                    <div class="col-md-2">
+                <!-- FIXED: Using custom flexbox row for proper alignment -->
+                <div class="add-form-row">
+                    <div class="form-field">
                         <div class="floating-label-group">
                             <input type="text" name="first_name" placeholder=" " required>
                             <label>First Name <span class="required-mark">*</span></label>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="form-field">
                         <div class="floating-label-group">
                             <input type="text" name="last_name" placeholder=" ">
                             <label>Last Name</label>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="form-field">
                         <div class="floating-label-group">
                             <input type="text" name="username" placeholder=" " required>
                             <label>Username <span class="required-mark">*</span></label>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="form-field">
                         <div class="floating-label-group">
                             <input type="email" name="email" placeholder=" " required>
                             <label>Email <span class="required-mark">*</span></label>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <!-- PHONE VALIDATION: Updated phone field in add form -->
+                    <div class="form-field">
                         <div class="floating-label-group">
-                            <input type="text" name="phone" placeholder=" ">
-                            <label>Phone (Optional)</label>
+                            <input type="text" name="phone" id="add_phone" placeholder=" ">
+                            <label>Phone <small style="font-weight: normal;">(+, 0-9)</small></label>
+                            <div class="phone-error-msg" id="addPhoneError">
+                                <i class="fas fa-exclamation-circle"></i> Only numbers and + allowed
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-2 d-flex align-items-stretch">
-                        <button type="submit" class="btn-primary-submit w-100">
+                    <!-- FIXED: Button in its own container with matching height -->
+                    <div class="form-field-btn">
+                        <button type="submit" class="btn-primary-submit">
                             <i class="fas fa-plus"></i> Add Supervisor
                         </button>
                     </div>
@@ -758,7 +823,8 @@
                         <i class="fas fa-user"></i>
                         {{ user.first_name }} {{ user.last_name }}
                     </h3>
-                    <span class="users-role-label">{{ user.role_display }}</span>
+                    <!-- FIXED Issue #13: Changed from {{ user.role_display }} to Workspace Admin -->
+                    <span class="users-role-label">Workspace SupVi.</span>
                 </div>
 
                 <div class="users-card-body">
@@ -771,12 +837,10 @@
                             <span class="users-info-label"><i class="fas fa-envelope"></i>Email</span>
                             <span class="users-info-value">{{ user.email|truncatechars:25 }}</span>
                         </div>
-                        {% if user.phone %}
                         <div class="users-info-row">
                             <span class="users-info-label"><i class="fas fa-phone"></i>Phone</span>
-                            <span class="users-info-value">{{ user.phone }}</span>
+                            <span class="users-info-value">{{ user.phone|default:"—" }}</span>
                         </div>
-                        {% endif %}
                         <div class="users-info-row">
                             <span class="users-info-label"><i class="fas fa-briefcase"></i>Workspaces</span>
                             <span class="users-info-value">
@@ -873,9 +937,13 @@
                         <input type="email" name="email" id="modal_email" placeholder=" " required>
                         <label>Email <span class="required-mark">*</span></label>
                     </div>
+                    <!-- PHONE VALIDATION: Updated phone field in edit modal -->
                     <div class="floating-label-group">
                         <input type="text" name="phone" id="modal_phone" placeholder=" ">
-                        <label>Phone (Optional)</label>
+                        <label>Phone <small style="font-weight: normal; color: var(--text-tertiary);">(Numbers and + only)</small></label>
+                        <div class="phone-error-msg" id="modalPhoneError">
+                            <i class="fas fa-exclamation-circle"></i> Only numbers and + symbol allowed
+                        </div>
                     </div>
                 </div>
                 
@@ -883,7 +951,7 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times me-1"></i>Cancel
                     </button>
-                    <button type="submit" class="btn-primary-submit">
+                    <button type="submit" class="btn-primary-submit" style="width: auto; padding: 12px 24px;">
                         <i class="fas fa-save"></i> Update Supervisor
                     </button>
                 </div>
@@ -955,7 +1023,7 @@
                         <i class="fas fa-times me-1"></i>Cancel
                     </button>
                     {% if departments %}
-                    <button type="submit" class="btn-primary-submit" id="saveBtn">
+                    <button type="submit" class="btn-primary-submit" id="saveBtn" style="width: auto; padding: 12px 24px;">
                         <i class="fas fa-save me-1"></i>Save Assignments
                     </button>
                     {% endif %}
@@ -970,6 +1038,107 @@
 {% block extra_js %}
 <script>
 console.log('🚀 Users page JavaScript loaded');
+
+// ==========================================
+// PHONE VALIDATION HELPER FUNCTION
+// ==========================================
+function setupPhoneValidation(fieldId, errorId) {
+    const phoneField = document.getElementById(fieldId);
+    const phoneError = document.getElementById(errorId);
+    
+    if (!phoneField) return;
+    
+    // Input event - filter characters as user types
+    phoneField.addEventListener('input', function(e) {
+        const originalValue = this.value;
+        
+        // Remove any character that is not a digit or +
+        let cleanedValue = this.value.replace(/[^0-9+]/g, '');
+        
+        // Ensure + only appears at the start (if present)
+        if (cleanedValue.includes('+')) {
+            const hasLeadingPlus = cleanedValue.charAt(0) === '+';
+            const digitsOnly = cleanedValue.replace(/\+/g, '');
+            cleanedValue = hasLeadingPlus ? '+' + digitsOnly : digitsOnly;
+        }
+        
+        this.value = cleanedValue;
+        
+        // Show error briefly if invalid characters were removed
+        if (originalValue !== cleanedValue && originalValue.length > 0) {
+            phoneError.classList.add('show');
+            this.classList.add('is-invalid');
+            
+            // Hide error after 2 seconds
+            setTimeout(() => {
+                phoneError.classList.remove('show');
+                this.classList.remove('is-invalid');
+            }, 2000);
+        }
+    });
+    
+    // Keypress event - prevent invalid characters from being entered
+    phoneField.addEventListener('keypress', function(e) {
+        const char = String.fromCharCode(e.which);
+        
+        // Allow: digits, + (only at start), and control keys
+        if (!/[0-9+]/.test(char)) {
+            e.preventDefault();
+            phoneError.classList.add('show');
+            this.classList.add('is-invalid');
+            
+            setTimeout(() => {
+                phoneError.classList.remove('show');
+                this.classList.remove('is-invalid');
+            }, 2000);
+            return;
+        }
+        
+        // If + is pressed, only allow at start
+        if (char === '+' && (this.value.length > 0 || this.value.includes('+'))) {
+            e.preventDefault();
+            return;
+        }
+    });
+    
+    // Paste event - filter pasted content
+    phoneField.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        
+        // Clean pasted text
+        let cleanedText = pastedText.replace(/[^0-9+]/g, '');
+        
+        // Handle + in pasted text
+        if (cleanedText.includes('+')) {
+            const hasLeadingPlus = cleanedText.charAt(0) === '+';
+            const digitsOnly = cleanedText.replace(/\+/g, '');
+            cleanedText = hasLeadingPlus ? '+' + digitsOnly : digitsOnly;
+        }
+        
+        // If field already has content, don't allow + in pasted text
+        if (this.value.length > 0 || this.value.includes('+')) {
+            cleanedText = cleanedText.replace(/\+/g, '');
+        }
+        
+        // Insert at cursor position
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        const currentValue = this.value;
+        this.value = currentValue.substring(0, start) + cleanedText + currentValue.substring(end);
+        
+        // Show error if text was modified
+        if (pastedText !== cleanedText) {
+            phoneError.classList.add('show');
+            this.classList.add('is-invalid');
+            
+            setTimeout(() => {
+                phoneError.classList.remove('show');
+                this.classList.remove('is-invalid');
+            }, 2000);
+        }
+    });
+}
 
 // ==========================================
 // EDIT USER FUNCTION
@@ -1037,10 +1206,12 @@ function updateSelectedCount() {
     document.getElementById('selectedCount').textContent = count;
     
     const saveBtn = document.getElementById('saveBtn');
-    if (count === 0) {
-        saveBtn.innerHTML = '<i class="fas fa-times me-1"></i>Clear All';
-    } else {
-        saveBtn.innerHTML = `<i class="fas fa-save me-1"></i>Save ${count} Assignment(s)`;
+    if (saveBtn) {
+        if (count === 0) {
+            saveBtn.innerHTML = '<i class="fas fa-times me-1"></i>Clear All';
+        } else {
+            saveBtn.innerHTML = `<i class="fas fa-save me-1"></i>Save ${count} Assignment(s)`;
+        }
     }
     
     console.log('📊 Selected count updated:', count);
@@ -1051,6 +1222,15 @@ function updateSelectedCount() {
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📱 DOM Ready - Setting up event listeners');
+    
+    // ==========================================
+    // PHONE VALIDATION SETUP
+    // ==========================================
+    // Setup validation for Add Form phone field
+    setupPhoneValidation('add_phone', 'addPhoneError');
+    
+    // Setup validation for Edit Modal phone field
+    setupPhoneValidation('modal_phone', 'modalPhoneError');
     
     // ✅ CHECKBOX CHANGE EVENT - Visual feedback
     document.querySelectorAll('.dept-checkbox').forEach(checkbox => {
@@ -1079,23 +1259,26 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // ✅ FORM SUBMISSION VALIDATION
-    document.getElementById('assignDepartmentsForm').addEventListener('submit', function(e) {
-        const checked = document.querySelectorAll('.dept-checkbox:checked');
-        const username = document.getElementById('assign_user_name').textContent;
-        
-        if (checked.length === 0) {
-            if (!confirm(`⚠️ No workspaces selected!\n\n"${username}" will NOT be able to login without workspace assignment.\n\nContinue to clear all assignments?`)) {
-                e.preventDefault();
-                return false;
+    const assignForm = document.getElementById('assignDepartmentsForm');
+    if (assignForm) {
+        assignForm.addEventListener('submit', function(e) {
+            const checked = document.querySelectorAll('.dept-checkbox:checked');
+            const username = document.getElementById('assign_user_name').textContent;
+            
+            if (checked.length === 0) {
+                if (!confirm(`⚠️ No workspaces selected!\n\n"${username}" will NOT be able to login without workspace assignment.\n\nContinue to clear all assignments?`)) {
+                    e.preventDefault();
+                    return false;
+                }
             }
-        }
-        
-        console.log('📤 Submitting form with', checked.length, 'departments');
-        
-        // Log selected department IDs
-        const selectedIds = Array.from(checked).map(cb => cb.value);
-        console.log('📋 Selected department IDs:', selectedIds);
-    });
+            
+            console.log('📤 Submitting form with', checked.length, 'departments');
+            
+            // Log selected department IDs
+            const selectedIds = Array.from(checked).map(cb => cb.value);
+            console.log('📋 Selected department IDs:', selectedIds);
+        });
+    }
     
     // ==========================================
     // SEARCH & FILTER FUNCTIONALITY
@@ -1110,9 +1293,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalUsers = {{ total_dept_admins }};
 
     function filterUsers() {
-        const searchTerm = searchInput.value.toLowerCase().trim();
-        const selectedDept = departmentFilter.value;
-        const cards = usersGrid.querySelectorAll('.users-card');
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const selectedDept = departmentFilter ? departmentFilter.value : '';
+        const cards = usersGrid ? usersGrid.querySelectorAll('.users-card') : [];
         let visible = 0;
 
         cards.forEach(card => {
@@ -1138,21 +1321,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        visibleCountEl.textContent = visible;
-        totalCountEl.textContent = totalUsers;
+        if (visibleCountEl) visibleCountEl.textContent = visible;
+        if (totalCountEl) totalCountEl.textContent = totalUsers;
 
         if (visible === 0 && totalUsers > 0) {
-            usersGrid.style.display = 'none';
-            noResultsMsg.style.display = 'block';
+            if (usersGrid) usersGrid.style.display = 'none';
+            if (noResultsMsg) noResultsMsg.style.display = 'block';
         } else {
-            usersGrid.style.display = 'grid';
-            noResultsMsg.style.display = 'none';
+            if (usersGrid) usersGrid.style.display = 'grid';
+            if (noResultsMsg) noResultsMsg.style.display = 'none';
         }
     }
 
     function clearFilters() {
-        searchInput.value = '';
-        departmentFilter.value = '';
+        if (searchInput) searchInput.value = '';
+        if (departmentFilter) departmentFilter.value = '';
         filterUsers();
     }
 

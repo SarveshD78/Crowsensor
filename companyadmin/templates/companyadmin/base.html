@@ -234,9 +234,10 @@
         
         .sidebar.collapsed {
             width: var(--sidebar-collapsed-width);
-            padding: var(--space-5) var(--space-2);
+            padding: var(--space-5) var(--space-3);
         }
         
+        /* ✅ ISSUE #9: Fixed sidebar header alignment */
         .sidebar-header {
             display: flex;
             justify-content: space-between;
@@ -244,10 +245,7 @@
             margin-bottom: var(--space-5);
             min-height: 36px;
             flex-shrink: 0;
-        }
-        
-        .sidebar.collapsed .sidebar-header {
-            justify-content: center;
+            gap: var(--space-3);
         }
         
         .sidebar-header h2 {
@@ -255,39 +253,61 @@
             font-weight: 700;
             color: var(--text-primary);
             white-space: nowrap;
+            margin: 0;
+            flex: 1;
+        }
+        
+        .sidebar.collapsed .sidebar-header {
+            justify-content: center;
         }
         
         .sidebar.collapsed .sidebar-header h2 {
             display: none;
         }
         
+        /* ✅ ISSUE #9: Fixed sidebar toggle button */
         .sidebar-toggle {
-            background: transparent;
+            background: var(--bg-secondary);
             border: 1px solid var(--border-light);
             color: var(--text-secondary);
             border-radius: var(--radius-md);
             width: 36px;
             height: 36px;
+            min-width: 36px;
+            min-height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s ease;
             flex-shrink: 0;
+            padding: 0;
+            margin: 0;
         }
         
-        .sidebar:not(.collapsed) .sidebar-toggle {
-            border: 1px solid var(--border-light);
-        }
-        
-        .sidebar.collapsed .sidebar-toggle {
-            margin: 0 auto;
+        .sidebar-toggle i {
+            font-size: 14px;
+            line-height: 1;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .sidebar-toggle:hover {
             background: var(--gray-100);
             border-color: var(--border-medium);
-            color: var(--text-primary);
+            color: var(--primary-blue);
+        }
+        
+        .sidebar-toggle:active {
+            transform: scale(0.95);
+        }
+        
+        /* ✅ ISSUE #9: Center button when collapsed */
+        .sidebar.collapsed .sidebar-toggle {
+            margin: 0 auto;
         }
         
         .sidebar-links {
@@ -333,7 +353,7 @@
         .sidebar i {
             font-size: 18px;
             min-width: 24px;
-            margin-right: var(--space-3);
+       
             text-align: center;
             display: flex;
             align-items: center;
@@ -932,8 +952,9 @@
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <h2>Menu</h2>
-        <button class="sidebar-toggle" id="sidebarToggle">
-            <i class="fas fa-times"></i>
+        <!-- ✅ ISSUE #9: Fixed toggle button with proper icon -->
+        <button class="sidebar-toggle" id="sidebarToggle" title="Toggle Menu">
+            <i class="fas fa-chevron-left"></i>
         </button>
     </div>
 
@@ -1117,13 +1138,21 @@
         }
     }
     
-    // Update UI
+    // ✅ ISSUE #9: Fixed updateUI function with correct icons
     function updateUI(collapsed) {
         el.sidebar.classList.toggle('collapsed', collapsed);
         el.sectionBar.classList.toggle('sidebar-collapsed', collapsed);
         el.contentContainer.classList.toggle('sidebar-collapsed', collapsed);
+        
+        // ✅ ISSUE #9: Use chevron icons for better UX
         const icon = el.sidebarToggle.querySelector('i');
-        icon.className = collapsed ? 'fas fa-chevron-right' : 'fas fa-times';
+        if (collapsed) {
+            icon.className = 'fas fa-chevron-right';
+            el.sidebarToggle.title = 'Expand Menu';
+        } else {
+            icon.className = 'fas fa-chevron-left';
+            el.sidebarToggle.title = 'Collapse Menu';
+        }
     }
     
     // Desktop toggle
