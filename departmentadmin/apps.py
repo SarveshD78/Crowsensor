@@ -1,51 +1,68 @@
-# departmentadmin/apps.py
+"""
+departmentadmin/apps.py
 
+Django app configuration with tenant-specific alert monitoring initialization.
+"""
+
+import atexit
+import logging
 import sys
+
 from django.apps import AppConfig
+
+logger = logging.getLogger(__name__)
 
 
 class DepartmentadminConfig(AppConfig):
+    """Department Administration app configuration."""
+    
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'departmentadmin'
     verbose_name = 'Department Administration'
 
     def ready(self):
         """
-        Initialize tenant-specific alert monitoring schedulers
-        Each tenant gets its own 30-second alert monitoring cycle
-        """
+        Initialize tenant-specific alert monitoring schedulers.
         
+        Each tenant gets its own 30-second alert monitoring cycle.
+        """
         # Skip during migrations and other management commands
-        if any(cmd in sys.argv for cmd in ['migrate', 'makemigrations', 'createsuperuser', 'collectstatic']):
-            print(f"⏭️  Skipping alert monitoring during {sys.argv[1]}")
+        skip_commands = ['migrate', 'makemigrations', 'createsuperuser', 'collectstatic']
+        if any(cmd in sys.argv for cmd in skip_commands):
+            logger.debug(f"Skipping alert monitoring during {sys.argv[1]}")
             return
         
         # Only start schedulers when running the actual server
         if 'runserver' not in sys.argv and 'gunicorn' not in sys.argv[0]:
             return
         
+        self._initialize_alert_monitoring()
+    
+    def _initialize_alert_monitoring(self):
+        """Initialize the background alert monitoring system."""
         try:
             from apscheduler.schedulers.background import BackgroundScheduler
             from django_tenants.utils import get_tenant_model, get_public_schema_name
-            from departmentadmin.alert_func import check_tenant_sensors_for_alerts
-            import atexit
             
-            print("\n🔄 Initializing tenant-specific alert monitoring system...")
+            from departmentadmin.alert_func import check_tenant_sensors_for_alerts
+            
+            logger.info("Initializing tenant-specific alert monitoring system...")
             
             # Get all active tenants
             TenantModel = get_tenant_model()
             public_schema = get_public_schema_name()
             
-            # Get all tenants except public schema
-            tenants = TenantModel.objects.exclude(schema_name=public_schema).filter(is_active=True)
+            tenants = TenantModel.objects.exclude(
+                schema_name=public_schema
+            ).filter(is_active=True)
             
             tenant_count = tenants.count()
             
             if tenant_count == 0:
-                print("⚠️  No active tenants found - alert monitoring not started")
+                logger.warning("No active tenants found - alert monitoring not started")
                 return
             
-            print(f"📊 Found {tenant_count} active tenant(s)")
+            logger.info(f"Found {tenant_count} active tenant(s)")
             
             # Create one scheduler for all tenants
             scheduler = BackgroundScheduler(timezone='Asia/Kolkata')
@@ -58,7 +75,7 @@ class DepartmentadminConfig(AppConfig):
                     check_tenant_sensors_for_alerts,
                     'interval',
                     seconds=30,
-                    args=[tenant.schema_name],  # Pass tenant schema name
+                    args=[tenant.schema_name],
                     id=job_id,
                     max_instances=1,
                     replace_existing=True,
@@ -66,37 +83,31 @@ class DepartmentadminConfig(AppConfig):
                     misfire_grace_time=60
                 )
                 
-                print(f"   ✅ Scheduled alerts for tenant: {tenant.schema_name}")
+                logger.info(f"Scheduled alerts for tenant: {tenant.schema_name}")
             
             # Start the scheduler
             scheduler.start()
             
-            print("\n" + "="*80)
-            print("✅ ALERT MONITORING SYSTEM STARTED")
-            print("="*80)
-            print(f"📊 Monitoring {tenant_count} tenant(s)")
-            print(f"⏰ Checking sensors every 30 seconds per tenant")
-            print(f"🔄 Escalation timeline:")
-            print(f"   - Initial: 0-60 minutes")
-            print(f"   - Medium: 60-90 minutes")
-            print(f"   - High: 90+ minutes")
-            print("="*80 + "\n")
+            logger.info("=" * 80)
+            logger.info("ALERT MONITORING SYSTEM STARTED")
+            logger.info("=" * 80)
+            logger.info(f"Monitoring {tenant_count} tenant(s)")
+            logger.info("Checking sensors every 30 seconds per tenant")
+            logger.info("Escalation timeline: Initial (0-60m), Medium (60-90m), High (90+m)")
+            logger.info("=" * 80)
             
-            # Graceful shutdown
+            # Register graceful shutdown
             def shutdown_scheduler():
-                print("\n🛑 Shutting down alert monitoring system...")
+                logger.info("Shutting down alert monitoring system...")
                 scheduler.shutdown(wait=False)
-                print("✅ Alert monitoring stopped\n")
+                logger.info("Alert monitoring stopped")
             
             atexit.register(shutdown_scheduler)
             
         except ImportError as e:
-            print(f"\n❌ IMPORT ERROR: {e}")
-            print("Please install: pip install apscheduler django-tenants")
-            print("Alert monitoring will not start.\n")
+            logger.error(f"Import error: {e}")
+            logger.error("Please install: pip install apscheduler django-tenants")
+            logger.error("Alert monitoring will not start.")
             
         except Exception as e:
-            print(f"\n❌ ERROR starting alert monitoring: {e}")
-            import traceback
-            traceback.print_exc()
-            print()
+            logger.error(f"Error starting alert monitoring: {e}", exc_info=True)

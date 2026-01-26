@@ -26,8 +26,11 @@
             /* ===== SEMANTIC COLORS ===== */
             --success: #10b981;
             --success-dark: #059669;
+            --success-light: rgba(16, 185, 129, 0.1);
             --warning: #f59e0b;
+            --warning-light: rgba(245, 158, 11, 0.1);
             --danger: #ef4444;
+            --danger-light: rgba(239, 68, 68, 0.1);
             --info: #3b82f6;
             
             /* ===== NEUTRALS ===== */
@@ -74,6 +77,7 @@
             --text-3xl: 30px;
             
             /* ===== SPACING ===== */
+            --space-1: 4px;
             --space-2: 8px;
             --space-3: 12px;
             --space-4: 16px;
@@ -190,7 +194,37 @@
             white-space: nowrap;
         }
         
-        .user-avatar {
+        /* ========================================
+           USER DROPDOWN STYLES
+           ======================================== */
+        .user-dropdown-container {
+            position: relative;
+        }
+
+        .user-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: var(--space-2);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .user-dropdown-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-dropdown-toggle .user-name {
+            color: var(--navbar-text);
+            font-weight: 600;
+            font-size: var(--text-sm);
+            white-space: nowrap;
+        }
+
+        .user-dropdown-toggle .user-avatar {
             background: var(--primary-blue);
             color: white;
             border-radius: var(--radius-full);
@@ -202,13 +236,142 @@
             font-weight: 600;
             font-size: var(--text-sm);
             flex-shrink: 0;
+            transition: all 0.2s ease;
         }
-        
-        .user-name {
-            font-weight: 600;
+
+        .user-dropdown-toggle:hover .user-avatar {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+        }
+
+        .dropdown-arrow {
+            color: var(--navbar-text-muted);
+            font-size: 12px;
+            transition: transform 0.2s ease;
+        }
+
+        .user-dropdown-toggle.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Dropdown Menu */
+        .user-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 280px;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-light);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1001;
+            overflow: hidden;
+        }
+
+        .user-dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Dropdown Header */
+        .dropdown-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-4);
+            background: var(--gray-50);
+        }
+
+        .dropdown-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+            color: white;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: var(--text-lg);
+            flex-shrink: 0;
+        }
+
+        .dropdown-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .dropdown-user-name {
             font-size: var(--text-sm);
-            color: var(--navbar-text);
+            font-weight: 600;
+            color: var(--text-primary);
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dropdown-user-email {
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Dropdown Divider */
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border-light);
+            margin: 0;
+        }
+
+        /* Dropdown Items */
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: var(--text-sm);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: var(--gray-50);
+            color: var(--primary-blue);
+        }
+
+        .dropdown-item i {
+            width: 20px;
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 16px;
+            transition: color 0.2s ease;
+        }
+
+        .dropdown-item:hover i {
+            color: var(--primary-blue);
+        }
+
+        /* Logout Item */
+        .dropdown-item.logout {
+            color: var(--danger);
+        }
+
+        .dropdown-item.logout i {
+            color: var(--danger);
+        }
+
+        .dropdown-item.logout:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
         }
         
         /* ========================================
@@ -353,7 +516,6 @@
         .sidebar i {
             font-size: 18px;
             min-width: 24px;
-       
             text-align: center;
             display: flex;
             align-items: center;
@@ -816,25 +978,30 @@
                 display: none;
             }
             
-            /* ✅ KEEP role badge and avatar */
+            /* ✅ KEEP role badge */
             .role-badge {
                 font-size: 10px;
                 padding: 4px 8px;
             }
             
-            .user-avatar {
-                width: 32px;
-                height: 32px;
-                font-size: 11px;
+            /* ✅ Avatar dropdown adjustments */
+            .user-dropdown-toggle .user-name {
+                display: none;
             }
             
-            /* ✅ SHOW username */
-            .user-name {
-                display: block;
+            .dropdown-arrow {
+                display: none;
+            }
+            
+            .user-dropdown-toggle .user-avatar {
+                width: 36px;
+                height: 36px;
                 font-size: 12px;
-                max-width: 80px;
-                overflow: hidden;
-                text-overflow: ellipsis;
+            }
+            
+            .user-dropdown-menu {
+                width: 260px;
+                right: -10px;
             }
             
             /* ✅ ADJUST section bar */
@@ -888,15 +1055,18 @@
                 padding: 3px 6px;
             }
             
-            .user-name {
-                max-width: 60px;
+            .user-dropdown-toggle .user-avatar {
+                width: 32px;
+                height: 32px;
                 font-size: 11px;
             }
             
-            .user-avatar {
-                width: 28px;
-                height: 28px;
-                font-size: 10px;
+            .user-dropdown-menu {
+                position: fixed;
+                top: 60px;
+                right: var(--space-3);
+                left: var(--space-3);
+                width: auto;
             }
         }
     </style>
@@ -931,7 +1101,7 @@
         </a>
     </div>
     
-    <!-- ✅ RIGHT: Role Badge + Username + Avatar -->
+    <!-- ✅ RIGHT: Role Badge + Avatar Dropdown -->
     <div class="user-info">
         <div class="time" id="datetime"></div>
         
@@ -940,10 +1110,47 @@
             <span>Company Admin</span>
         </div>
         
-        <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
-        
-        <div class="user-avatar">
-            {{ request.user.first_name|slice:"1"|upper|default:request.user.username|slice:"1"|upper }}
+        <!-- ✅ NEW: Avatar with Dropdown -->
+        <div class="user-dropdown-container">
+            <button class="user-dropdown-toggle" id="userDropdownToggle">
+                <span class="user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+                <div class="user-avatar">
+                    {{ request.user.first_name|slice:"1"|upper|default:request.user.username|slice:"1"|upper }}
+                </div>
+                <i class="fas fa-chevron-down dropdown-arrow"></i>
+            </button>
+            
+            <!-- Dropdown Menu -->
+            <div class="user-dropdown-menu" id="userDropdownMenu">
+                <div class="dropdown-header">
+                    <div class="dropdown-avatar">
+                        {{ request.user.first_name|slice:"1"|upper|default:request.user.username|slice:"1"|upper }}
+                    </div>
+                    <div class="dropdown-user-info">
+                        <div class="dropdown-user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+                        <div class="dropdown-user-email">{{ request.user.email }}</div>
+                    </div>
+                </div>
+                
+                <div class="dropdown-divider"></div>
+                
+                <a href="{% url 'companyadmin:profile' %}" class="dropdown-item">
+                    <i class="fas fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+                
+                <a href="{% url 'companyadmin:change_password' %}" class="dropdown-item">
+                    <i class="fas fa-key"></i>
+                    <span>Change Password</span>
+                </a>
+                
+                <div class="dropdown-divider"></div>
+                
+                <a href="{% url 'companyadmin:logout' %}" class="dropdown-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -1030,6 +1237,18 @@
             <span>InfluxDB Config</span>
         </a>
         
+        <div class="dropdown-divider" style="margin: var(--space-3) 0;"></div>
+        
+        <a href="{% url 'companyadmin:profile' %}" class="{% if 'profile' in request.path %}active{% endif %}">
+            <i class="fas fa-user"></i>
+            <span>My Profile</span>
+        </a>
+        
+        <a href="{% url 'companyadmin:change_password' %}" class="{% if 'change-password' in request.path %}active{% endif %}">
+            <i class="fas fa-key"></i>
+            <span>Change Password</span>
+        </a>
+        
         <a href="{% url 'companyadmin:logout' %}">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
@@ -1111,7 +1330,9 @@
         contentContainer: document.getElementById('contentContainer'),
         sidebarOverlay: document.getElementById('sidebarOverlay'),
         mobileMenuBtn: document.getElementById('mobileMenuBtn'),
-        mobileMenuSheet: document.getElementById('mobileMenuSheet')
+        mobileMenuSheet: document.getElementById('mobileMenuSheet'),
+        userDropdownToggle: document.getElementById('userDropdownToggle'),
+        userDropdownMenu: document.getElementById('userDropdownMenu')
     };
     
     // DateTime
@@ -1166,6 +1387,47 @@
         });
     }
     
+    // ✅ USER DROPDOWN FUNCTIONALITY
+    if (el.userDropdownToggle && el.userDropdownMenu) {
+        // Toggle dropdown on click
+        el.userDropdownToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isOpen = el.userDropdownMenu.classList.contains('show');
+            
+            if (isOpen) {
+                el.userDropdownMenu.classList.remove('show');
+                el.userDropdownToggle.classList.remove('active');
+            } else {
+                el.userDropdownMenu.classList.add('show');
+                el.userDropdownToggle.classList.add('active');
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!el.userDropdownToggle.contains(e.target) && !el.userDropdownMenu.contains(e.target)) {
+                el.userDropdownMenu.classList.remove('show');
+                el.userDropdownToggle.classList.remove('active');
+            }
+        });
+        
+        // Close dropdown on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                el.userDropdownMenu.classList.remove('show');
+                el.userDropdownToggle.classList.remove('active');
+            }
+        });
+        
+        // Close dropdown when clicking a link
+        el.userDropdownMenu.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function() {
+                el.userDropdownMenu.classList.remove('show');
+                el.userDropdownToggle.classList.remove('active');
+            });
+        });
+    }
+    
     // ✅ Mobile menu button - Toggle bottom sheet
     if (el.mobileMenuBtn) {
         el.mobileMenuBtn.addEventListener('click', function(e) {
@@ -1193,6 +1455,11 @@
             el.sidebarOverlay.classList.remove('show');
             if (el.mobileMenuBtn) {
                 el.mobileMenuBtn.querySelector('i').className = 'fas fa-bars';
+            }
+            // Also close user dropdown
+            if (el.userDropdownMenu) {
+                el.userDropdownMenu.classList.remove('show');
+                el.userDropdownToggle.classList.remove('active');
             }
         });
     }

@@ -37,4 +37,6 @@ urlpatterns = [
     path('reports/', views.reports_view, name='reports'),
 
     path('switch-department/', views.switch_department, name='switch_department'),
+    path('profile/', views.profile_view, name='profile'),
+    path('change-password/', views.change_password_view, name='change_password'),
 ]

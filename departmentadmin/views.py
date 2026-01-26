@@ -1,49 +1,65 @@
-# departmentadmin/views.py - COMPLETE FIXED VERSION
-# ============================================================================
-# ALL VIEWS NOW PASS: department, all_departments, show_department_switcher
-# ============================================================================
+"""
+departmentadmin/views.py
 
-import traceback
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.contrib.auth import logout
-from django.db import transaction
-from django.http import JsonResponse, HttpResponse
-from django.utils import timezone
-from datetime import datetime, timedelta
-import time
+Department Admin views for workspace management.
+Handles dashboard, users, devices, graphs, asset maps, alerts, and reports.
+"""
+
+import json
+import logging
 import os
+import time
+from datetime import datetime, timedelta
+
+from django.contrib import messages
+from django.contrib.auth import logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.db import transaction
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from accounts.decorators import require_department_admin
-from companyadmin.models import (
-    Department, DepartmentMembership, Device, 
-    AssetConfig, AssetTrackingConfig, Sensor
-)
 from accounts.models import User
-from departmentadmin.models import DeviceUserAssignment, SensorAlert, DailyDeviceReport
+from companyadmin.models import (
+    AssetConfig,
+    AssetTrackingConfig,
+    Department,
+    DepartmentMembership,
+    Device,
+    Sensor,
+)
 
-# ============================================================================
-# IMPORT HELPER FUNCTIONS
-# ============================================================================
-from .utils import get_current_department, get_department_or_redirect
-from .graph_func import fetch_sensor_data_from_influx, INTERVAL_LOOKUP
 from .asset_map_func import fetch_asset_tracking_data_from_influx
-from .reports_func import generate_device_daily_report, generate_custom_device_report
+from .graph_func import fetch_sensor_data_from_influx, INTERVAL_LOOKUP
+from .models import DeviceUserAssignment, DailyDeviceReport, SensorAlert
+from .reports_func import generate_custom_device_report, generate_device_daily_report
+from .utils import get_current_department, get_department_or_redirect
+
+logger = logging.getLogger(__name__)
 
 
-# ============================================================================
-# DEPARTMENT SWITCHER VIEW
-# ============================================================================
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+def is_ajax(request):
+    """Check if request is an AJAX request."""
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+
+# =============================================================================
+# DEPARTMENT SWITCHER
+# =============================================================================
 
 @require_department_admin
 def switch_department(request):
     """
-    🌍 GLOBAL DEPARTMENT SWITCHER
-    Handles department switching across all views
-    Stores selection in session
-    """
+    Handle department switching across all views.
     
+    Stores selection in session for persistent department context.
+    """
     if request.method == 'POST':
         department_id = request.POST.get('department_id')
         
@@ -60,55 +76,50 @@ def switch_department(request):
                 department__is_active=True
             )
             
-            # ✅ STORE IN SESSION
+            # Store in session
             request.session['selected_department_id'] = int(department_id)
             request.session['selected_department_name'] = membership.department.name
             
-            print(f"\n{'='*80}")
-            print(f"🔄 DEPARTMENT SWITCHED")
-            print(f"{'='*80}")
-            print(f"User: {request.user.email}")
-            print(f"To: {membership.department.name} (ID: {membership.department.id})")
-            print(f"Session ID: {request.session.session_key}")
-            print(f"{'='*80}\n")
+            logger.info(
+                f"Department switched - User: {request.user.email}, "
+                f"To: {membership.department.name} (ID: {membership.department.id})"
+            )
             
             messages.success(request, f'✅ Switched to {membership.department.name}')
             
         except DepartmentMembership.DoesNotExist:
             messages.error(request, '⛔ You do not have access to this department.')
         
-        # Redirect back to previous page
         return redirect(request.META.get('HTTP_REFERER', 'departmentadmin:dashboard'))
     
-    # GET request - redirect to dashboard
     return redirect('departmentadmin:dashboard')
 
 
-# ============================================================================
+# =============================================================================
 # AUTHENTICATION
-# ============================================================================
+# =============================================================================
 
 @require_department_admin
 def logout_view(request):
-    """Logout department admin"""
+    """Logout department admin."""
     username = request.user.get_full_name_or_username()
     logout(request)
     messages.success(request, f'👋 Goodbye {username}! You have been logged out successfully.')
     return redirect('accounts:login')
 
 
-# ============================================================================
-# DASHBOARD VIEW - FIXED ✅
-# ============================================================================
+# =============================================================================
+# DASHBOARD
+# =============================================================================
 
 @require_department_admin
 def dashboard_view(request):
     """
-    Department Admin Dashboard
-    Shows only departments assigned to this user
-    """
+    Department Admin Dashboard.
     
-    # ✅ USE GLOBAL HELPER - Gets department + switcher data
+    Shows only departments assigned to this user with relevant statistics.
+    """
+    # Get department context
     department, all_departments, show_department_switcher = get_current_department(request)
     
     if not department:
@@ -138,7 +149,7 @@ def dashboard_view(request):
     ).distinct().count()
     
     context = {
-        # ✅ REQUIRED FOR DEPARTMENT SWITCHER
+        # Department switcher
         'department': department,
         'all_departments': all_departments,
         'show_department_switcher': show_department_switcher,
@@ -153,218 +164,255 @@ def dashboard_view(request):
     
     return render(request, 'departmentadmin/dashboard.html', context)
 
+# =============================================================================
+# USER MANAGEMENT
+# =============================================================================
 
-# ============================================================================
-# USER MANAGEMENT VIEW - FIXED ✅
-# ============================================================================
 @require_department_admin
 def users_view(request):
     """
-    Department Admin User Management
-    Can create: user (read-only role)
-    Users are assigned to the CURRENTLY SELECTED department only
-    """
+    Department Admin User Management.
     
-    # ✅ USE GLOBAL HELPER - Gets department + switcher data
+    Can create users with 'user' role (read-only).
+    Users are assigned to the CURRENTLY SELECTED department only.
+    """
+    # Get department context
     department, all_departments, show_department_switcher = get_current_department(request)
     
     if not department:
         messages.error(request, '⛔ You are not assigned to any department.')
         return redirect('departmentadmin:dashboard')
     
-    # ==========================================
-    # GET USERS FOR CURRENT DEPARTMENT ONLY
-    # ==========================================
-    
-    # CHANGED: Filter users by CURRENT department only (not all admin's departments)
+    # Get users for CURRENT department only
     all_users = User.objects.filter(
         is_active=True,
         role='user',
-        department_memberships__department=department,  # CHANGED: Current department only
+        department_memberships__department=department,
         department_memberships__is_active=True
     ).prefetch_related(
         'department_memberships__department'
     ).distinct().order_by('-created_at')
     
-    # Stats for CURRENT department
     total_users = all_users.count()
     
-    # ==========================================
-    # POST HANDLING
-    # ==========================================
+    # Handle POST requests
     if request.method == 'POST':
-        
-        # ADD USER - ASSIGN TO CURRENT DEPARTMENT ONLY
         if 'add_user' in request.POST:
-            try:
-                username = request.POST.get('username', '').strip()
-                first_name = request.POST.get('first_name', '').strip()
-                last_name = request.POST.get('last_name', '').strip()
-                email = request.POST.get('email', '').strip()
-                phone = request.POST.get('phone', '').strip()
-                
-                # Validation
-                if not username or not email or not first_name:
-                    messages.error(request, '⛔ Username, first name, and email are required.')
-                    return redirect('departmentadmin:users')
-                
-                # Check duplicates
-                if User.objects.filter(username__iexact=username).exists():
-                    messages.error(request, f'⛔ Username "{username}" already exists.')
-                    return redirect('departmentadmin:users')
-                
-                if User.objects.filter(email__iexact=email).exists():
-                    messages.error(request, f'⛔ Email "{email}" already exists.')
-                    return redirect('departmentadmin:users')
-                
-                # ✅ CREATE USER AND ASSIGN TO CURRENT DEPARTMENT ONLY
-                with transaction.atomic():
-                    # Create user
-                    user = User.objects.create_user(
-                        username=username,
-                        email=email,
-                        password='User@2025',  # Default password
-                        first_name=first_name,
-                        last_name=last_name,
-                        role='user',
-                        phone=phone,
-                        is_active=True
-                    )
-                    
-                    # CHANGED: Assign to CURRENT department only (from switcher)
-                    DepartmentMembership.objects.create(
-                        user=user,
-                        department=department,  # Current selected department
-                        is_active=True
-                    )
-                
+            return _handle_add_user(request, department)
+        elif 'edit_user' in request.POST:
+            return _handle_edit_user(request, department)
+        elif 'delete_user' in request.POST:
+            return _handle_delete_user(request, department)
+    
+    # Prepare user data for template
+    users_data = _prepare_users_data(all_users, request.user)
+    
+    context = {
+        # Department switcher
+        'department': department,
+        'all_departments': all_departments,
+        'show_department_switcher': show_department_switcher,
+        
+        # Page-specific data
+        'users': users_data,
+        'total_users': total_users,
+        'page_title': 'Manage Users',
+        'user_role': request.user.get_role_display(),
+    }
+    
+    return render(request, 'departmentadmin/users.html', context)
+
+
+def _handle_add_user(request, department):
+    """Handle add user POST request."""
+    try:
+        username = request.POST.get('username', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        
+        # Validation
+        if not username or not email or not first_name:
+            messages.error(request, '⛔ Username, first name, and email are required.')
+            return redirect('departmentadmin:users')
+        
+        # Check duplicates
+        if User.objects.filter(username__iexact=username).exists():
+            messages.error(request, f'⛔ Username "{username}" already exists.')
+            return redirect('departmentadmin:users')
+        
+        if User.objects.filter(email__iexact=email).exists():
+            messages.error(request, f'⛔ Email "{email}" already exists.')
+            return redirect('departmentadmin:users')
+        
+        # Create user and assign to current department
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password='User@2025',
+                first_name=first_name,
+                last_name=last_name,
+                role='user',
+                phone=phone,
+                is_active=True
+            )
+            
+            DepartmentMembership.objects.create(
+                user=user,
+                department=department,
+                is_active=True
+            )
+        
+        logger.info(f"User created: {user.username} in department {department.name}")
+        
+        messages.success(
+            request,
+            f'✅ User "{user.username}" created and assigned to "{department.name}"! '
+            f'Default password: User@2025'
+        )
+        
+    except Exception as e:
+        logger.error(f"Error creating user: {e}", exc_info=True)
+        messages.error(request, f'⛔ Error creating user: {str(e)}')
+    
+    return redirect('departmentadmin:users')
+
+
+def _handle_edit_user(request, department):
+    """Handle edit user POST request."""
+    try:
+        user_id = request.POST.get('user_id')
+        username = request.POST.get('username', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        
+        # Validation
+        if not username or not email or not first_name:
+            messages.error(request, '⛔ Username, first name, and email are required.')
+            return redirect('departmentadmin:users')
+        
+        # Get user from current department only
+        user = get_object_or_404(
+            User,
+            id=user_id,
+            is_active=True,
+            role='user',
+            department_memberships__department=department,
+            department_memberships__is_active=True
+        )
+        
+        # Check duplicates (excluding current user)
+        if User.objects.filter(username__iexact=username).exclude(id=user_id).exists():
+            messages.error(request, f'⛔ Username "{username}" already exists.')
+            return redirect('departmentadmin:users')
+        
+        if User.objects.filter(email__iexact=email).exclude(id=user_id).exists():
+            messages.error(request, f'⛔ Email "{email}" already exists.')
+            return redirect('departmentadmin:users')
+        
+        # Update
+        user.username = username
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.phone = phone
+        user.save()
+        
+        logger.info(f"User updated: {user.username}")
+        messages.success(request, f'✅ User "{user.username}" updated successfully!')
+        
+    except User.DoesNotExist:
+        messages.error(request, '⛔ User not found in this department.')
+    except Exception as e:
+        logger.error(f"Error updating user: {e}", exc_info=True)
+        messages.error(request, f'⛔ Error updating user: {str(e)}')
+    
+    return redirect('departmentadmin:users')
+
+
+def _handle_delete_user(request, department):
+    """Handle delete user POST request (remove from current department)."""
+    try:
+        user_id = request.POST.get('user_id')
+        
+        # Verify user belongs to current department
+        user = get_object_or_404(
+            User,
+            id=user_id,
+            is_active=True,
+            role='user',
+            department_memberships__department=department,
+            department_memberships__is_active=True
+        )
+        
+        username = user.username
+        
+        # Remove from current department only
+        membership = DepartmentMembership.objects.filter(
+            user=user,
+            department=department,
+            is_active=True
+        ).first()
+        
+        if membership:
+            membership.is_active = False
+            membership.save()
+            
+            # Check if user has any other active memberships
+            other_active = DepartmentMembership.objects.filter(
+                user=user,
+                is_active=True
+            ).exists()
+            
+            # If no other departments, deactivate the user entirely
+            if not other_active:
+                user.is_active = False
+                user.save()
+                logger.info(f"User deactivated: {username}")
                 messages.success(
                     request,
-                    f'✅ User "{user.username}" created and assigned to "{department.name}"! '
-                    f'Default password: User@2025'
+                    f'✅ User "{username}" removed from "{department.name}" and deactivated.'
                 )
-                
-            except Exception as e:
-                messages.error(request, f'⛔ Error creating user: {str(e)}')
-            
-            return redirect('departmentadmin:users')
+            else:
+                logger.info(f"User removed from department: {username} from {department.name}")
+                messages.success(request, f'✅ User "{username}" removed from "{department.name}".')
+        else:
+            messages.error(request, '⛔ User membership not found.')
         
-        # EDIT USER
-        elif 'edit_user' in request.POST:
-            try:
-                user_id = request.POST.get('user_id')
-                username = request.POST.get('username', '').strip()
-                first_name = request.POST.get('first_name', '').strip()
-                last_name = request.POST.get('last_name', '').strip()
-                email = request.POST.get('email', '').strip()
-                phone = request.POST.get('phone', '').strip()
-                
-                # Validation
-                if not username or not email or not first_name:
-                    messages.error(request, '⛔ Username, first name, and email are required.')
-                    return redirect('departmentadmin:users')
-                
-                # CHANGED: Get user from CURRENT department only
-                user = get_object_or_404(
-                    User, 
-                    id=user_id, 
-                    is_active=True,
-                    role='user',
-                    department_memberships__department=department,  # Must be in current department
-                    department_memberships__is_active=True
-                )
-                
-                # Check duplicates (excluding current user)
-                if User.objects.filter(username__iexact=username).exclude(id=user_id).exists():
-                    messages.error(request, f'⛔ Username "{username}" already exists.')
-                    return redirect('departmentadmin:users')
-                
-                if User.objects.filter(email__iexact=email).exclude(id=user_id).exists():
-                    messages.error(request, f'⛔ Email "{email}" already exists.')
-                    return redirect('departmentadmin:users')
-                
-                # Update
-                user.username = username
-                user.first_name = first_name
-                user.last_name = last_name
-                user.email = email
-                user.phone = phone
-                user.save()
-                
-                messages.success(request, f'✅ User "{user.username}" updated successfully!')
-                
-            except User.DoesNotExist:
-                messages.error(request, '⛔ User not found in this department.')
-            except Exception as e:
-                messages.error(request, f'⛔ Error updating user: {str(e)}')
-            
-            return redirect('departmentadmin:users')
+    except User.DoesNotExist:
+        messages.error(request, '⛔ User not found in this department.')
+    except Exception as e:
+        logger.error(f"Error removing user: {e}", exc_info=True)
+        messages.error(request, f'⛔ Error removing user: {str(e)}')
+    
+    return redirect('departmentadmin:users')
+
+
+def _prepare_users_data(users, admin_user):
+    """
+    Prepare user data for template with department information.
+    
+    Args:
+        users: QuerySet of User objects
+        admin_user: Current admin user (for filtering visible departments)
         
-        # DELETE USER (Remove from current department only)
-        elif 'delete_user' in request.POST:
-            try:
-                user_id = request.POST.get('user_id')
-                
-                # CHANGED: Verify user belongs to current department
-                user = get_object_or_404(
-                    User, 
-                    id=user_id, 
-                    is_active=True,
-                    role='user',
-                    department_memberships__department=department,
-                    department_memberships__is_active=True
-                )
-                
-                username = user.username
-                
-                # CHANGED: Remove from CURRENT department only (not full delete)
-                # This way if user is in multiple departments, they're only removed from this one
-                membership = DepartmentMembership.objects.filter(
-                    user=user,
-                    department=department,
-                    is_active=True
-                ).first()
-                
-                if membership:
-                    membership.is_active = False
-                    membership.save()
-                    
-                    # Check if user has any other active memberships
-                    other_active = DepartmentMembership.objects.filter(
-                        user=user,
-                        is_active=True
-                    ).exists()
-                    
-                    # If no other departments, deactivate the user entirely
-                    if not other_active:
-                        user.is_active = False
-                        user.save()
-                        messages.success(request, f'✅ User "{username}" removed from "{department.name}" and deactivated.')
-                    else:
-                        messages.success(request, f'✅ User "{username}" removed from "{department.name}".')
-                else:
-                    messages.error(request, '⛔ User membership not found.')
-                
-            except User.DoesNotExist:
-                messages.error(request, '⛔ User not found in this department.')
-            except Exception as e:
-                messages.error(request, f'⛔ Error removing user: {str(e)}')
-            
-            return redirect('departmentadmin:users')
-    
-    # ==========================================
-    # PREPARE USER DATA FOR TEMPLATE
-    # ==========================================
-    
-    # Get all department IDs this admin manages (for showing user's other departments)
+    Returns:
+        list: User dictionaries with department data
+    """
+    # Get all department IDs this admin manages
     admin_dept_ids = DepartmentMembership.objects.filter(
-        user=request.user,
+        user=admin_user,
         is_active=True,
         department__is_active=True
     ).values_list('department_id', flat=True)
     
     users_data = []
-    for user in all_users:
+    
+    for user in users:
         # Get user's departments (only ones this admin can see)
         user_depts = user.department_memberships.filter(
             is_active=True,
@@ -384,51 +432,36 @@ def users_view(request):
             'department_count': user_depts.count(),
             'departments': [m.department for m in user_depts],
             'department_names': ', '.join([m.department.name for m in user_depts]),
-            'is_multi_dept': user_depts.count() > 1,  # Flag for UI
+            'is_multi_dept': user_depts.count() > 1,
         })
     
-    context = {
-        # ✅ REQUIRED FOR DEPARTMENT SWITCHER
-        'department': department,
-        'all_departments': all_departments,
-        'show_department_switcher': show_department_switcher,
-        
-        # Page-specific data
-        'users': users_data,
-        'total_users': total_users,
-        'page_title': 'Manage Users',
-        'user_role': request.user.get_role_display(),
-    }
-    
-    return render(request, 'departmentadmin/users.html', context)
-# ============================================================================
-# DEVICES VIEW - FIXED ✅
-# ============================================================================
-# ============================================================================
-# DEVICES VIEW - UPDATED WITH ASSIGNMENT SUPPORT
-# ============================================================================
+    return users_data
+
+# =============================================================================
+# DEVICE MANAGEMENT
+# =============================================================================
 
 @require_department_admin
 def devices_view(request):
     """
-    View all devices assigned to user's department
-    Includes user assignment functionality
-    """
+    View all devices assigned to user's department.
     
-    # ✅ USE GLOBAL HELPER - Gets department + switcher data
+    Includes user assignment functionality and device statistics.
+    """
+    # Get department context
     department, all_departments, show_department_switcher = get_current_department(request)
     
     if not department:
         messages.error(request, '⛔ You are not assigned to any department.')
         return redirect('departmentadmin:dashboard')
     
-    # Get ALL devices assigned to this department (active + inactive)
+    # Get ALL devices assigned to this department
     devices = Device.objects.filter(
         departments=department
     ).prefetch_related(
-        'sensors', 
+        'sensors',
         'departments',
-        'user_assignments'  # ADDED: Prefetch assignments
+        'user_assignments'
     ).order_by('measurement_name', 'device_id')
     
     # Get asset config
@@ -443,32 +476,10 @@ def devices_view(request):
     ).distinct().order_by('first_name', 'last_name')
     
     # Add computed data to each device
-    devices_list = []
-    for device in devices:
-        # Existing computed data
-        device.total_sensors_only = device.sensors.filter(category='sensor').count()
-        device.sensor_breakdown = {
-            'sensors': device.sensors.filter(category='sensor').count(),
-            'slaves': device.sensors.filter(category='slave').count(),
-            'info': device.sensors.filter(category='info').count(),
-        }
-        device.device_column = device.metadata.get('device_column', 'N/A')
-        device.auto_discovered = device.metadata.get('auto_discovered', False)
-        
-        # ADDED: Assignment data
-        active_assignments = device.user_assignments.filter(
-            department=department,
-            is_active=True
-        ).select_related('user')
-        
-        device.assigned_users = [a.user for a in active_assignments]
-        device.assigned_users_count = active_assignments.count()
-        device.assigned_user_ids = [a.user.id for a in active_assignments]
-        
-        devices_list.append(device)
+    devices_list = _prepare_devices_data(devices, department)
     
     context = {
-        # ✅ REQUIRED FOR DEPARTMENT SWITCHER
+        # Department switcher
         'department': department,
         'all_departments': all_departments,
         'show_department_switcher': show_department_switcher,
@@ -482,7 +493,7 @@ def devices_view(request):
         'config': config,
         'page_title': 'My Devices',
         
-        # ADDED: Users for assignment
+        # Users for assignment
         'department_users': department_users,
         'total_users': department_users.count(),
     }
@@ -490,23 +501,62 @@ def devices_view(request):
     return render(request, 'departmentadmin/devices.html', context)
 
 
-# ============================================================================
-# ASSIGN DEVICE VIEW - NEW
-# ============================================================================
+def _prepare_devices_data(devices, department):
+    """
+    Prepare device data with computed fields and assignment info.
+    
+    Args:
+        devices: QuerySet of Device objects
+        department: Current department
+        
+    Returns:
+        list: Device objects with computed attributes
+    """
+    devices_list = []
+    
+    for device in devices:
+        # Sensor breakdown
+        device.total_sensors_only = device.sensors.filter(category='sensor').count()
+        device.sensor_breakdown = {
+            'sensors': device.sensors.filter(category='sensor').count(),
+            'slaves': device.sensors.filter(category='slave').count(),
+            'info': device.sensors.filter(category='info').count(),
+        }
+        device.device_column = device.metadata.get('device_column', 'N/A')
+        device.auto_discovered = device.metadata.get('auto_discovered', False)
+        
+        # Assignment data
+        active_assignments = device.user_assignments.filter(
+            department=department,
+            is_active=True
+        ).select_related('user')
+        
+        device.assigned_users = [a.user for a in active_assignments]
+        device.assigned_users_count = active_assignments.count()
+        device.assigned_user_ids = [a.user.id for a in active_assignments]
+        
+        devices_list.append(device)
+    
+    return devices_list
+
+
+# =============================================================================
+# DEVICE ASSIGNMENT
+# =============================================================================
 
 @require_department_admin
 def assign_device_view(request, device_id):
     """
-    Handle device-to-user assignment
-    POST: Assign/unassign users to device
-    GET: Return current assignments (JSON)
-    """
+    Handle device-to-user assignment.
     
+    GET: Return current assignments (JSON)
+    POST: Assign/unassign users to device
+    """
     # Get department
     department, _, _ = get_current_department(request)
     
     if not department:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if is_ajax(request):
             return JsonResponse({'success': False, 'message': 'Department not found'}, status=404)
         messages.error(request, '⛔ Department not found.')
         return redirect('departmentadmin:devices')
@@ -518,163 +568,213 @@ def assign_device_view(request, device_id):
     ).first()
     
     if not device:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if is_ajax(request):
             return JsonResponse({'success': False, 'message': 'Device not found'}, status=404)
         messages.error(request, '⛔ Device not found.')
         return redirect('departmentadmin:devices')
     
-    # ==========================================
-    # GET REQUEST - Return current assignments
-    # ==========================================
     if request.method == 'GET':
-        # Get current assignments
-        assignments = DeviceUserAssignment.objects.filter(
-            device=device,
-            department=department,
-            is_active=True
-        ).select_related('user', 'assigned_by')
+        return _get_device_assignments(device, department)
+    
+    if request.method == 'POST':
+        return _update_device_assignments(request, device, department)
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
+
+
+def _get_device_assignments(device, department):
+    """
+    Get current device assignments as JSON.
+    
+    Args:
+        device: Device instance
+        department: Department instance
         
-        # Get all users in department
-        all_users = User.objects.filter(
+    Returns:
+        JsonResponse: Assignment data
+    """
+    # Get current assignments
+    assignments = DeviceUserAssignment.objects.filter(
+        device=device,
+        department=department,
+        is_active=True
+    ).select_related('user', 'assigned_by')
+    
+    # Get all users in department
+    all_users = User.objects.filter(
+        is_active=True,
+        role='user',
+        department_memberships__department=department,
+        department_memberships__is_active=True
+    ).distinct().order_by('first_name', 'last_name')
+    
+    assigned_user_ids = [a.user.id for a in assignments]
+    
+    users_data = []
+    for user in all_users:
+        users_data.append({
+            'id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'full_name': user.get_full_name() or user.username,
+            'email': user.email,
+            'is_assigned': user.id in assigned_user_ids,
+        })
+    
+    return JsonResponse({
+        'success': True,
+        'device': {
+            'id': device.id,
+            'display_name': device.display_name,
+            'device_id': device.device_id,
+        },
+        'users': users_data,
+        'total_users': len(users_data),
+        'assigned_count': len(assigned_user_ids),
+    })
+
+
+def _update_device_assignments(request, device, department):
+    """
+    Update device-to-user assignments.
+    
+    Args:
+        request: HTTP request
+        device: Device instance
+        department: Department instance
+        
+    Returns:
+        JsonResponse or redirect
+    """
+    try:
+        # Get selected user IDs from form
+        selected_user_ids = request.POST.getlist('user_ids')
+        selected_user_ids = [int(uid) for uid in selected_user_ids if uid]
+        
+        # Get valid user IDs in department
+        valid_user_ids = list(User.objects.filter(
             is_active=True,
             role='user',
             department_memberships__department=department,
             department_memberships__is_active=True
-        ).distinct().order_by('first_name', 'last_name')
+        ).values_list('id', flat=True))
         
-        assigned_user_ids = [a.user.id for a in assignments]
+        # Filter to only valid users
+        selected_user_ids = [uid for uid in selected_user_ids if uid in valid_user_ids]
         
-        users_data = []
-        for user in all_users:
-            users_data.append({
-                'id': user.id,
-                'username': user.username,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'full_name': user.get_full_name() or user.username,
-                'email': user.email,
-                'is_assigned': user.id in assigned_user_ids,
+        # Get current assignments
+        current_assignments = DeviceUserAssignment.objects.filter(
+            device=device,
+            department=department,
+            is_active=True
+        )
+        current_user_ids = set(current_assignments.values_list('user_id', flat=True))
+        selected_user_ids_set = set(selected_user_ids)
+        
+        # Calculate changes
+        users_to_add = selected_user_ids_set - current_user_ids
+        users_to_remove = current_user_ids - selected_user_ids_set
+        
+        added_count = 0
+        removed_count = 0
+        
+        with transaction.atomic():
+            # Add new assignments
+            if users_to_add:
+                users_to_assign = User.objects.filter(id__in=users_to_add)
+                added_count, _ = DeviceUserAssignment.assign_device_to_users(
+                    device=device,
+                    users=users_to_assign,
+                    department=department,
+                    assigned_by=request.user
+                )
+            
+            # Remove assignments
+            if users_to_remove:
+                users_to_unassign = User.objects.filter(id__in=users_to_remove)
+                removed_count = DeviceUserAssignment.unassign_device_from_users(
+                    device=device,
+                    users=users_to_unassign,
+                    department=department
+                )
+        
+        # Build response message
+        msg = _build_assignment_message(device, added_count, removed_count, len(selected_user_ids))
+        
+        logger.info(
+            f"Device assignment updated: {device.display_name} - "
+            f"Added: {added_count}, Removed: {removed_count}"
+        )
+        
+        if is_ajax(request):
+            return JsonResponse({
+                'success': True,
+                'message': msg,
+                'added': added_count,
+                'removed': removed_count,
+                'total_assigned': len(selected_user_ids)
             })
         
-        return JsonResponse({
-            'success': True,
-            'device': {
-                'id': device.id,
-                'display_name': device.display_name,
-                'device_id': device.device_id,
-            },
-            'users': users_data,
-            'total_users': len(users_data),
-            'assigned_count': len(assigned_user_ids),
-        })
+        messages.success(request, msg)
+        return redirect('departmentadmin:devices')
+        
+    except Exception as e:
+        logger.error(f"Error updating assignments: {e}", exc_info=True)
+        
+        if is_ajax(request):
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+        
+        messages.error(request, f'⛔ Error updating assignments: {str(e)}')
+        return redirect('departmentadmin:devices')
+
+
+def _build_assignment_message(device, added_count, removed_count, total_assigned):
+    """
+    Build user-friendly assignment message.
     
-    # ==========================================
-    # POST REQUEST - Update assignments
-    # ==========================================
-    if request.method == 'POST':
-        try:
-            # Get selected user IDs from form
-            selected_user_ids = request.POST.getlist('user_ids')
-            selected_user_ids = [int(uid) for uid in selected_user_ids if uid]
-            
-            # Get all users in department for validation
-            valid_user_ids = User.objects.filter(
-                is_active=True,
-                role='user',
-                department_memberships__department=department,
-                department_memberships__is_active=True
-            ).values_list('id', flat=True)
-            
-            # Filter to only valid users
-            selected_user_ids = [uid for uid in selected_user_ids if uid in valid_user_ids]
-            
-            # Get current assignments
-            current_assignments = DeviceUserAssignment.objects.filter(
-                device=device,
-                department=department,
-                is_active=True
-            )
-            current_user_ids = set(current_assignments.values_list('user_id', flat=True))
-            selected_user_ids_set = set(selected_user_ids)
-            
-            # Calculate changes
-            users_to_add = selected_user_ids_set - current_user_ids
-            users_to_remove = current_user_ids - selected_user_ids_set
-            
-            added_count = 0
-            removed_count = 0
-            
-            with transaction.atomic():
-                # Add new assignments
-                if users_to_add:
-                    users_to_assign = User.objects.filter(id__in=users_to_add)
-                    added_count, _ = DeviceUserAssignment.assign_device_to_users(
-                        device=device,
-                        users=users_to_assign,
-                        department=department,
-                        assigned_by=request.user
-                    )
-                
-                # Remove assignments
-                if users_to_remove:
-                    users_to_unassign = User.objects.filter(id__in=users_to_remove)
-                    removed_count = DeviceUserAssignment.unassign_device_from_users(
-                        device=device,
-                        users=users_to_unassign,
-                        department=department
-                    )
-            
-            # Build response message
-            if added_count > 0 and removed_count > 0:
-                msg = f'✅ Device "{device.display_name}": Added {added_count} user(s), removed {removed_count} user(s).'
-            elif added_count > 0:
-                msg = f'✅ Device "{device.display_name}" assigned to {added_count} user(s).'
-            elif removed_count > 0:
-                msg = f'✅ Removed {removed_count} user(s) from "{device.display_name}".'
-            else:
-                msg = f'ℹ️ No changes made to "{device.display_name}" assignments.'
-            
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'message': msg,
-                    'added': added_count,
-                    'removed': removed_count,
-                    'total_assigned': len(selected_user_ids)
-                })
-            
-            messages.success(request, msg)
-            return redirect('departmentadmin:devices')
-            
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'message': str(e)}, status=500)
-            
-            messages.error(request, f'⛔ Error updating assignments: {str(e)}')
-            return redirect('departmentadmin:devices')
-    
-    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
-# ============================================================================
-# DEVICE SENSORS VIEW (JSON API - NO CHANGES NEEDED)
-# ============================================================================
+    Args:
+        device: Device instance
+        added_count: Number of users added
+        removed_count: Number of users removed
+        total_assigned: Total users now assigned
+        
+    Returns:
+        str: Message string
+    """
+    if added_count > 0 and removed_count > 0:
+        return (
+            f'✅ Device "{device.display_name}": '
+            f'Added {added_count} user(s), removed {removed_count} user(s).'
+        )
+    elif added_count > 0:
+        return f'✅ Device "{device.display_name}" assigned to {added_count} user(s).'
+    elif removed_count > 0:
+        return f'✅ Removed {removed_count} user(s) from "{device.display_name}".'
+    else:
+        return f'ℹ️ No changes made to "{device.display_name}" assignments.'
+
+
+# =============================================================================
+# DEVICE SENSORS (JSON API)
+# =============================================================================
+
 @require_department_admin
 def device_sensors_view(request, device_id):
     """
-    View all sensors for a specific device with METADATA (READ-ONLY)
-    Returns JSON for modal table display
+    View all sensors for a specific device with metadata (READ-ONLY).
     
-    ✅ FIXED: Updated to match SensorMetadata model fields
+    Returns JSON for modal table display.
     """
-    
     try:
         # Get user's department
         department, _, _ = get_current_department(request)
         
         if not department:
-            return JsonResponse({'success': False, 'message': 'Department not found'}, status=404)
+            return JsonResponse(
+                {'success': False, 'message': 'Department not found'},
+                status=404
+            )
         
         # Get device - MUST be assigned to this department
         device = Device.objects.filter(
@@ -684,57 +784,17 @@ def device_sensors_view(request, device_id):
         ).first()
         
         if not device:
-            return JsonResponse({'success': False, 'message': 'Device not found or not accessible'}, status=404)
+            return JsonResponse(
+                {'success': False, 'message': 'Device not found or not accessible'},
+                status=404
+            )
         
         # Get sensors with metadata
         sensors = device.sensors.filter(
             category='sensor'
         ).select_related('metadata_config').order_by('field_name')
         
-        sensor_list = []
-        for sensor in sensors:
-            # Check if metadata exists
-            if hasattr(sensor, 'metadata_config') and sensor.metadata_config:
-                metadata = sensor.metadata_config
-                
-                # ✅ FIX: data_types is a JSON list like ['trend', 'latest_value', 'digital']
-                data_types = metadata.data_types or []
-                
-                sensor_data = {
-                    'id': sensor.id,
-                    'field_name': sensor.field_name,
-                    'display_name': metadata.display_name or sensor.field_name,
-                    'field_type': sensor.field_type,
-                    'category': sensor.category,
-                    'unit': metadata.unit,
-                    'upper_limit': metadata.upper_limit,
-                    'lower_limit': metadata.lower_limit,
-                    'central_line': metadata.center_line,  # ✅ FIX: center_line not central_line
-                    # ✅ FIX: Check if type is in the data_types list
-                    'show_time_series': 'trend' in data_types,
-                    'show_latest_value': 'latest_value' in data_types,
-                    'show_digital': 'digital' in data_types,
-                    'has_metadata': True,
-                }
-            else:
-                # No metadata configured
-                sensor_data = {
-                    'id': sensor.id,
-                    'field_name': sensor.field_name,
-                    'display_name': sensor.display_name or sensor.field_name,
-                    'field_type': sensor.field_type,
-                    'category': sensor.category,
-                    'unit': sensor.unit,
-                    'upper_limit': None,
-                    'lower_limit': None,
-                    'central_line': None,
-                    'show_time_series': False,
-                    'show_latest_value': False,
-                    'show_digital': False,
-                    'has_metadata': False,
-                }
-            
-            sensor_list.append(sensor_data)
+        sensor_list = _prepare_sensor_list(sensors)
         
         return JsonResponse({
             'success': True,
@@ -748,196 +808,75 @@ def device_sensors_view(request, device_id):
         })
     
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Error fetching sensors: {e}", exc_info=True)
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
-# ============================================================================
-# DEVICE GRAPHS PAGE VIEW - FIXED ✅
-# ============================================================================
 
-@require_department_admin
-def device_graphs_page_view(request, device_id):
+
+def _prepare_sensor_list(sensors):
     """
-    Display full page with graphs for a device
-    This renders the HTML template with empty containers
-    JavaScript will then call device_graphs_view to fetch data
+    Prepare sensor list with metadata for JSON response.
+    
+    Args:
+        sensors: QuerySet of Sensor objects
+        
+    Returns:
+        list: Sensor dictionaries
     """
+    sensor_list = []
     
-    # ✅ USE GLOBAL HELPER - Gets department + switcher data
-    department, all_departments, show_department_switcher = get_current_department(request)
-    
-    if not department:
-        messages.error(request, '⛔ You are not assigned to any department.')
-        return redirect('departmentadmin:dashboard')
-    
-    # Get device - MUST be assigned to this department
-    device = Device.objects.filter(
-        id=device_id,
-        departments=department,
-        is_active=True
-    ).first()
-    
-    if not device:
-        messages.error(request, '⛔ Device not found or not assigned to your department')
-        return redirect('departmentadmin:devices')
-    
-    context = {
-        # ✅ REQUIRED FOR DEPARTMENT SWITCHER
-        'department': department,
-        'all_departments': all_departments,
-        'show_department_switcher': show_department_switcher,
+    for sensor in sensors:
+        if hasattr(sensor, 'metadata_config') and sensor.metadata_config:
+            metadata = sensor.metadata_config
+            data_types = metadata.data_types or []
+            
+            sensor_data = {
+                'id': sensor.id,
+                'field_name': sensor.field_name,
+                'display_name': metadata.display_name or sensor.field_name,
+                'field_type': sensor.field_type,
+                'category': sensor.category,
+                'unit': metadata.unit,
+                'upper_limit': metadata.upper_limit,
+                'lower_limit': metadata.lower_limit,
+                'central_line': metadata.center_line,
+                'show_time_series': 'trend' in data_types,
+                'show_latest_value': 'latest_value' in data_types,
+                'show_digital': 'digital' in data_types,
+                'has_metadata': True,
+            }
+        else:
+            sensor_data = {
+                'id': sensor.id,
+                'field_name': sensor.field_name,
+                'display_name': sensor.display_name or sensor.field_name,
+                'field_type': sensor.field_type,
+                'category': sensor.category,
+                'unit': sensor.unit,
+                'upper_limit': None,
+                'lower_limit': None,
+                'central_line': None,
+                'show_time_series': False,
+                'show_latest_value': False,
+                'show_digital': False,
+                'has_metadata': False,
+            }
         
-        # Page-specific data
-        'device': device,
-        'page_title': f'Graphs - {device.display_name}',
-    }
+        sensor_list.append(sensor_data)
     
-    return render(request, 'departmentadmin/device_graphs.html', context)
+    return sensor_list
 
-
-# ============================================================================
-# DEVICE GRAPHS DATA VIEW (JSON API - NO CHANGES NEEDED)
-# ============================================================================
-
-@require_department_admin
-def device_graphs_view(request, device_id):
-    """
-    Fetch graph data for a device's sensors
-    Returns JSON data for frontend chart rendering
-    Called by JavaScript on the graph page
-    """
-    
-    print(f"\n{'='*80}")
-    print(f"📊 DEVICE GRAPHS API VIEW CALLED")
-    print(f"{'='*80}")
-    print(f"User: {request.user.email}")
-    print(f"Device ID: {device_id}")
-    print(f"Time Range: {request.GET.get('time_range', 'now() - 24h')}")
-    
-    try:
-        # Get user's department
-        department, _, _ = get_current_department(request)
-        
-        if not department:
-            return JsonResponse({
-                'success': False,
-                'message': 'You are not assigned to any department.'
-            }, status=403)
-        
-        print(f"Department: {department.name}")
-        
-        # Get device - MUST be assigned to this department
-        device = Device.objects.filter(
-            id=device_id,
-            departments=department,
-            is_active=True
-        ).first()
-        
-        if not device:
-            print(f"❌ Device not found or not assigned to department")
-            return JsonResponse({
-                'success': False,
-                'message': 'Device not found or not assigned to your department'
-            }, status=404)
-        
-        print(f"✅ Device found: {device.display_name}")
-        print(f"   Measurement: {device.measurement_name}")
-        print(f"   Device ID: {device.device_id}")
-        
-        # Get time range from request (default: 24h)
-        time_range = request.GET.get('time_range', 'now() - 24h')
-        
-        # Validate time range
-        if time_range not in INTERVAL_LOOKUP:
-            print(f"⚠️  Invalid time range '{time_range}', using default")
-            time_range = 'now() - 24h'
-        
-        print(f"Time range: {time_range}")
-        
-        # Get all sensors for this device (only 'sensor' category)
-        sensors = device.sensors.filter(
-            category='sensor',
-            is_active=True
-        ).select_related('metadata_config')
-        
-        print(f"Sensors found: {sensors.count()}")
-        
-        if not sensors.exists():
-            print(f"❌ No sensors found for this device")
-            return JsonResponse({
-                'success': False,
-                'message': 'No sensors found for this device'
-            }, status=404)
-        
-        # Get InfluxDB config
-        config = AssetConfig.get_default_config()
-        
-        if not config or not config.is_connected:
-            print(f"❌ InfluxDB not configured")
-            return JsonResponse({
-                'success': False,
-                'message': 'InfluxDB not configured'
-            }, status=500)
-        
-        print(f"✅ InfluxDB config found")
-        
-        # Fetch data from InfluxDB
-        result = fetch_sensor_data_from_influx(device, sensors, config, time_range)
-        
-        print(f"\n📊 InfluxDB fetch result:")
-        print(f"   Success: {result['success']}")
-        print(f"   Message: {result['message']}")
-        
-        if not result['success']:
-            print(f"❌ Failed to fetch data from InfluxDB")
-            return JsonResponse({
-                'success': False,
-                'message': result['message']
-            }, status=500)
-        
-        # Add device info to response
-        response_data = {
-            'success': True,
-            'device': {
-                'id': device.id,
-                'device_id': device.device_id,
-                'display_name': device.display_name,
-                'measurement_name': device.measurement_name
-            },
-            'time_range': time_range,
-            'data': result['data']
-        }
-        
-        print(f"\n✅ SUCCESS - Returning data")
-        print(f"   Timestamps: {len(response_data['data']['timestamps'])}")
-        print(f"   Sensors: {len(response_data['data']['sensors'])}")
-        print(f"{'='*80}\n")
-        
-        return JsonResponse(response_data)
-    
-    except Exception as e:
-        print(f"\n❌ EXCEPTION in device_graphs_view")
-        print(f"Error: {str(e)}")
-        traceback.print_exc()
-        
-        return JsonResponse({
-            'success': False,
-            'message': f'An error occurred: {str(e)}'
-        }, status=500)
-
-
-# ============================================================================
-# DEVICE VISUALIZATION ROUTER (REDIRECT - NO CHANGES NEEDED)
-# ============================================================================
+# =============================================================================
+# DEVICE VISUALIZATION ROUTER
+# =============================================================================
 
 @require_department_admin
 def device_visualization_view(request, device_id):
     """
-    ✨ SMART ROUTER: Routes to correct visualization based on device type
+    Smart router: Routes to correct visualization based on device type.
+    
     - Industrial devices → Graphs page
     - Asset tracking devices → Asset map page
     """
-    
     # Get user's department
     department, _, _ = get_current_department(request)
     
@@ -956,26 +895,174 @@ def device_visualization_view(request, device_id):
         messages.error(request, '⛔ Device not found or not assigned to your department')
         return redirect('departmentadmin:devices')
     
-    # ✨ SMART ROUTING BASED ON DEVICE TYPE
+    # Route based on device type
     if device.device_type == 'asset_tracking':
-        # Route to asset map view
         return redirect('departmentadmin:device_asset_map', device_id=device.id)
     else:
-        # Route to industrial graphs view (default for 'industrial' and any other type)
         return redirect('departmentadmin:device_graphs_page', device_id=device.id)
 
 
-# ============================================================================
-# DEVICE ASSET MAP VIEW - FIXED ✅
-# ============================================================================
+# =============================================================================
+# DEVICE GRAPHS
+# =============================================================================
+
+@require_department_admin
+def device_graphs_page_view(request, device_id):
+    """
+    Display full page with graphs for a device.
+    
+    Renders HTML template with empty containers.
+    JavaScript calls device_graphs_view to fetch data.
+    """
+    # Get department context
+    department, all_departments, show_department_switcher = get_current_department(request)
+    
+    if not department:
+        messages.error(request, '⛔ You are not assigned to any department.')
+        return redirect('departmentadmin:dashboard')
+    
+    # Get device - MUST be assigned to this department
+    device = Device.objects.filter(
+        id=device_id,
+        departments=department,
+        is_active=True
+    ).first()
+    
+    if not device:
+        messages.error(request, '⛔ Device not found or not assigned to your department')
+        return redirect('departmentadmin:devices')
+    
+    context = {
+        # Department switcher
+        'department': department,
+        'all_departments': all_departments,
+        'show_department_switcher': show_department_switcher,
+        
+        # Page-specific data
+        'device': device,
+        'page_title': f'Graphs - {device.display_name}',
+    }
+    
+    return render(request, 'departmentadmin/device_graphs.html', context)
+
+
+@require_department_admin
+def device_graphs_view(request, device_id):
+    """
+    Fetch graph data for a device's sensors (JSON API).
+    
+    Returns JSON data for frontend chart rendering.
+    Called by JavaScript on the graph page.
+    """
+    logger.debug(f"Graph data requested for device {device_id}")
+    
+    try:
+        # Get user's department
+        department, _, _ = get_current_department(request)
+        
+        if not department:
+            return JsonResponse({
+                'success': False,
+                'message': 'You are not assigned to any department.'
+            }, status=403)
+        
+        # Get device - MUST be assigned to this department
+        device = Device.objects.filter(
+            id=device_id,
+            departments=department,
+            is_active=True
+        ).first()
+        
+        if not device:
+            logger.warning(f"Device {device_id} not found or not assigned to department")
+            return JsonResponse({
+                'success': False,
+                'message': 'Device not found or not assigned to your department'
+            }, status=404)
+        
+        logger.debug(f"Device found: {device.display_name}")
+        
+        # Get time range from request (default: 24h)
+        time_range = request.GET.get('time_range', 'now() - 24h')
+        
+        # Validate time range
+        if time_range not in INTERVAL_LOOKUP:
+            logger.debug(f"Invalid time range '{time_range}', using default")
+            time_range = 'now() - 24h'
+        
+        # Get all sensors for this device (only 'sensor' category)
+        sensors = device.sensors.filter(
+            category='sensor',
+            is_active=True
+        ).select_related('metadata_config')
+        
+        if not sensors.exists():
+            logger.warning(f"No sensors found for device {device_id}")
+            return JsonResponse({
+                'success': False,
+                'message': 'No sensors found for this device'
+            }, status=404)
+        
+        # Get InfluxDB config
+        config = AssetConfig.get_default_config()
+        
+        if not config or not config.is_connected:
+            logger.warning("InfluxDB not configured")
+            return JsonResponse({
+                'success': False,
+                'message': 'InfluxDB not configured'
+            }, status=500)
+        
+        # Fetch data from InfluxDB
+        result = fetch_sensor_data_from_influx(device, sensors, config, time_range)
+        
+        if not result['success']:
+            logger.warning(f"Failed to fetch data: {result['message']}")
+            return JsonResponse({
+                'success': False,
+                'message': result['message']
+            }, status=500)
+        
+        # Build response
+        response_data = {
+            'success': True,
+            'device': {
+                'id': device.id,
+                'device_id': device.device_id,
+                'display_name': device.display_name,
+                'measurement_name': device.measurement_name
+            },
+            'time_range': time_range,
+            'data': result['data']
+        }
+        
+        logger.debug(
+            f"Returning graph data - Timestamps: {len(response_data['data']['timestamps'])}, "
+            f"Sensors: {len(response_data['data']['sensors'])}"
+        )
+        
+        return JsonResponse(response_data)
+    
+    except Exception as e:
+        logger.error(f"Error in device_graphs_view: {e}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'message': f'An error occurred: {str(e)}'
+        }, status=500)
+
+
+# =============================================================================
+# ASSET MAP
+# =============================================================================
 
 @require_department_admin
 def device_asset_map_view(request, device_id):
     """
-    Asset Map Page View - Shows map with location tracking
-    """
+    Asset Map Page View - Shows map with location tracking.
     
-    # ✅ USE GLOBAL HELPER - Gets department + switcher data
+    Renders HTML template for Leaflet.js map display.
+    """
+    # Get department context
     department, all_departments, show_department_switcher = get_current_department(request)
     
     if not department:
@@ -1000,9 +1087,9 @@ def device_asset_map_view(request, device_id):
     
     # Get asset tracking config
     try:
-        config = AssetTrackingConfig.objects.get(device=device)
+        asset_config = AssetTrackingConfig.objects.get(device=device)
     except AssetTrackingConfig.DoesNotExist:
-        config = None
+        asset_config = None
     
     # Get InfluxDB config
     influx_config = device.asset_config
@@ -1012,43 +1099,36 @@ def device_asset_map_view(request, device_id):
         return redirect('departmentadmin:devices')
     
     context = {
-        # ✅ REQUIRED FOR DEPARTMENT SWITCHER
+        # Department switcher
         'department': department,
         'all_departments': all_departments,
         'show_department_switcher': show_department_switcher,
         
         # Page-specific data
         'device': device,
-        'asset_config': config,
-        'has_config': config is not None,
-        'has_location': config.has_location_config if config else False,
-        'has_map_popup': config.map_popup_sensors.exists() if config else False,
-'has_info_cards': config.info_card_sensors.exists() if config else False,
-'has_time_series': config.time_series_sensors.exists() if config else False,
+        'asset_config': asset_config,
+        'has_config': asset_config is not None,
+        'has_location': asset_config.has_location_config if asset_config else False,
+        'has_map_popup': asset_config.map_popup_sensors.exists() if asset_config else False,
+        'has_info_cards': asset_config.info_card_sensors.exists() if asset_config else False,
+        'has_time_series': asset_config.time_series_sensors.exists() if asset_config else False,
         'page_title': f'Asset Map - {device.display_name}',
     }
     
     return render(request, 'departmentadmin/device_asset_map.html', context)
 
 
-# ============================================================================
-# DEVICE ASSET MAP DATA VIEW (JSON API - NO CHANGES NEEDED)
-# ============================================================================
 @require_department_admin
 def device_asset_map_data_view(request, device_id):
     """
-    ✨ API ENDPOINT: Fetch asset tracking data for map
-    Returns JSON with location points for Leaflet.js
-    """
+    Fetch asset tracking data for map (JSON API).
     
-    print(f"\n{'='*80}")
-    print(f"🗺️  ASSET MAP DATA API CALLED")
-    print(f"{'='*80}")
-    print(f"User: {request.user.email}")
-    print(f"Device ID: {device_id}")
+    Returns JSON with location points for Leaflet.js.
+    """
+    logger.debug(f"Asset map data requested for device {device_id}")
     
     try:
-        # ✅ FIX: Use the same pattern as other views
+        # Get department
         department, _, _ = get_current_department(request)
         
         if not department:
@@ -1080,12 +1160,10 @@ def device_asset_map_data_view(request, device_id):
         # Get time range from request (default: 1 hour)
         time_range = request.GET.get('time_range', 'now() - 1h')
         
-        print(f"⏱️  Time range: {time_range}")
-        print(f"📱 Device: {device.display_name}")
+        logger.debug(f"Time range: {time_range}, Device: {device.display_name}")
         
-        # ✅ FIX: Get asset tracking config
+        # Get asset tracking config
         try:
-            from companyadmin.models import AssetTrackingConfig
             asset_config = AssetTrackingConfig.objects.get(device=device)
         except AssetTrackingConfig.DoesNotExist:
             return JsonResponse({
@@ -1093,7 +1171,7 @@ def device_asset_map_data_view(request, device_id):
                 'message': 'Asset tracking not configured for this device'
             }, status=400)
         
-        # ✅ FIX: Get InfluxDB config
+        # Get InfluxDB config
         influx_config = device.asset_config
         if not influx_config or not influx_config.is_connected:
             return JsonResponse({
@@ -1101,7 +1179,7 @@ def device_asset_map_data_view(request, device_id):
                 'message': 'InfluxDB not configured'
             }, status=500)
         
-        # ✅ FIX: Use the existing function from asset_map_func.py
+        # Fetch data from InfluxDB
         result = fetch_asset_tracking_data_from_influx(
             device=device,
             asset_config=asset_config,
@@ -1115,7 +1193,7 @@ def device_asset_map_data_view(request, device_id):
                 'message': result['message']
             }, status=500)
         
-        # Return data
+        # Build response
         data = result['data']
         response_data = {
             'success': True,
@@ -1133,42 +1211,42 @@ def device_asset_map_data_view(request, device_id):
             }
         }
         
-        print(f"✅ Returning {data.get('total_points', 0)} location points")
-        print(f"{'='*80}\n")
+        logger.debug(f"Returning {data.get('total_points', 0)} location points")
         
         return JsonResponse(response_data)
         
     except Exception as e:
-        print(f"❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
-        
+        logger.error(f"Error in device_asset_map_data_view: {e}", exc_info=True)
         return JsonResponse({
             'success': False,
             'message': f'An error occurred: {str(e)}'
         }, status=500)
-# ============================================================================
-# ALERTS VIEW - FIXED ✅
-# ============================================================================
+    
+# =============================================================================
+# ALERTS
+# =============================================================================
 
 @require_department_admin
 def alerts_view(request):
-    """Alert monitoring view with all alerts for client-side filtering"""
+    """
+    Alert monitoring view with all alerts for client-side filtering.
     
-    # ✅ USE GLOBAL HELPER - Gets department + switcher data
+    Shows alerts for industrial_sensor devices only.
+    """
+    # Get department context
     department, all_departments, show_department_switcher = get_current_department(request)
     
     if not department:
         messages.error(request, '⛔ You are not assigned to any department.')
         return redirect('departmentadmin:dashboard')
     
-    # ✅ FIXED: Get ALL alerts for industrial_sensor devices ONLY
+    # Get ALL alerts for industrial_sensor devices ONLY
     all_alerts = SensorAlert.objects.filter(
         sensor_metadata__sensor__device__departments=department,
-        sensor_metadata__sensor__device__device_type='industrial_sensor'  # ✅ Only industrial
+        sensor_metadata__sensor__device__device_type='industrial_sensor'
     ).select_related(
-        'sensor_metadata__sensor__device__asset_config'  # ✅ Prefetch asset_config
-    ).order_by('-created_at')  # Most recent first
+        'sensor_metadata__sensor__device__asset_config'
+    ).order_by('-created_at')
     
     # Calculate counts
     alert_counts = {
@@ -1180,7 +1258,7 @@ def alerts_view(request):
     }
     
     context = {
-        # ✅ REQUIRED FOR DEPARTMENT SWITCHER
+        # Department switcher
         'department': department,
         'all_departments': all_departments,
         'show_department_switcher': show_department_switcher,
@@ -1194,40 +1272,29 @@ def alerts_view(request):
     return render(request, 'departmentadmin/alerts.html', context)
 
 
+# =============================================================================
+# REPORTS
+# =============================================================================
 
-# ============================================================================
-# REPORTS VIEW - COMPLETE REWRITE ✅
-# Separate queries for Daily (30 days) and Custom (ALL) reports
-# Alerts-style table with pagination
-# ============================================================================
 @require_department_admin
 def reports_view(request):
     """
-    Reports management view - Generate, view, download, and delete device reports
-    Supports both Daily Reports and Custom Date/Time Range Reports
+    Reports management view.
     
-    UPDATED: 
+    Generate, view, download, and delete device reports.
+    Supports both Daily Reports and Custom Date/Time Range Reports.
+    
     - Daily reports: Last 30 days only
     - Custom reports: ALL (no date restriction)
-    - Alerts-style table with pagination
     """
+    logger.debug(f"Reports view accessed by {request.user.username}")
     
-    print(f"\n{'='*100}")
-    print(f"📊 REPORTS VIEW CALLED")
-    print(f"👤 User: {request.user.username}")
-    print(f"🏛️  Tenant: {request.tenant.company_name}")
-    print(f"📂 Schema: {request.tenant.schema_name}")
-    print(f"🔗 Method: {request.method}")
-    print(f"{'='*100}\n")
-    
-    # ✅ USE GLOBAL HELPER - Gets department + switcher data
+    # Get department context
     department, all_departments, show_department_switcher = get_current_department(request)
     
     if not department:
         messages.error(request, '⛔ You are not assigned to any department.')
         return redirect('departmentadmin:dashboard')
-    
-    print(f"✅ Department found: {department.name} (ID: {department.id})")
     
     # Get membership for reports generation
     try:
@@ -1240,394 +1307,281 @@ def reports_view(request):
         messages.error(request, '⛔ Department membership not found.')
         return redirect('departmentadmin:dashboard')
     
-    # ===================================
-    # POST REQUEST HANDLING
-    # ===================================
+    # Handle POST requests
     if request.method == 'POST':
-        print(f"\n{'='*100}")
-        print(f"📥 POST REQUEST - Processing action")
-        print(f"{'='*100}\n")
-        
         action = request.POST.get('action')
-        print(f"🎯 Action: {action}")
+        logger.debug(f"Reports POST action: {action}")
         
-        # ===================================
-        # ACTION 1: Generate All Daily Reports
-        # ===================================
         if action == 'generate_all':
-            print(f"\n{'='*100}")
-            print(f"🔄 BATCH GENERATION - All Devices Daily Reports")
-            print(f"{'='*100}\n")
-            
-            yesterday = timezone.now().date() - timedelta(days=1)
-            print(f"📅 Target date: {yesterday}")
-            
-            devices = Device.objects.filter(
-                departments=department,
-                is_active=True
-            ).order_by('display_name')
-            
-            total_devices = devices.count()
-            print(f"📱 Found {total_devices} active devices in department\n")
-            
-            if total_devices == 0:
-                messages.warning(request, "No active devices found in this department.")
-                return redirect('departmentadmin:reports')
-            
-            success_count = 0
-            skipped_count = 0
-            failed_count = 0
-            results = []
-            
-            for idx, device in enumerate(devices, 1):
-                print(f"{'─'*100}")
-                print(f"📱 DEVICE {idx}/{total_devices}: {device.display_name} - {device.device_id}")
-                print(f"{'─'*100}")
-                
-                try:
-                    print(f"🔍 Checking for existing DAILY report...")
-                    
-                    # ✅ Only check for DAILY reports (custom reports don't block daily generation)
-                    existing_report = DailyDeviceReport.objects.filter(
-                        tenant=request.tenant,
-                        department=department,
-                        device=device,
-                        report_date=yesterday,
-                        report_type='daily'
-                    ).first()
-                    
-                    if existing_report:
-                        print(f"   ⏭️  DAILY report already exists (ID: {existing_report.id}) - Skipping")
-                        skipped_count += 1
-                        results.append({
-                            'device': device.display_name,
-                            'status': 'skipped',
-                            'message': 'Daily report already exists'
-                        })
-                        continue
-                    
-                    print(f"   ✅ No existing daily report - proceeding with generation")
-                    
-                    generation_start = time.time()
-                    
-                    report = generate_device_daily_report(
-                        device=device,
-                        report_date=yesterday,
-                        department=department,
-                        generated_by=membership,
-                        tenant=request.tenant
-                    )
-                    
-                    generation_time = time.time() - generation_start
-                    
-                    print(f"\n✅ SUCCESS for {device.display_name}!")
-                    print(f"   • Report ID: {report.id}")
-                    print(f"   • Report Type: {report.report_type}")
-                    print(f"   • Filename: {report.csv_file.name}")
-                    print(f"   • File Size: {report.file_size_mb} MB")
-                    print(f"   • Generation Time: {generation_time:.2f}s")
-                    
-                    success_count += 1
-                    results.append({
-                        'device': device.display_name,
-                        'status': 'success',
-                        'report_id': report.id,
-                        'generation_time': generation_time
-                    })
-                    
-                except Exception as e:
-                    print(f"\n❌ FAILED for {device.display_name}: {str(e)}")
-                    traceback.print_exc()
-                    
-                    failed_count += 1
-                    results.append({
-                        'device': device.display_name,
-                        'status': 'failed',
-                        'error': str(e)
-                    })
-            
-            print(f"\n{'='*100}")
-            print(f"📊 BATCH GENERATION COMPLETE")
-            print(f"{'='*100}")
-            print(f"✅ Successful: {success_count}")
-            print(f"⏭️  Skipped: {skipped_count}")
-            print(f"❌ Failed: {failed_count}")
-            print(f"{'='*100}\n")
-            
-            if success_count > 0:
-                messages.success(request, f"✅ Successfully generated {success_count} daily report(s).")
-            if skipped_count > 0:
-                messages.info(request, f"⏭️  Skipped {skipped_count} device(s) - daily reports already exist.")
-            if failed_count > 0:
-                messages.error(request, f"❌ Failed to generate {failed_count} report(s). Check logs for details.")
-            
-            return redirect('departmentadmin:reports')
-        
-        # ===================================
-        # ACTION 2: Generate Custom Date/Time Range Report
-        # ===================================
+            return _handle_generate_all_reports(request, department, membership)
         elif action == 'generate_custom':
-            print(f"\n{'='*100}")
-            print(f"🔄 CUSTOM REPORT GENERATION")
-            print(f"{'='*100}\n")
-            
-            try:
-                device_id = request.POST.get('device_id')
-                start_date = request.POST.get('start_date')
-                start_time = request.POST.get('start_time', '00:00')
-                end_date = request.POST.get('end_date')
-                end_time = request.POST.get('end_time', '23:59')
-                
-                print(f"📥 Form Data:")
-                print(f"   Device ID: {device_id}")
-                print(f"   Start: {start_date} {start_time}")
-                print(f"   End: {end_date} {end_time}")
-                
-                if not all([device_id, start_date, end_date]):
-                    print(f"❌ Validation failed: Missing required fields")
-                    messages.error(request, "Please fill in all required fields.")
-                    return redirect('departmentadmin:reports')
-                
-                device = Device.objects.get(
-                    id=device_id,
-                    departments=department,
-                    is_active=True
-                )
-                print(f"✅ Device found: {device.display_name}")
-                
-                start_datetime_str = f"{start_date} {start_time}"
-                end_datetime_str = f"{end_date} {end_time}"
-                
-                start_datetime = datetime.strptime(start_datetime_str, '%Y-%m-%d %H:%M')
-                end_datetime = datetime.strptime(end_datetime_str, '%Y-%m-%d %H:%M')
-                
-                print(f"📅 Parsed datetime range:")
-                print(f"   Start: {start_datetime}")
-                print(f"   End: {end_datetime}")
-                
-                if start_datetime >= end_datetime:
-                    print(f"❌ Validation failed: Start date must be before end date")
-                    messages.error(request, "Start date/time must be before end date/time.")
-                    return redirect('departmentadmin:reports')
-                
-                print(f"\n🚀 Calling generate_custom_device_report()...")
-                generation_start = time.time()
-                
-                report = generate_custom_device_report(
-                    device=device,
-                    start_datetime=start_datetime,
-                    end_datetime=end_datetime,
-                    department=department,
-                    generated_by=membership,
-                    tenant=request.tenant
-                )
-                
-                generation_time = time.time() - generation_start
-                
-                print(f"\n✅ CUSTOM REPORT SUCCESS!")
-                print(f"   • Report ID: {report.id}")
-                print(f"   • Report Type: {report.report_type}")
-                print(f"   • Generation Time: {generation_time:.2f}s")
-                print(f"{'='*100}\n")
-                
-                messages.success(
-                    request, 
-                    f"✅ Custom report generated successfully! ({generation_time:.1f}s)"
-                )
-                
-                return redirect('departmentadmin:reports')
-                
-            except Device.DoesNotExist:
-                print(f"❌ Device not found or access denied")
-                messages.error(request, "Device not found or you don't have access to it.")
-                return redirect('departmentadmin:reports')
-                
-            except ValueError as e:
-                print(f"❌ Invalid date/time format: {e}")
-                messages.error(request, "Invalid date/time format. Please check your inputs.")
-                return redirect('departmentadmin:reports')
-                
-            except Exception as e:
-                print(f"❌ Error generating custom report: {e}")
-                traceback.print_exc()
-                messages.error(request, f"Error generating custom report: {str(e)}")
-                return redirect('departmentadmin:reports')
-        
-        # ===================================
-        # ACTION 3: Download Report
-        # ===================================
+            return _handle_generate_custom_report(request, department, membership)
         elif action == 'download':
-            report_id = request.POST.get('report_id')
-            print(f"📥 Download request for report ID: {report_id}")
-            
-            try:
-                report = DailyDeviceReport.objects.get(
-                    id=report_id,
-                    tenant=request.tenant,
-                    department=department
-                )
-                
-                print(f"✅ Report found: {report.csv_file.name}")
-                print(f"   • Report Type: {report.report_type}")
-                
-                if not report.csv_file:
-                    print(f"❌ No file attached to report")
-                    messages.error(request, "Report file not found.")
-                    return redirect('departmentadmin:reports')
-                
-                response = HttpResponse(
-                    report.csv_file.read(),
-                    content_type='text/csv'
-                )
-                
-                filename = os.path.basename(report.csv_file.name)
-                response['Content-Disposition'] = f'attachment; filename="{filename}"'
-                
-                print(f"✅ Serving file: {filename}")
-                return response
-                
-            except DailyDeviceReport.DoesNotExist:
-                print(f"❌ Report not found")
-                messages.error(request, "Report not found.")
-                return redirect('departmentadmin:reports')
-            except Exception as e:
-                print(f"❌ Download error: {e}")
-                messages.error(request, f"Error downloading report: {str(e)}")
-                return redirect('departmentadmin:reports')
-        
-        # ===================================
-        # ACTION 4: Delete Report
-        # ===================================
+            return _handle_download_report(request, department)
         elif action == 'delete':
-            report_id = request.POST.get('report_id')
-            print(f"🗑️  Delete request for report ID: {report_id}")
-            
-            try:
-                report = DailyDeviceReport.objects.get(
-                    id=report_id,
-                    tenant=request.tenant,
-                    department=department
-                )
-                
-                filename = os.path.basename(report.csv_file.name) if report.csv_file else "Unknown"
-                report_type = report.report_type
-                print(f"✅ Report found: {filename}")
-                print(f"   • Report Type: {report_type}")
-                
-                if report.csv_file:
-                    try:
-                        report.csv_file.delete(save=False)
-                        print(f"   ✅ File deleted from storage")
-                    except Exception as e:
-                        print(f"   ⚠️  File deletion warning: {e}")
-                
-                report.delete()
-                print(f"✅ Report deleted successfully")
-                
-                messages.success(request, f"✅ {report_type.title()} report '{filename}' deleted successfully.")
-                return redirect('departmentadmin:reports')
-                
-            except DailyDeviceReport.DoesNotExist:
-                print(f"❌ Report not found")
-                messages.error(request, "Report not found.")
-                return redirect('departmentadmin:reports')
-            except Exception as e:
-                print(f"❌ Delete error: {e}")
-                messages.error(request, f"Error deleting report: {str(e)}")
-                return redirect('departmentadmin:reports')
+            return _handle_delete_report(request, department)
     
-    # ===================================
-    # GET REQUEST - Display Reports Page
-    # ===================================
-    print(f"\n{'='*100}")
-    print(f"📄 GET REQUEST - Loading reports page")
-    print(f"{'='*100}\n")
+    # GET request - Display reports page
+    return _render_reports_page(request, department, all_departments, show_department_switcher)
+
+
+def _handle_generate_all_reports(request, department, membership):
+    """Handle batch generation of daily reports for all devices."""
+    yesterday = timezone.now().date() - timedelta(days=1)
     
-    # ===================================
-    # GET FILTER PARAMETERS (Alerts-style)
-    # ===================================
-    filter_type = request.GET.get('type', 'all')  # all, daily, custom
-    filter_device = request.GET.get('device', '')
-    filter_date_from = request.GET.get('date_from', '')
-    filter_date_to = request.GET.get('date_to', '')
-    page_number = request.GET.get('page', 1)
-    
-    print(f"📋 Filter Parameters:")
-    print(f"   • Type: {filter_type}")
-    print(f"   • Device: {filter_device}")
-    print(f"   • Date From: {filter_date_from}")
-    print(f"   • Date To: {filter_date_to}")
-    print(f"   • Page: {page_number}")
-    
-    # ===================================
-    # FETCH DEVICES
-    # ===================================
-    print(f"\n🔍 Fetching devices for department: {department.name}")
     devices = Device.objects.filter(
         departments=department,
         is_active=True
     ).order_by('display_name')
     
     total_devices = devices.count()
-    print(f"   ✅ Found {total_devices} active devices")
     
-    # ===================================
-    # BUILD BASE QUERYSET
-    # ===================================
-    # ✅ KEY FIX: No date restriction - fetch ALL reports
+    if total_devices == 0:
+        messages.warning(request, "No active devices found in this department.")
+        return redirect('departmentadmin:reports')
+    
+    success_count = 0
+    skipped_count = 0
+    failed_count = 0
+    
+    for device in devices:
+        try:
+            # Only check for DAILY reports
+            existing_report = DailyDeviceReport.objects.filter(
+                tenant=request.tenant,
+                department=department,
+                device=device,
+                report_date=yesterday,
+                report_type='daily'
+            ).first()
+            
+            if existing_report:
+                skipped_count += 1
+                continue
+            
+            generation_start = time.time()
+            
+            report = generate_device_daily_report(
+                device=device,
+                report_date=yesterday,
+                department=department,
+                generated_by=membership,
+                tenant=request.tenant
+            )
+            
+            generation_time = time.time() - generation_start
+            
+            logger.info(
+                f"Daily report generated: {device.display_name}, "
+                f"ID: {report.id}, Time: {generation_time:.2f}s"
+            )
+            
+            success_count += 1
+            
+        except Exception as e:
+            logger.error(f"Failed to generate report for {device.display_name}: {e}", exc_info=True)
+            failed_count += 1
+    
+    # Build result messages
+    if success_count > 0:
+        messages.success(request, f"✅ Successfully generated {success_count} daily report(s).")
+    if skipped_count > 0:
+        messages.info(request, f"⏭️ Skipped {skipped_count} device(s) - daily reports already exist.")
+    if failed_count > 0:
+        messages.error(request, f"❌ Failed to generate {failed_count} report(s). Check logs for details.")
+    
+    return redirect('departmentadmin:reports')
+
+
+def _handle_generate_custom_report(request, department, membership):
+    """Handle generation of custom date/time range report."""
+    try:
+        device_id = request.POST.get('device_id')
+        start_date = request.POST.get('start_date')
+        start_time = request.POST.get('start_time', '00:00')
+        end_date = request.POST.get('end_date')
+        end_time = request.POST.get('end_time', '23:59')
+        
+        logger.debug(
+            f"Custom report request - Device: {device_id}, "
+            f"Start: {start_date} {start_time}, End: {end_date} {end_time}"
+        )
+        
+        # Validation
+        if not all([device_id, start_date, end_date]):
+            messages.error(request, "Please fill in all required fields.")
+            return redirect('departmentadmin:reports')
+        
+        device = Device.objects.get(
+            id=device_id,
+            departments=department,
+            is_active=True
+        )
+        
+        # Parse datetime
+        start_datetime_str = f"{start_date} {start_time}"
+        end_datetime_str = f"{end_date} {end_time}"
+        
+        start_datetime = datetime.strptime(start_datetime_str, '%Y-%m-%d %H:%M')
+        end_datetime = datetime.strptime(end_datetime_str, '%Y-%m-%d %H:%M')
+        
+        if start_datetime >= end_datetime:
+            messages.error(request, "Start date/time must be before end date/time.")
+            return redirect('departmentadmin:reports')
+        
+        # Generate report
+        generation_start = time.time()
+        
+        report = generate_custom_device_report(
+            device=device,
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
+            department=department,
+            generated_by=membership,
+            tenant=request.tenant
+        )
+        
+        generation_time = time.time() - generation_start
+        
+        logger.info(
+            f"Custom report generated: {device.display_name}, "
+            f"ID: {report.id}, Time: {generation_time:.2f}s"
+        )
+        
+        messages.success(
+            request,
+            f"✅ Custom report generated successfully! ({generation_time:.1f}s)"
+        )
+        
+        return redirect('departmentadmin:reports')
+        
+    except Device.DoesNotExist:
+        logger.warning(f"Device not found: {device_id}")
+        messages.error(request, "Device not found or you don't have access to it.")
+        return redirect('departmentadmin:reports')
+        
+    except ValueError as e:
+        logger.warning(f"Invalid date/time format: {e}")
+        messages.error(request, "Invalid date/time format. Please check your inputs.")
+        return redirect('departmentadmin:reports')
+        
+    except Exception as e:
+        logger.error(f"Error generating custom report: {e}", exc_info=True)
+        messages.error(request, f"Error generating custom report: {str(e)}")
+        return redirect('departmentadmin:reports')
+
+
+def _handle_download_report(request, department):
+    """Handle report download."""
+    report_id = request.POST.get('report_id')
+    logger.debug(f"Download request for report ID: {report_id}")
+    
+    try:
+        report = DailyDeviceReport.objects.get(
+            id=report_id,
+            tenant=request.tenant,
+            department=department
+        )
+        
+        if not report.csv_file:
+            messages.error(request, "Report file not found.")
+            return redirect('departmentadmin:reports')
+        
+        response = HttpResponse(
+            report.csv_file.read(),
+            content_type='text/csv'
+        )
+        
+        filename = os.path.basename(report.csv_file.name)
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        logger.debug(f"Serving file: {filename}")
+        return response
+        
+    except DailyDeviceReport.DoesNotExist:
+        messages.error(request, "Report not found.")
+        return redirect('departmentadmin:reports')
+    except Exception as e:
+        logger.error(f"Download error: {e}", exc_info=True)
+        messages.error(request, f"Error downloading report: {str(e)}")
+        return redirect('departmentadmin:reports')
+
+
+def _handle_delete_report(request, department):
+    """Handle report deletion."""
+    report_id = request.POST.get('report_id')
+    logger.debug(f"Delete request for report ID: {report_id}")
+    
+    try:
+        report = DailyDeviceReport.objects.get(
+            id=report_id,
+            tenant=request.tenant,
+            department=department
+        )
+        
+        filename = os.path.basename(report.csv_file.name) if report.csv_file else "Unknown"
+        report_type = report.report_type
+        
+        # Delete file from storage
+        if report.csv_file:
+            try:
+                report.csv_file.delete(save=False)
+                logger.debug(f"File deleted from storage: {filename}")
+            except Exception as e:
+                logger.warning(f"File deletion warning: {e}")
+        
+        report.delete()
+        logger.info(f"Report deleted: {filename}")
+        
+        messages.success(request, f"✅ {report_type.title()} report '{filename}' deleted successfully.")
+        return redirect('departmentadmin:reports')
+        
+    except DailyDeviceReport.DoesNotExist:
+        messages.error(request, "Report not found.")
+        return redirect('departmentadmin:reports')
+    except Exception as e:
+        logger.error(f"Delete error: {e}", exc_info=True)
+        messages.error(request, f"Error deleting report: {str(e)}")
+        return redirect('departmentadmin:reports')
+
+
+def _render_reports_page(request, department, all_departments, show_department_switcher):
+    """Render reports page with filters and pagination."""
+    # Get filter parameters
+    filter_type = request.GET.get('type', 'all')
+    filter_device = request.GET.get('device', '')
+    filter_date_from = request.GET.get('date_from', '')
+    filter_date_to = request.GET.get('date_to', '')
+    page_number = request.GET.get('page', 1)
+    
+    logger.debug(
+        f"Reports filters - Type: {filter_type}, Device: {filter_device}, "
+        f"From: {filter_date_from}, To: {filter_date_to}"
+    )
+    
+    # Fetch devices
+    devices = Device.objects.filter(
+        departments=department,
+        is_active=True
+    ).order_by('display_name')
+    
+    total_devices = devices.count()
+    
+    # Build base queryset (ALL reports, no date restriction)
     reports_queryset = DailyDeviceReport.objects.filter(
         tenant=request.tenant,
         department=department
     ).select_related('device', 'generated_by', 'generated_by__user')
     
-    print(f"\n🔍 Base queryset: {reports_queryset.count()} total reports")
+    # Apply filters
+    reports_queryset = _apply_report_filters(
+        reports_queryset, filter_type, filter_device, filter_date_from, filter_date_to
+    )
     
-    # ===================================
-    # APPLY FILTERS
-    # ===================================
-    
-    # Filter by report type
-    if filter_type == 'daily':
-        reports_queryset = reports_queryset.filter(report_type='daily')
-        print(f"   ✅ Filtered by type=daily: {reports_queryset.count()} reports")
-    elif filter_type == 'custom':
-        reports_queryset = reports_queryset.filter(report_type='custom')
-        print(f"   ✅ Filtered by type=custom: {reports_queryset.count()} reports")
-    
-    # Filter by device
-    if filter_device:
-        try:
-            reports_queryset = reports_queryset.filter(device_id=int(filter_device))
-            print(f"   ✅ Filtered by device={filter_device}: {reports_queryset.count()} reports")
-        except ValueError:
-            pass
-    
-    # Filter by date range
-    if filter_date_from:
-        try:
-            date_from = datetime.strptime(filter_date_from, '%Y-%m-%d').date()
-            reports_queryset = reports_queryset.filter(report_date__gte=date_from)
-            print(f"   ✅ Filtered by date_from={date_from}: {reports_queryset.count()} reports")
-        except ValueError:
-            pass
-    
-    if filter_date_to:
-        try:
-            date_to = datetime.strptime(filter_date_to, '%Y-%m-%d').date()
-            reports_queryset = reports_queryset.filter(report_date__lte=date_to)
-            print(f"   ✅ Filtered by date_to={date_to}: {reports_queryset.count()} reports")
-        except ValueError:
-            pass
-    
-    # ===================================
-    # ORDER AND PAGINATE
-    # ===================================
+    # Order and paginate
     reports_queryset = reports_queryset.order_by('-created_at', '-report_date')
     
-    # Pagination (20 per page like alerts)
-    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-    
-    paginator = Paginator(reports_queryset, 20)  # 20 reports per page
+    paginator = Paginator(reports_queryset, 20)
     
     try:
         reports_page = paginator.page(page_number)
@@ -1636,64 +1590,11 @@ def reports_view(request):
     except EmptyPage:
         reports_page = paginator.page(paginator.num_pages)
     
-    print(f"\n📊 Pagination:")
-    print(f"   • Total reports: {paginator.count}")
-    print(f"   • Total pages: {paginator.num_pages}")
-    print(f"   • Current page: {reports_page.number}")
-    print(f"   • Reports on page: {len(reports_page)}")
+    # Calculate statistics
+    stats = _calculate_report_stats(request.tenant, department, total_devices)
     
-    # ===================================
-    # CALCULATE STATISTICS
-    # ===================================
-    
-    # Total counts (all time)
-    total_reports = DailyDeviceReport.objects.filter(
-        tenant=request.tenant,
-        department=department
-    ).count()
-    
-    daily_reports_count = DailyDeviceReport.objects.filter(
-        tenant=request.tenant,
-        department=department,
-        report_type='daily'
-    ).count()
-    
-    custom_reports_count = DailyDeviceReport.objects.filter(
-        tenant=request.tenant,
-        department=department,
-        report_type='custom'
-    ).count()
-    
-    # Yesterday's daily reports (for pending calculation)
-    yesterday = timezone.now().date() - timedelta(days=1)
-    
-    devices_with_yesterday_report = DailyDeviceReport.objects.filter(
-        tenant=request.tenant,
-        department=department,
-        report_date=yesterday,
-        report_type='daily'
-    ).values_list('device_id', flat=True)
-    
-    devices_with_yesterday_count = len(set(devices_with_yesterday_report))
-    devices_without_yesterday_report = total_devices - devices_with_yesterday_count
-    
-    # Filtered count
-    filtered_count = paginator.count
-    
-    print(f"\n📊 Statistics:")
-    print(f"   • Total Devices: {total_devices}")
-    print(f"   • Total Reports (all time): {total_reports}")
-    print(f"     - Daily: {daily_reports_count}")
-    print(f"     - Custom: {custom_reports_count}")
-    print(f"   • Yesterday Daily Reports: {devices_with_yesterday_count}")
-    print(f"   • Devices Pending: {devices_without_yesterday_report}")
-    print(f"   • Filtered Results: {filtered_count}")
-    
-    # ===================================
-    # BUILD CONTEXT
-    # ===================================
     context = {
-        # Department Switcher
+        # Department switcher
         'department': department,
         'all_departments': all_departments,
         'show_department_switcher': show_department_switcher,
@@ -1707,15 +1608,15 @@ def reports_view(request):
         'paginator': paginator,
         
         # Statistics
-        'total_reports': total_reports,
-        'daily_reports_count': daily_reports_count,
-        'custom_reports_count': custom_reports_count,
-        'filtered_count': filtered_count,
+        'total_reports': stats['total_reports'],
+        'daily_reports_count': stats['daily_reports_count'],
+        'custom_reports_count': stats['custom_reports_count'],
+        'filtered_count': paginator.count,
         
         # Yesterday stats
-        'yesterday': yesterday,
-        'devices_with_yesterday_report': devices_with_yesterday_count,
-        'devices_without_yesterday_report': devices_without_yesterday_report,
+        'yesterday': stats['yesterday'],
+        'devices_with_yesterday_report': stats['devices_with_yesterday_report'],
+        'devices_without_yesterday_report': stats['devices_without_yesterday_report'],
         
         # Current filters (for form persistence)
         'filter_type': filter_type,
@@ -1726,7 +1627,292 @@ def reports_view(request):
         'page_title': 'Reports',
     }
     
-    print(f"\n✅ Rendering template with context")
-    print(f"{'='*100}\n")
-    
     return render(request, 'departmentadmin/reports.html', context)
+
+
+def _apply_report_filters(queryset, filter_type, filter_device, filter_date_from, filter_date_to):
+    """
+    Apply filters to reports queryset.
+    
+    Args:
+        queryset: Base reports queryset
+        filter_type: 'all', 'daily', or 'custom'
+        filter_device: Device ID string
+        filter_date_from: Date string (YYYY-MM-DD)
+        filter_date_to: Date string (YYYY-MM-DD)
+        
+    Returns:
+        QuerySet: Filtered queryset
+    """
+    # Filter by report type
+    if filter_type == 'daily':
+        queryset = queryset.filter(report_type='daily')
+    elif filter_type == 'custom':
+        queryset = queryset.filter(report_type='custom')
+    
+    # Filter by device
+    if filter_device:
+        try:
+            queryset = queryset.filter(device_id=int(filter_device))
+        except ValueError:
+            pass
+    
+    # Filter by date range
+    if filter_date_from:
+        try:
+            date_from = datetime.strptime(filter_date_from, '%Y-%m-%d').date()
+            queryset = queryset.filter(report_date__gte=date_from)
+        except ValueError:
+            pass
+    
+    if filter_date_to:
+        try:
+            date_to = datetime.strptime(filter_date_to, '%Y-%m-%d').date()
+            queryset = queryset.filter(report_date__lte=date_to)
+        except ValueError:
+            pass
+    
+    return queryset
+
+
+def _calculate_report_stats(tenant, department, total_devices):
+    """
+    Calculate report statistics.
+    
+    Args:
+        tenant: Tenant instance
+        department: Department instance
+        total_devices: Total device count
+        
+    Returns:
+        dict: Statistics dictionary
+    """
+    # Total counts (all time)
+    total_reports = DailyDeviceReport.objects.filter(
+        tenant=tenant,
+        department=department
+    ).count()
+    
+    daily_reports_count = DailyDeviceReport.objects.filter(
+        tenant=tenant,
+        department=department,
+        report_type='daily'
+    ).count()
+    
+    custom_reports_count = DailyDeviceReport.objects.filter(
+        tenant=tenant,
+        department=department,
+        report_type='custom'
+    ).count()
+    
+    # Yesterday's daily reports (for pending calculation)
+    yesterday = timezone.now().date() - timedelta(days=1)
+    
+    devices_with_yesterday_report = DailyDeviceReport.objects.filter(
+        tenant=tenant,
+        department=department,
+        report_date=yesterday,
+        report_type='daily'
+    ).values_list('device_id', flat=True)
+    
+    devices_with_yesterday_count = len(set(devices_with_yesterday_report))
+    devices_without_yesterday_report = total_devices - devices_with_yesterday_count
+    
+    return {
+        'total_reports': total_reports,
+        'daily_reports_count': daily_reports_count,
+        'custom_reports_count': custom_reports_count,
+        'yesterday': yesterday,
+        'devices_with_yesterday_report': devices_with_yesterday_count,
+        'devices_without_yesterday_report': devices_without_yesterday_report,
+    }
+
+# =============================================================================
+# PROFILE MANAGEMENT
+# =============================================================================
+
+@require_department_admin
+def profile_view(request):
+    """
+    Workspace Supervisor Profile View.
+    
+    View and edit own profile information.
+    """
+    # Get department context
+    department, all_departments, show_department_switcher = get_current_department(request)
+    
+    if not department:
+        messages.error(request, '⛔ You are not assigned to any workspace.')
+        return redirect('accounts:login')
+    
+    user = request.user
+    
+    # Handle POST request
+    if request.method == 'POST':
+        return _handle_profile_update(request, user)
+    
+    # Get user's workspace memberships
+    user_workspaces = DepartmentMembership.objects.filter(
+        user=user,
+        is_active=True,
+        department__is_active=True
+    ).select_related('department')
+    
+    context = {
+        # Department switcher
+        'department': department,
+        'all_departments': all_departments,
+        'show_department_switcher': show_department_switcher,
+        
+        # Profile data
+        'profile_user': user,
+        'user_workspaces': user_workspaces,
+        'total_workspaces': user_workspaces.count(),
+        'page_title': 'My Profile',
+    }
+    
+    return render(request, 'departmentadmin/profile.html', context)
+
+
+def _handle_profile_update(request, user):
+    """
+    Handle profile update POST request.
+    
+    Args:
+        request: HTTP request
+        user: User instance to update
+        
+    Returns:
+        Redirect response
+    """
+    try:
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        
+        # Validation
+        if not first_name:
+            messages.error(request, '⛔ First name is required.')
+            return redirect('departmentadmin:profile')
+        
+        if not email:
+            messages.error(request, '⛔ Email is required.')
+            return redirect('departmentadmin:profile')
+        
+        # Check email uniqueness (excluding current user)
+        if User.objects.filter(email__iexact=email).exclude(id=user.id).exists():
+            messages.error(request, f'⛔ Email "{email}" is already in use.')
+            return redirect('departmentadmin:profile')
+        
+        # Update user
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.phone = phone
+        user.save()
+        
+        logger.info(f"Profile updated: {user.username}")
+        messages.success(request, '✅ Profile updated successfully!')
+        return redirect('departmentadmin:profile')
+        
+    except Exception as e:
+        logger.error(f"Error updating profile: {e}", exc_info=True)
+        messages.error(request, f'⛔ Error updating profile: {str(e)}')
+        return redirect('departmentadmin:profile')
+
+
+# =============================================================================
+# CHANGE PASSWORD
+# =============================================================================
+
+@require_department_admin
+def change_password_view(request):
+    """
+    Workspace Supervisor Change Password View.
+    
+    Allows user to change their own password.
+    """
+    # Get department context
+    department, all_departments, show_department_switcher = get_current_department(request)
+    
+    if not department:
+        messages.error(request, '⛔ You are not assigned to any workspace.')
+        return redirect('accounts:login')
+    
+    user = request.user
+    
+    # Handle POST request
+    if request.method == 'POST':
+        return _handle_password_change(request, user)
+    
+    context = {
+        # Department switcher
+        'department': department,
+        'all_departments': all_departments,
+        'show_department_switcher': show_department_switcher,
+        
+        'page_title': 'Change Password',
+    }
+    
+    return render(request, 'departmentadmin/change_password.html', context)
+
+
+def _handle_password_change(request, user):
+    """
+    Handle password change POST request.
+    
+    Args:
+        request: HTTP request
+        user: User instance
+        
+    Returns:
+        Redirect response
+    """
+    current_password = request.POST.get('current_password', '')
+    new_password = request.POST.get('new_password', '')
+    confirm_password = request.POST.get('confirm_password', '')
+    
+    # Validation
+    if not current_password:
+        messages.error(request, '⛔ Current password is required.')
+        return redirect('departmentadmin:change_password')
+    
+    if not new_password:
+        messages.error(request, '⛔ New password is required.')
+        return redirect('departmentadmin:change_password')
+    
+    if len(new_password) < 8:
+        messages.error(request, '⛔ Password must be at least 8 characters long.')
+        return redirect('departmentadmin:change_password')
+    
+    if new_password != confirm_password:
+        messages.error(request, '⛔ New passwords do not match.')
+        return redirect('departmentadmin:change_password')
+    
+    # Verify current password
+    if not user.check_password(current_password):
+        messages.error(request, '⛔ Current password is incorrect.')
+        return redirect('departmentadmin:change_password')
+    
+    # Check new password is different from current
+    if current_password == new_password:
+        messages.error(request, '⛔ New password must be different from current password.')
+        return redirect('departmentadmin:change_password')
+    
+    try:
+        # Set new password
+        user.set_password(new_password)
+        user.save()
+        
+        # Keep user logged in after password change
+        update_session_auth_hash(request, user)
+        
+        logger.info(f"Password changed: {user.username}")
+        messages.success(request, '✅ Password changed successfully!')
+        return redirect('departmentadmin:profile')
+        
+    except Exception as e:
+        logger.error(f"Error changing password: {e}", exc_info=True)
+        messages.error(request, f'⛔ Error changing password: {str(e)}')
+        return redirect('departmentadmin:change_password')

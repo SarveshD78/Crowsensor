@@ -1,42 +1,107 @@
-# userdashboard/views.py - USER DASHBOARD (READ-ONLY)
+"""
+userdashboard/views.py
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.contrib.auth import logout
-from django.http import FileResponse, Http404, JsonResponse
-from django.db.models import Q, Count
-from django.utils import timezone
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_GET
-from django.core.exceptions import PermissionDenied
+User Dashboard views (read-only access).
+Provides device visualization, alerts, and reports for assigned devices.
+"""
 
-import json
 import logging
 from datetime import datetime
 
+from django.contrib import messages
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.http import FileResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_GET
+
 from accounts.decorators import require_user
 from companyadmin.models import (
+    AssetConfig,
+    AssetTrackingConfig,
     DepartmentMembership,
+    Device,
     Sensor,
     SensorMetadata,
-    Device,
-    AssetTrackingConfig,
-    AssetConfig,
 )
 from departmentadmin.models import (
+    DailyDeviceReport,
     DeviceUserAssignment,
     SensorAlert,
-    DailyDeviceReport,
 )
 
-# Import from separate graph_helpers file (uses metadata_config)
 from .graph_helpers import (
-    fetch_sensor_data_for_user,
     fetch_asset_tracking_data_for_user,
+    fetch_sensor_data_for_user,
     INTERVAL_LOOKUP,
 )
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+def get_user_device_assignment(user, device_id):
+    """
+    Check if user has access to a device via DeviceUserAssignment.
+    
+    Args:
+        user: User instance
+        device_id: Device ID
+        
+    Returns:
+        DeviceUserAssignment or None
+    """
+    try:
+        return DeviceUserAssignment.objects.select_related(
+            'device', 'department'
+        ).get(
+            user=user,
+            device_id=device_id,
+            is_active=True
+        )
+    except DeviceUserAssignment.DoesNotExist:
+        return None
+
+
+def get_user_departments(user):
+    """
+    Get user's active department memberships.
+    
+    Args:
+        user: User instance
+        
+    Returns:
+        QuerySet of DepartmentMembership objects
+    """
+    return DepartmentMembership.objects.filter(
+        user=user,
+        is_active=True,
+        department__is_active=True
+    ).select_related('department')
+
+
+def get_user_assigned_device_ids(user, department_ids):
+    """
+    Get IDs of devices assigned to user.
+    
+    Args:
+        user: User instance
+        department_ids: List of department IDs
+        
+    Returns:
+        list: Device IDs
+    """
+    return list(DeviceUserAssignment.objects.filter(
+        user=user,
+        department_id__in=department_ids,
+        is_active=True
+    ).values_list('device_id', flat=True))
 
 
 # =============================================================================
@@ -45,7 +110,7 @@ logger = logging.getLogger(__name__)
 
 @require_user
 def logout_view(request):
-    """Logout user"""
+    """Logout user."""
     username = request.user.get_full_name_or_username()
     logout(request)
     messages.success(request, f'👋 Goodbye {username}! You have been logged out successfully.')
@@ -55,20 +120,16 @@ def logout_view(request):
 # =============================================================================
 # DASHBOARD HOME
 # =============================================================================
+
 @require_user
 def user_home_view(request):
     """
-    User Dashboard Home
-    Shows summary stats and quick access to all features
+    User Dashboard Home.
+    
+    Shows summary stats and quick access to all features.
     """
-    
     # Get user's department memberships
-    user_departments = DepartmentMembership.objects.filter(
-        user=request.user,
-        is_active=True,
-        department__is_active=True
-    ).select_related('department')
-    
+    user_departments = get_user_departments(request.user)
     department_ids = list(user_departments.values_list('department_id', flat=True))
     
     # Get user's assigned devices
@@ -80,21 +141,8 @@ def user_home_view(request):
     
     device_ids = list(assigned_devices.values_list('device_id', flat=True))
     
-    # Get active alerts for assigned devices
-    active_alerts = 0
-    recent_alerts = 0
-    
-    if device_ids:
-        active_alerts = SensorAlert.objects.filter(
-            sensor_metadata__sensor__device_id__in=device_ids,
-            status__in=['initial', 'medium', 'high']
-        ).count()
-        
-        # Get recent alerts (last 7 days)
-        recent_alerts = SensorAlert.objects.filter(
-            sensor_metadata__sensor__device_id__in=device_ids,
-            created_at__gte=timezone.now() - timezone.timedelta(days=7)
-        ).count()
+    # Get alert counts
+    active_alerts, recent_alerts = _get_alert_counts(device_ids)
     
     # Get available reports count
     available_reports = 0
@@ -104,27 +152,9 @@ def user_home_view(request):
             device_id__in=device_ids
         ).count()
     
-    # ✅ FIX: Add sensor_count and alert_count to each assignment
-    assigned_devices_with_stats = []
-    for assignment in assigned_devices[:5]:
-        # Get sensor count for device
-        sensor_count = Sensor.objects.filter(
-            device=assignment.device,
-            is_active=True
-        ).count()
-        
-        # Get active alerts for device
-        alert_count = SensorAlert.objects.filter(
-            sensor_metadata__sensor__device=assignment.device,
-            status__in=['initial', 'medium', 'high']
-        ).count()
-        
-        # Attach to assignment object
-        assignment.sensor_count = sensor_count
-        assignment.alert_count = alert_count
-        assigned_devices_with_stats.append(assignment)
+    # Add stats to recent device assignments
+    assigned_devices_with_stats = _add_device_stats(list(assigned_devices[:5]))
     
-    # Stats
     stats = {
         'total_departments': user_departments.count(),
         'total_devices': assigned_devices.count(),
@@ -135,13 +165,65 @@ def user_home_view(request):
     
     context = {
         'user_departments': user_departments,
-        'assigned_devices': assigned_devices_with_stats,  # ✅ Now has sensor_count & alert_count
+        'assigned_devices': assigned_devices_with_stats,
         'stats': stats,
         'page_title': 'Dashboard',
         'active_tab': 'home',
     }
     
     return render(request, 'userdashboard/dashboard.html', context)
+
+
+def _get_alert_counts(device_ids):
+    """
+    Get active and recent alert counts for devices.
+    
+    Args:
+        device_ids: List of device IDs
+        
+    Returns:
+        tuple: (active_alerts, recent_alerts)
+    """
+    if not device_ids:
+        return 0, 0
+    
+    active_alerts = SensorAlert.objects.filter(
+        sensor_metadata__sensor__device_id__in=device_ids,
+        status__in=['initial', 'medium', 'high']
+    ).count()
+    
+    recent_alerts = SensorAlert.objects.filter(
+        sensor_metadata__sensor__device_id__in=device_ids,
+        created_at__gte=timezone.now() - timezone.timedelta(days=7)
+    ).count()
+    
+    return active_alerts, recent_alerts
+
+
+def _add_device_stats(assignments):
+    """
+    Add sensor_count and alert_count to device assignments.
+    
+    Args:
+        assignments: List of DeviceUserAssignment objects
+        
+    Returns:
+        list: Assignments with stats added
+    """
+    for assignment in assignments:
+        assignment.sensor_count = Sensor.objects.filter(
+            device=assignment.device,
+            is_active=True
+        ).count()
+        
+        assignment.alert_count = SensorAlert.objects.filter(
+            sensor_metadata__sensor__device=assignment.device,
+            status__in=['initial', 'medium', 'high']
+        ).count()
+    
+    return assignments
+
+
 # =============================================================================
 # DEVICES VIEW
 # =============================================================================
@@ -149,17 +231,12 @@ def user_home_view(request):
 @require_user
 def user_devices_view(request):
     """
-    View all devices assigned to the user
-    Read-only - can view details and graphs
+    View all devices assigned to the user.
+    
+    Read-only - can view details and graphs.
     """
-    
     # Get user's department memberships
-    user_departments = DepartmentMembership.objects.filter(
-        user=request.user,
-        is_active=True,
-        department__is_active=True
-    ).select_related('department')
-    
+    user_departments = get_user_departments(request.user)
     department_ids = list(user_departments.values_list('department_id', flat=True))
     
     # Get assigned devices with related data
@@ -174,22 +251,45 @@ def user_devices_view(request):
     ).order_by('department__name', 'device__display_name')
     
     # Group devices by department
+    devices_by_department = _group_devices_by_department(assigned_devices)
+    
+    context = {
+        'devices_by_department': devices_by_department,
+        'total_devices': assigned_devices.count(),
+        'page_title': 'My Devices',
+        'active_tab': 'devices',
+    }
+    
+    return render(request, 'userdashboard/devices.html', context)
+
+
+def _group_devices_by_department(assigned_devices):
+    """
+    Group device assignments by department.
+    
+    Args:
+        assigned_devices: QuerySet of DeviceUserAssignment objects
+        
+    Returns:
+        dict: {dept_name: {'department': ..., 'devices': [...]}}
+    """
     devices_by_department = {}
+    
     for assignment in assigned_devices:
         dept_name = assignment.department.name
+        
         if dept_name not in devices_by_department:
             devices_by_department[dept_name] = {
                 'department': assignment.department,
                 'devices': []
             }
         
-        # Get sensor count for device
+        # Get stats for device
         sensor_count = Sensor.objects.filter(
             device=assignment.device,
             is_active=True
         ).count()
         
-        # Get active alerts for device
         alert_count = SensorAlert.objects.filter(
             sensor_metadata__sensor__device=assignment.device,
             status__in=['initial', 'medium', 'high']
@@ -202,14 +302,7 @@ def user_devices_view(request):
             'alert_count': alert_count,
         })
     
-    context = {
-        'devices_by_department': devices_by_department,
-        'total_devices': assigned_devices.count(),
-        'page_title': 'My Devices',
-        'active_tab': 'devices',
-    }
-    
-    return render(request, 'userdashboard/devices.html', context)
+    return devices_by_department
 
 
 # =============================================================================
@@ -219,68 +312,37 @@ def user_devices_view(request):
 @require_user
 def user_alerts_view(request):
     """
-    View alerts for assigned devices
-    Read-only - cannot acknowledge or resolve
-    Matches department admin alerts UI/UX
+    View alerts for assigned devices.
+    
+    Read-only - cannot acknowledge or resolve.
     """
-    
     # Get user's department memberships
-    user_departments = DepartmentMembership.objects.filter(
-        user=request.user,
-        is_active=True,
-        department__is_active=True
-    ).select_related('department')
-    
+    user_departments = get_user_departments(request.user)
     department_ids = list(user_departments.values_list('department_id', flat=True))
     
     # Get assigned device IDs
-    assigned_device_ids = list(DeviceUserAssignment.objects.filter(
-        user=request.user,
-        department_id__in=department_ids,
-        is_active=True
-    ).values_list('device_id', flat=True))
+    assigned_device_ids = get_user_assigned_device_ids(request.user, department_ids)
     
     # Handle empty device list
     if not assigned_device_ids:
-        context = {
-            'alerts': [],
-            'all_alerts': [],
-            'status_filter': 'all',
-            'stats': {
-                'total': 0,
-                'active': 0,
-                'resolved': 0,
-                'high': 0,
-                'medium': 0,
-                'initial': 0,
-            },
-            'alert_counts': {
-                'high': 0,
-                'medium': 0,
-                'initial': 0,
-                'total_resolved': 0,
-            },
-            'page_title': 'Alerts',
-            'active_tab': 'alerts',
-        }
-        return render(request, 'userdashboard/alerts.html', context)
+        return render(request, 'userdashboard/alerts.html', _get_empty_alerts_context())
     
     # Filter by status from URL
     status_filter = request.GET.get('status', 'all')
     
-    # Base queryset - Path: SensorAlert → sensor_metadata → sensor → device
+    # Base filter
     base_filter = {'sensor_metadata__sensor__device_id__in': assigned_device_ids}
     
-    # Get ALL alerts for the user (for client-side filtering)
+    # Get ALL alerts for client-side filtering (limit to 100)
     all_alerts = SensorAlert.objects.filter(
         **base_filter
     ).select_related(
         'sensor_metadata',
         'sensor_metadata__sensor',
         'sensor_metadata__sensor__device'
-    ).order_by('-created_at')[:100]  # Limit to 100 for performance
+    ).order_by('-created_at')[:100]
     
-    # Apply status filter for backward compatibility
+    # Apply status filter
     if status_filter == 'active':
         alerts_queryset = all_alerts.filter(status__in=['initial', 'medium', 'high'])
     elif status_filter == 'resolved':
@@ -289,38 +351,69 @@ def user_alerts_view(request):
         alerts_queryset = all_alerts
     
     # Calculate stats
-    total_alerts = SensorAlert.objects.filter(**base_filter).count()
-    active_alerts = SensorAlert.objects.filter(**base_filter, status__in=['initial', 'medium', 'high']).count()
-    resolved_alerts = SensorAlert.objects.filter(**base_filter, status='resolved').count()
-    
-    # Alert status counts
-    high_alerts = SensorAlert.objects.filter(**base_filter, status='high').count()
-    medium_alerts = SensorAlert.objects.filter(**base_filter, status='medium').count()
-    initial_alerts = SensorAlert.objects.filter(**base_filter, status='initial').count()
+    stats = _calculate_alert_stats(base_filter)
     
     context = {
         'alerts': alerts_queryset,
         'all_alerts': all_alerts,
         'status_filter': status_filter,
-        'stats': {
-            'total': total_alerts,
-            'active': active_alerts,
-            'resolved': resolved_alerts,
-            'high': high_alerts,
-            'medium': medium_alerts,
-            'initial': initial_alerts,
-        },
+        'stats': stats,
         'alert_counts': {
-            'high': high_alerts,
-            'medium': medium_alerts,
-            'initial': initial_alerts,
-            'total_resolved': resolved_alerts,
+            'high': stats['high'],
+            'medium': stats['medium'],
+            'initial': stats['initial'],
+            'total_resolved': stats['resolved'],
         },
         'page_title': 'Alerts',
         'active_tab': 'alerts',
     }
     
     return render(request, 'userdashboard/alerts.html', context)
+
+
+def _get_empty_alerts_context():
+    """Get context for empty alerts page."""
+    return {
+        'alerts': [],
+        'all_alerts': [],
+        'status_filter': 'all',
+        'stats': {
+            'total': 0,
+            'active': 0,
+            'resolved': 0,
+            'high': 0,
+            'medium': 0,
+            'initial': 0,
+        },
+        'alert_counts': {
+            'high': 0,
+            'medium': 0,
+            'initial': 0,
+            'total_resolved': 0,
+        },
+        'page_title': 'Alerts',
+        'active_tab': 'alerts',
+    }
+
+
+def _calculate_alert_stats(base_filter):
+    """
+    Calculate alert statistics.
+    
+    Args:
+        base_filter: Dict with base filter criteria
+        
+    Returns:
+        dict: Alert statistics
+    """
+    return {
+        'total': SensorAlert.objects.filter(**base_filter).count(),
+        'active': SensorAlert.objects.filter(**base_filter, status__in=['initial', 'medium', 'high']).count(),
+        'resolved': SensorAlert.objects.filter(**base_filter, status='resolved').count(),
+        'high': SensorAlert.objects.filter(**base_filter, status='high').count(),
+        'medium': SensorAlert.objects.filter(**base_filter, status='medium').count(),
+        'initial': SensorAlert.objects.filter(**base_filter, status='initial').count(),
+    }
 
 
 # =============================================================================
@@ -330,17 +423,12 @@ def user_alerts_view(request):
 @require_user
 def user_reports_view(request):
     """
-    View and download reports for user's assigned devices
-    Download only - cannot create reports
+    View and download reports for user's assigned devices.
+    
+    Download only - cannot create reports.
     """
-    
     # Get user's department memberships
-    user_departments = DepartmentMembership.objects.filter(
-        user=request.user,
-        is_active=True,
-        department__is_active=True
-    ).select_related('department')
-    
+    user_departments = get_user_departments(request.user)
     department_ids = list(user_departments.values_list('department_id', flat=True))
     
     # Get first department for display
@@ -348,66 +436,31 @@ def user_reports_view(request):
     department_name = first_department.department.name if first_department else "No Department"
     
     # Get assigned device IDs
-    assigned_device_ids = list(DeviceUserAssignment.objects.filter(
-        user=request.user,
-        department_id__in=department_ids,
-        is_active=True
-    ).values_list('device_id', flat=True))
+    assigned_device_ids = get_user_assigned_device_ids(request.user, department_ids)
     
     # Handle empty device list
     if not assigned_device_ids:
-        context = {
-            'reports': [],
-            'paginator': None,
-            'department_name': department_name,
-            'total_reports': 0,
-            'daily_reports_count': 0,
-            'custom_reports_count': 0,
-            'filtered_count': 0,
-            'filter_type': 'all',
-            'filter_date_from': '',
-            'filter_date_to': '',
-            'page_title': 'Reports',
-            'active_tab': 'reports',
-        }
-        return render(request, 'userdashboard/reports.html', context)
+        return render(request, 'userdashboard/reports.html', _get_empty_reports_context(department_name))
     
-    # GET FILTER PARAMETERS
+    # Get filter parameters
     filter_type = request.GET.get('type', 'all')
     filter_date_from = request.GET.get('date_from', '')
     filter_date_to = request.GET.get('date_to', '')
     page_number = request.GET.get('page', 1)
     
-    # BUILD BASE QUERYSET
+    # Build base queryset
     reports_queryset = DailyDeviceReport.objects.filter(
         department_id__in=department_ids,
         device_id__in=assigned_device_ids
     ).select_related('department', 'device', 'generated_by', 'generated_by__user')
     
-    # APPLY FILTERS
-    if filter_type == 'daily':
-        reports_queryset = reports_queryset.filter(report_type='daily')
-    elif filter_type == 'custom':
-        reports_queryset = reports_queryset.filter(report_type='custom')
+    # Apply filters
+    reports_queryset = _apply_report_filters(
+        reports_queryset, filter_type, filter_date_from, filter_date_to
+    )
     
-    if filter_date_from:
-        try:
-            date_from = datetime.strptime(filter_date_from, '%Y-%m-%d').date()
-            reports_queryset = reports_queryset.filter(report_date__gte=date_from)
-        except ValueError:
-            pass
-    
-    if filter_date_to:
-        try:
-            date_to = datetime.strptime(filter_date_to, '%Y-%m-%d').date()
-            reports_queryset = reports_queryset.filter(report_date__lte=date_to)
-        except ValueError:
-            pass
-    
-    # ORDER AND PAGINATE
+    # Order and paginate
     reports_queryset = reports_queryset.order_by('-created_at', '-report_date')
-    
-    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
     
     paginator = Paginator(reports_queryset, 20)
     
@@ -418,35 +471,18 @@ def user_reports_view(request):
     except EmptyPage:
         reports_page = paginator.page(paginator.num_pages)
     
-    # CALCULATE STATISTICS
-    total_reports = DailyDeviceReport.objects.filter(
-        department_id__in=department_ids,
-        device_id__in=assigned_device_ids
-    ).count()
-    
-    daily_reports_count = DailyDeviceReport.objects.filter(
-        department_id__in=department_ids,
-        device_id__in=assigned_device_ids,
-        report_type='daily'
-    ).count()
-    
-    custom_reports_count = DailyDeviceReport.objects.filter(
-        department_id__in=department_ids,
-        device_id__in=assigned_device_ids,
-        report_type='custom'
-    ).count()
-    
-    filtered_count = paginator.count
+    # Calculate statistics
+    stats = _calculate_report_stats(department_ids, assigned_device_ids)
     
     context = {
         'reports': reports_page,
         'paginator': paginator,
         'department_name': department_name,
         'assigned_devices_count': len(assigned_device_ids),
-        'total_reports': total_reports,
-        'daily_reports_count': daily_reports_count,
-        'custom_reports_count': custom_reports_count,
-        'filtered_count': filtered_count,
+        'total_reports': stats['total'],
+        'daily_reports_count': stats['daily'],
+        'custom_reports_count': stats['custom'],
+        'filtered_count': paginator.count,
         'filter_type': filter_type,
         'filter_date_from': filter_date_from,
         'filter_date_to': filter_date_to,
@@ -457,13 +493,89 @@ def user_reports_view(request):
     return render(request, 'userdashboard/reports.html', context)
 
 
+def _get_empty_reports_context(department_name):
+    """Get context for empty reports page."""
+    return {
+        'reports': [],
+        'paginator': None,
+        'department_name': department_name,
+        'total_reports': 0,
+        'daily_reports_count': 0,
+        'custom_reports_count': 0,
+        'filtered_count': 0,
+        'filter_type': 'all',
+        'filter_date_from': '',
+        'filter_date_to': '',
+        'page_title': 'Reports',
+        'active_tab': 'reports',
+    }
+
+
+def _apply_report_filters(queryset, filter_type, filter_date_from, filter_date_to):
+    """
+    Apply filters to reports queryset.
+    
+    Args:
+        queryset: Base reports queryset
+        filter_type: 'all', 'daily', or 'custom'
+        filter_date_from: Date string (YYYY-MM-DD)
+        filter_date_to: Date string (YYYY-MM-DD)
+        
+    Returns:
+        QuerySet: Filtered queryset
+    """
+    if filter_type == 'daily':
+        queryset = queryset.filter(report_type='daily')
+    elif filter_type == 'custom':
+        queryset = queryset.filter(report_type='custom')
+    
+    if filter_date_from:
+        try:
+            date_from = datetime.strptime(filter_date_from, '%Y-%m-%d').date()
+            queryset = queryset.filter(report_date__gte=date_from)
+        except ValueError:
+            pass
+    
+    if filter_date_to:
+        try:
+            date_to = datetime.strptime(filter_date_to, '%Y-%m-%d').date()
+            queryset = queryset.filter(report_date__lte=date_to)
+        except ValueError:
+            pass
+    
+    return queryset
+
+
+def _calculate_report_stats(department_ids, device_ids):
+    """
+    Calculate report statistics.
+    
+    Args:
+        department_ids: List of department IDs
+        device_ids: List of device IDs
+        
+    Returns:
+        dict: Report statistics
+    """
+    base_filter = {
+        'department_id__in': department_ids,
+        'device_id__in': device_ids
+    }
+    
+    return {
+        'total': DailyDeviceReport.objects.filter(**base_filter).count(),
+        'daily': DailyDeviceReport.objects.filter(**base_filter, report_type='daily').count(),
+        'custom': DailyDeviceReport.objects.filter(**base_filter, report_type='custom').count(),
+    }
+
+
 @require_user
 def download_report_view(request, report_id):
     """
-    Download a specific report file
-    Validates user has access to the report's device
-    """
+    Download a specific report file.
     
+    Validates user has access to the report's device.
+    """
     # Get user's department IDs
     department_ids = list(DepartmentMembership.objects.filter(
         user=request.user,
@@ -472,11 +584,7 @@ def download_report_view(request, report_id):
     ).values_list('department_id', flat=True))
     
     # Get assigned device IDs
-    assigned_device_ids = list(DeviceUserAssignment.objects.filter(
-        user=request.user,
-        department_id__in=department_ids,
-        is_active=True
-    ).values_list('device_id', flat=True))
+    assigned_device_ids = get_user_assigned_device_ids(request.user, department_ids)
     
     # Get report and verify access
     report = get_object_or_404(
@@ -499,61 +607,38 @@ def download_report_view(request, report_id):
         )
         return response
     except Exception as e:
+        logger.error(f"Error downloading report {report_id}: {e}", exc_info=True)
         messages.error(request, f'Error downloading report: {str(e)}')
         return redirect('userdashboard:user_reports')
 
 
 # =============================================================================
-# HELPER: Get user's device assignment (access control)
-# =============================================================================
-
-def get_user_device_assignment(user, device_id):
-    """
-    Check if user has access to this device via DeviceUserAssignment.
-    Returns the assignment object if access granted, None otherwise.
-    """
-    try:
-        assignment = DeviceUserAssignment.objects.select_related(
-            'device', 'department'
-        ).get(
-            user=user,
-            device_id=device_id,
-            is_active=True
-        )
-        return assignment
-    except DeviceUserAssignment.DoesNotExist:
-        return None
-
-
-# =============================================================================
-# VIEW: DEVICE VISUALIZATION ROUTER
+# DEVICE VISUALIZATION ROUTER
 # =============================================================================
 
 @require_user
 @require_GET
 def user_device_visualization_view(request, device_id):
     """
-    Router view that checks device type and redirects to appropriate view.
-    - industrial_sensor -> user_device_graphs_page
-    - asset_tracking -> user_device_asset_map
+    Router view that redirects to appropriate visualization.
+    
+    - industrial_sensor -> graphs page
+    - asset_tracking -> asset map page
     """
-    # Check user has access to this device
     assignment = get_user_device_assignment(request.user, device_id)
     if not assignment:
         raise PermissionDenied("You don't have access to this device.")
     
     device = assignment.device
     
-    # Route based on device type
     if device.device_type == 'asset_tracking':
         return redirect('userdashboard:user_device_asset_map', device_id=device_id)
     else:
-        # Default to industrial sensor graphs
         return redirect('userdashboard:user_device_graphs', device_id=device_id)
 
 
 # =============================================================================
-# VIEW: INDUSTRIAL SENSOR GRAPHS PAGE
+# INDUSTRIAL SENSOR GRAPHS
 # =============================================================================
 
 @require_user
@@ -561,19 +646,19 @@ def user_device_visualization_view(request, device_id):
 def user_device_graphs_page_view(request, device_id):
     """
     Renders the industrial sensor graphs page.
+    
     Template makes AJAX calls to user_device_graphs_data for data.
     """
-    # Check user has access to this device
     assignment = get_user_device_assignment(request.user, device_id)
     if not assignment:
         raise PermissionDenied("You don't have access to this device.")
     
     device = assignment.device
     
-    # Get sensor count for display - use metadata_config
+    # Get sensor counts
     sensor_count = device.sensors.filter(is_active=True).count()
     configured_count = device.sensors.filter(
-        is_active=True, 
+        is_active=True,
         metadata_config__isnull=False
     ).count()
     
@@ -588,19 +673,14 @@ def user_device_graphs_page_view(request, device_id):
     return render(request, 'userdashboard/device_graphs.html', context)
 
 
-# =============================================================================
-# VIEW: INDUSTRIAL SENSOR GRAPHS DATA API (JSON)
-# =============================================================================
-
 @require_user
 @require_GET
 def user_device_graphs_view(request, device_id):
     """
-    API endpoint that returns sensor data for charts.
+    API endpoint that returns sensor data for charts (JSON).
+    
     Called via AJAX from the graphs template.
-    Returns JSON with timestamps and sensor values.
     """
-    # Check user has access to this device
     assignment = get_user_device_assignment(request.user, device_id)
     if not assignment:
         return JsonResponse({
@@ -609,12 +689,9 @@ def user_device_graphs_view(request, device_id):
         }, status=403)
     
     device = assignment.device
-    
-    # Get time range from request
     time_range = request.GET.get('time_range', 'now() - 1h')
     
     try:
-        # Fetch sensor data from InfluxDB using user-specific helper
         data = fetch_sensor_data_for_user(device, time_range)
         
         return JsonResponse({
@@ -630,7 +707,7 @@ def user_device_graphs_view(request, device_id):
         })
         
     except Exception as e:
-        logger.error(f"Error fetching sensor data for device {device_id}: {e}")
+        logger.error(f"Error fetching sensor data for device {device_id}: {e}", exc_info=True)
         return JsonResponse({
             'success': False,
             'message': str(e)
@@ -638,7 +715,7 @@ def user_device_graphs_view(request, device_id):
 
 
 # =============================================================================
-# VIEW: ASSET TRACKING MAP PAGE
+# ASSET TRACKING MAP
 # =============================================================================
 
 @require_user
@@ -646,9 +723,9 @@ def user_device_graphs_view(request, device_id):
 def user_device_asset_map_view(request, device_id):
     """
     Renders the asset tracking map page.
+    
     Template makes AJAX calls to user_device_asset_map_data for location data.
     """
-    # Check user has access to this device
     assignment = get_user_device_assignment(request.user, device_id)
     if not assignment:
         raise PermissionDenied("You don't have access to this device.")
@@ -680,19 +757,14 @@ def user_device_asset_map_view(request, device_id):
     return render(request, 'userdashboard/device_asset_map.html', context)
 
 
-# =============================================================================
-# VIEW: ASSET TRACKING MAP DATA API (JSON)
-# =============================================================================
-
 @require_user
 @require_GET
 def user_device_asset_map_data_view(request, device_id):
     """
-    API endpoint that returns asset tracking location data.
+    API endpoint that returns asset tracking location data (JSON).
+    
     Called via AJAX from the asset map template.
-    Returns JSON with location history and current position.
     """
-    # Check user has access to this device
     assignment = get_user_device_assignment(request.user, device_id)
     if not assignment:
         return JsonResponse({
@@ -709,11 +781,9 @@ def user_device_asset_map_data_view(request, device_id):
             'message': 'This device is not configured for asset tracking'
         }, status=400)
     
-    # Get time range from request
     time_range = request.GET.get('time_range', 'now() - 24h')
     
     try:
-        # Fetch asset tracking data from InfluxDB using user-specific helper
         data = fetch_asset_tracking_data_for_user(device, time_range)
         
         return JsonResponse({
@@ -728,7 +798,7 @@ def user_device_asset_map_data_view(request, device_id):
         })
         
     except Exception as e:
-        logger.error(f"Error fetching asset tracking data for device {device_id}: {e}")
+        logger.error(f"Error fetching asset tracking data for device {device_id}: {e}", exc_info=True)
         return JsonResponse({
             'success': False,
             'message': str(e)

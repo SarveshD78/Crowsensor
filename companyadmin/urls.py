@@ -71,4 +71,7 @@ urlpatterns = [
     # DEVICE SETUP WIZARD
     # =============================================================================
     path('influx/setup-wizard/', views.device_setup_wizard_view, name='device_setup_wizard'),
+
+    path('profile/', views.profile_view, name='profile'),
+    path('change-password/', views.change_password_view, name='change_password'),
 ]

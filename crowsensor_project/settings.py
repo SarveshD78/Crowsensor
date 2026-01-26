@@ -24,6 +24,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://e2e-75-221.ssdcloudindia.net',
     'https://*.ssdcloudindia.net'
 ]
+
 # Application definition
 SHARED_APPS = [
     'django_tenants',  # Must come first
@@ -36,7 +37,6 @@ SHARED_APPS = [
     
     # System-level apps (Public Schema)
     'systemadmin',  # Tenant management, system admin dashboard
-      
 ]
 
 TENANT_APPS = [
@@ -49,9 +49,9 @@ TENANT_APPS = [
     
     # Tenant-specific apps (Isolated per tenant)
     'accounts',
-    'companyadmin',      # Company admin features
-    'departmentadmin',   # Department management
-    'userdashboard',     # User dashboards
+    'companyadmin',
+    'departmentadmin',
+    'userdashboard',
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
@@ -90,13 +90,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'crowsensor_project.wsgi.application'
 
 # Database - PostgreSQL with django-tenants
-# Database - TEMPORARY HARDCODED (for debugging)
 DATABASES = {
     'default': {
         'ENGINE': 'django_tenants.postgresql_backend',
         'NAME': 'crowsensor_db',
         'USER': 'crowsensor_user',
-        'PASSWORD': 'Sisai@2025',  # ← HARDCODED (remove after testing)
+        'PASSWORD': 'Sisai@2025',  # TODO: Move to environment variable in production
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -124,23 +123,15 @@ AUTHENTICATION_BACKENDS = [
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Kolkata'  # Indian Standard Time (IST)
+TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
@@ -158,27 +149,67 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Logging
+# Logging Configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'simple',
         },
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': BASE_DIR / 'logs' / 'debug.log',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
+        # Django core
         'django': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': True,
         },
+        # Django-tenants
         'django_tenants': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        # App loggers
+        'accounts': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'systemadmin': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'companyadmin': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'departmentadmin': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'userdashboard': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': False,

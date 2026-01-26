@@ -1,0 +1,649 @@
+{% extends 'companyadmin/base.html' %}
+
+{% block title %}My Profile{% endblock %}
+{% block page_heading %}My Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========================================
+   PROFILE PAGE - CLEAN PROFESSIONAL DESIGN
+   ======================================== */
+
+.profile-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* ===== PROFILE HEADER CARD ===== */
+.profile-header-card {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    margin-bottom: var(--space-6);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-header-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+}
+
+.profile-avatar-large {
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: 700;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.profile-header-info {
+    position: relative;
+    z-index: 1;
+}
+
+.profile-header-info h1 {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    margin: 0 0 var(--space-2) 0;
+}
+
+.profile-header-info p {
+    font-size: var(--text-sm);
+    opacity: 0.9;
+    margin: 0 0 var(--space-3) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.profile-header-info p i {
+    font-size: var(--text-base);
+}
+
+.profile-role-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    backdrop-filter: blur(10px);
+}
+
+/* ===== PROFILE DETAILS CARD ===== */
+.profile-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-6);
+    overflow: hidden;
+}
+
+.profile-card-header {
+    background: var(--gray-50);
+    padding: var(--space-5);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-card-header h2 {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.profile-card-header h2 i {
+    color: var(--primary-blue);
+}
+
+.profile-card-body {
+    padding: var(--space-6);
+}
+
+/* ===== FORM STYLES ===== */
+.profile-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+}
+
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
+}
+
+.form-label i {
+    color: var(--primary-blue);
+    margin-right: var(--space-2);
+    width: 16px;
+    text-align: center;
+}
+
+.form-control-profile {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.form-control-profile:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-control-profile:disabled,
+.form-control-profile[readonly] {
+    background: var(--gray-50);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+}
+
+.form-hint {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    margin-top: var(--space-2);
+}
+
+/* ===== INFO ROW (Read-only display) ===== */
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.info-label i {
+    color: var(--primary-blue);
+    width: 20px;
+    text-align: center;
+}
+
+.info-value {
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.info-value.badge {
+    background: var(--primary-blue);
+    color: white;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: 600;
+}
+
+/* ===== BUTTONS ===== */
+.btn-row {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-light);
+}
+
+.btn-primary-profile {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.btn-primary-profile:hover {
+    background: var(--primary-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-secondary-profile {
+    background: white;
+    color: var(--text-primary);
+    border: 2px solid var(--border-medium);
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    text-decoration: none;
+}
+
+.btn-secondary-profile:hover {
+    background: var(--gray-50);
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+}
+
+.btn-danger-outline {
+    background: white;
+    color: var(--danger);
+    border: 2px solid var(--danger);
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    text-decoration: none;
+}
+
+.btn-danger-outline:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* ===== QUICK ACTIONS CARD ===== */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+}
+
+.quick-action-item {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    text-align: center;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.quick-action-item:hover {
+    border-color: var(--primary-blue);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.quick-action-item i {
+    font-size: 32px;
+    color: var(--primary-blue);
+    margin-bottom: var(--space-3);
+    display: block;
+}
+
+.quick-action-item h3 {
+    font-size: var(--text-base);
+    font-weight: 600;
+    margin: 0 0 var(--space-2) 0;
+}
+
+.quick-action-item p {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .profile-container {
+        padding: var(--space-4);
+    }
+    
+    .profile-header-card {
+        flex-direction: column;
+        text-align: center;
+        padding: var(--space-6);
+    }
+    
+    .profile-avatar-large {
+        width: 80px;
+        height: 80px;
+        font-size: 32px;
+    }
+    
+    .profile-form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .btn-row {
+        flex-direction: column;
+    }
+    
+    .btn-row button,
+    .btn-row a {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+
+    <!-- Profile Header Card -->
+    <div class="profile-header-card">
+        <div class="profile-avatar-large">
+            {{ user.first_name|slice:"1"|upper|default:user.username|slice:"1"|upper }}
+        </div>
+        <div class="profile-header-info">
+            <h1>{{ user.get_full_name|default:user.username }}</h1>
+            <p>
+                <i class="fas fa-envelope"></i>
+                {{ user.email }}
+            </p>
+            <span class="profile-role-badge">
+                <i class="fas fa-crown"></i>
+                Company Administrator
+            </span>
+        </div>
+    </div>
+
+    <!-- Edit Profile Card -->
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <h2>
+                <i class="fas fa-user-edit"></i>
+                Edit Profile
+            </h2>
+        </div>
+        <div class="profile-card-body">
+            <form method="POST" id="profileForm">
+                {% csrf_token %}
+                
+                <div class="profile-form-grid">
+                    <!-- First Name -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i>
+                            First Name
+                        </label>
+                        <input type="text" 
+                               name="first_name" 
+                               class="form-control-profile" 
+                               value="{{ user.first_name }}"
+                               placeholder="Enter first name">
+                    </div>
+                    
+                    <!-- Last Name -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i>
+                            Last Name
+                        </label>
+                        <input type="text" 
+                               name="last_name" 
+                               class="form-control-profile" 
+                               value="{{ user.last_name }}"
+                               placeholder="Enter last name">
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-envelope"></i>
+                            Email Address <span style="color: var(--danger);">*</span>
+                        </label>
+                        <input type="email" 
+                               name="email" 
+                               class="form-control-profile" 
+                               value="{{ user.email }}"
+                               placeholder="Enter email address"
+                               required>
+                    </div>
+                    
+                    <!-- Phone -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-phone"></i>
+                            Phone Number
+                        </label>
+                        <input type="text" 
+                               name="phone" 
+                               id="phone_field"
+                               class="form-control-profile" 
+                               value="{{ user.phone|default:'' }}"
+                               placeholder="+91 9876543210">
+                        <div class="form-hint">Format: +91 followed by 10 digits</div>
+                    </div>
+                    
+                    <!-- Username (Read-only) -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-at"></i>
+                            Username
+                        </label>
+                        <input type="text" 
+                               class="form-control-profile" 
+                               value="{{ user.username }}"
+                               disabled
+                               readonly>
+                        <div class="form-hint">Username cannot be changed</div>
+                    </div>
+                    
+                    <!-- Role (Read-only) -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-shield-alt"></i>
+                            Role
+                        </label>
+                        <input type="text" 
+                               class="form-control-profile" 
+                               value="Company Administrator"
+                               disabled
+                               readonly>
+                    </div>
+                </div>
+                
+                <!-- Buttons -->
+                <div class="btn-row">
+                    <button type="submit" class="btn-primary-profile">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                    <a href="{% url 'companyadmin:change_password' %}" class="btn-secondary-profile">
+                        <i class="fas fa-key"></i>
+                        Change Password
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Account Information Card -->
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <h2>
+                <i class="fas fa-info-circle"></i>
+                Account Information
+            </h2>
+        </div>
+        <div class="profile-card-body">
+            <div class="info-row">
+                <span class="info-label">
+                    <i class="fas fa-building"></i>
+                    Company
+                </span>
+                <span class="info-value">{{ request.tenant.company_name }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">
+                    <i class="fas fa-globe"></i>
+                    Subdomain
+                </span>
+                <span class="info-value">{{ request.tenant.subdomain }}.technologymatters.in</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">
+                    <i class="fas fa-user-shield"></i>
+                    Account Type
+                </span>
+                <span class="info-value badge">Company Admin</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">
+                    <i class="fas fa-calendar-plus"></i>
+                    Account Created
+                </span>
+                <span class="info-value">{{ user.date_joined|date:"F d, Y" }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">
+                    <i class="fas fa-clock"></i>
+                    Last Login
+                </span>
+                <span class="info-value">{{ user.last_login|date:"F d, Y - h:i A"|default:"Never" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <h2>
+                <i class="fas fa-bolt"></i>
+                Quick Actions
+            </h2>
+        </div>
+        <div class="profile-card-body">
+            <div class="quick-actions-grid">
+                <a href="{% url 'companyadmin:change_password' %}" class="quick-action-item">
+                    <i class="fas fa-key"></i>
+                    <h3>Change Password</h3>
+                    <p>Update your account password</p>
+                </a>
+                
+                <a href="{% url 'companyadmin:dashboard' %}" class="quick-action-item">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Dashboard</h3>
+                    <p>Return to main dashboard</p>
+                </a>
+                
+                <a href="{% url 'companyadmin:users' %}" class="quick-action-item">
+                    <i class="fas fa-users"></i>
+                    <h3>Manage Users</h3>
+                    <p>Add or edit workspace supervisors</p>
+                </a>
+                
+                <a href="{% url 'companyadmin:logout' %}" class="quick-action-item" style="border-color: var(--danger);">
+                    <i class="fas fa-sign-out-alt" style="color: var(--danger);"></i>
+                    <h3 style="color: var(--danger);">Logout</h3>
+                    <p>Sign out of your account</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Phone validation
+    const phoneField = document.getElementById('phone_field');
+    
+    if (phoneField) {
+        phoneField.addEventListener('input', function(e) {
+            // Remove any character that is not a digit or +
+            let value = this.value.replace(/[^0-9+]/g, '');
+            
+            // Ensure + only appears at the start
+            if (value.includes('+')) {
+                const hasLeadingPlus = value.charAt(0) === '+';
+                const digitsOnly = value.replace(/\+/g, '');
+                value = hasLeadingPlus ? '+' + digitsOnly : digitsOnly;
+            }
+            
+            this.value = value;
+        });
+    }
+    
+    // Form submit loading state
+    const form = document.getElementById('profileForm');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

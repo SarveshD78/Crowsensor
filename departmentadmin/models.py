@@ -1,21 +1,39 @@
-# companyuser/models.py - ADD THIS ALERT MODEL
+"""
+departmentadmin/models.py
 
+Models for Department Admin functionality including alerts, reports, and device assignments.
+"""
+
+import os
+
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from django.core.exceptions import ValidationError
-# departmentadmin/models.py
 
-from django.db import models
-from django.utils import timezone
-from django.core.exceptions import ValidationError
 
+# =============================================================================
+# SENSOR ALERT MODEL
+# =============================================================================
 
 class SensorAlert(models.Model):
     """
-    Alert system for sensor threshold breaches
-    Cross-app FK to companyadmin.SensorMetadata
-    Tenant-scoped (exists in tenant schemas)
+    Alert system for sensor threshold breaches.
+    
+    Cross-app FK to companyadmin.SensorMetadata.
+    Tenant-scoped (exists in tenant schemas).
     """
+    
+    STATUS_CHOICES = [
+        ('initial', 'Initial'),      # 0-60 minutes
+        ('medium', 'Medium'),        # 60-90 minutes
+        ('high', 'High'),            # 90+ minutes
+        ('resolved', 'Resolved')
+    ]
+    
+    BREACH_TYPE_CHOICES = [
+        ('upper', 'Upper Limit Breach'),
+        ('lower', 'Lower Limit Breach')
+    ]
     
     sensor_metadata = models.ForeignKey(
         'companyadmin.SensorMetadata',
@@ -24,12 +42,6 @@ class SensorAlert(models.Model):
         help_text="Link to sensor metadata with configured limits"
     )
     
-    STATUS_CHOICES = [
-        ('initial', 'Initial'),      # 0-60 minutes
-        ('medium', 'Medium'),         # 60-90 minutes
-        ('high', 'High'),             # 90+ minutes
-        ('resolved', 'Resolved')
-    ]
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
@@ -37,10 +49,6 @@ class SensorAlert(models.Model):
         db_index=True
     )
     
-    BREACH_TYPE_CHOICES = [
-        ('upper', 'Upper Limit Breach'),
-        ('lower', 'Lower Limit Breach')
-    ]
     breach_type = models.CharField(
         max_length=10,
         choices=BREACH_TYPE_CHOICES,
@@ -50,6 +58,7 @@ class SensorAlert(models.Model):
     breach_value = models.FloatField(
         help_text="Sensor value that caused the breach"
     )
+    
     limit_value = models.FloatField(
         help_text="The limit that was breached"
     )
@@ -83,30 +92,32 @@ class SensorAlert(models.Model):
         sensor_name = self.sensor_metadata.get_display_name()
         return f"{device_name}.{sensor_name} - {self.get_status_display()}"
     
+    def __repr__(self):
+        return f"<SensorAlert(id={self.id}, status={self.status}, breach={self.breach_type})>"
+    
     @property
     def is_active(self):
+        """Check if alert is still active."""
         return self.status in ['initial', 'medium', 'high']
     
     @property
     def duration_minutes(self):
-        if self.resolved_at:
-            end_time = self.resolved_at
-        else:
-            end_time = timezone.now()
+        """Calculate alert duration in minutes."""
+        end_time = self.resolved_at if self.resolved_at else timezone.now()
         return int((end_time - self.created_at).total_seconds() / 60)
     
     @property
     def can_escalate_to_medium(self):
-        """After 60 minutes"""
+        """Check if alert can escalate to medium (after 60 minutes)."""
         return self.status == 'initial' and self.duration_minutes >= 60
     
     @property
     def can_escalate_to_high(self):
-        """After 90 minutes total"""
+        """Check if alert can escalate to high (after 90 minutes total)."""
         return self.status == 'medium' and self.duration_minutes >= 90
     
     def escalate(self):
-        """Escalate to next level"""
+        """Escalate alert to next level."""
         now = timezone.now()
         if self.status == 'initial':
             self.status = 'medium'
@@ -117,18 +128,18 @@ class SensorAlert(models.Model):
         self.save(update_fields=['status', 'escalated_to_medium_at', 'escalated_to_high_at'])
     
     def resolve(self):
-        """Mark as resolved"""
+        """Mark alert as resolved."""
         self.status = 'resolved'
         self.resolved_at = timezone.now()
         self.save(update_fields=['status', 'resolved_at'])
     
     def update_breach_value(self, new_value):
-        """Update current breach value"""
+        """Update current breach value."""
         self.breach_value = new_value
         self.save(update_fields=['breach_value'])
     
     def clean(self):
-        """Validation"""
+        """Validate alert data."""
         super().clean()
         if not self.sensor_metadata.upper_limit and not self.sensor_metadata.lower_limit:
             raise ValidationError("Cannot create alert for sensor without configured limits")
@@ -137,51 +148,43 @@ class SensorAlert(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
-# departmentadmin/models.py - ADD THIS MODEL
 
-import os
-from django.db import models
-from django.utils import timezone
-from companyadmin.models import Device
+# =============================================================================
+# DAILY DEVICE REPORT MODEL
+# =============================================================================
 
 def report_upload_path(instance, filename):
-    """Generate upload path for reports"""
+    """Generate upload path for reports."""
     date_str = instance.report_date.strftime('%Y/%m/%d')
     return f'reports/{instance.tenant.schema_name}/{date_str}/{filename}'
 
+
 class DailyDeviceReport(models.Model):
-    """
-    Model to store daily device reports with sensor statistics
-    """
+    """Model to store daily device reports with sensor statistics."""
     
-    # Report type choices
     REPORT_TYPE_CHOICES = [
         ('daily', 'Daily Report'),
         ('custom', 'Custom Report'),
     ]
     
-    # Tenant relationship
     tenant = models.ForeignKey(
         'systemadmin.Tenant',
         on_delete=models.CASCADE,
         related_name='daily_reports'
     )
     
-    # Department relationship
     department = models.ForeignKey(
         'companyadmin.Department',
         on_delete=models.CASCADE,
         related_name='daily_reports'
     )
     
-    # Device relationship
     device = models.ForeignKey(
         'companyadmin.Device',
         on_delete=models.CASCADE,
         related_name='daily_reports'
     )
     
-    # Report metadata
     report_date = models.DateField(
         db_index=True,
         help_text="Date this report covers (usually yesterday)"
@@ -195,13 +198,11 @@ class DailyDeviceReport(models.Model):
         help_text="Type of report"
     )
     
-    # File storage
     csv_file = models.FileField(
         upload_to=report_upload_path,
         help_text="Generated CSV file"
     )
     
-    # Report statistics
     total_sensors = models.IntegerField(
         default=0,
         help_text="Number of sensors included"
@@ -228,7 +229,6 @@ class DailyDeviceReport(models.Model):
         help_text="Time taken to generate report"
     )
     
-    # Audit fields
     generated_by = models.ForeignKey(
         'companyadmin.DepartmentMembership',
         on_delete=models.SET_NULL,
@@ -239,7 +239,6 @@ class DailyDeviceReport(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     
-    # Error tracking
     generation_errors = models.TextField(
         blank=True,
         help_text="Any errors during generation"
@@ -260,9 +259,12 @@ class DailyDeviceReport(models.Model):
     def __str__(self):
         return f"{self.device.display_name} - {self.report_date}"
     
+    def __repr__(self):
+        return f"<DailyDeviceReport(id={self.id}, device={self.device_id}, date={self.report_date})>"
+    
     @property
     def file_size_mb(self):
-        """Get file size in MB"""
+        """Get file size in MB."""
         if self.csv_file and os.path.exists(self.csv_file.path):
             size_bytes = os.path.getsize(self.csv_file.path)
             return round(size_bytes / (1024 * 1024), 2)
@@ -270,19 +272,19 @@ class DailyDeviceReport(models.Model):
     
     @property
     def filename(self):
-        """Get just the filename"""
+        """Get just the filename."""
         if self.csv_file:
             return os.path.basename(self.csv_file.name)
         return None
     
     def get_download_url(self):
-        """Get download URL"""
+        """Get download URL."""
         if self.csv_file:
             return self.csv_file.url
         return None
     
     def delete_file(self):
-        """Delete the CSV file"""
+        """Delete the CSV file."""
         if self.csv_file and os.path.exists(self.csv_file.path):
             os.remove(self.csv_file.path)
             self.csv_file = None
@@ -290,39 +292,41 @@ class DailyDeviceReport(models.Model):
             return True
         return False
 
-# ============================================================================
-# DEVICE USER ASSIGNMENT MODEL - FIXED WITH CORRECT APP REFERENCES
-# ============================================================================
+
+# =============================================================================
+# DEVICE USER ASSIGNMENT MODEL
+# =============================================================================
 
 class DeviceUserAssignment(models.Model):
     """
     Tracks which users have access to which devices within a department.
+    
     Department Admin assigns devices to users in their department.
     """
     
     device = models.ForeignKey(
-        'companyadmin.Device',  # FIXED: companyadmin app (not departmentadmin)
+        'companyadmin.Device',
         on_delete=models.CASCADE,
         related_name='user_assignments',
         help_text="Device being assigned"
     )
     
     user = models.ForeignKey(
-        'accounts.User',  # accounts app
+        'accounts.User',
         on_delete=models.CASCADE,
         related_name='device_assignments',
         help_text="User receiving access to device"
     )
     
     department = models.ForeignKey(
-        'companyadmin.Department',  # companyadmin app
+        'companyadmin.Department',
         on_delete=models.CASCADE,
         related_name='device_user_assignments',
         help_text="Department context for this assignment"
     )
     
     assigned_by = models.ForeignKey(
-        'accounts.User',  # accounts app
+        'accounts.User',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -346,11 +350,15 @@ class DeviceUserAssignment(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.device.display_name} → {self.user.get_full_name() or self.user.username} ({self.department.name})"
+        user_name = self.user.get_full_name() or self.user.username
+        return f"{self.device.display_name} → {user_name} ({self.department.name})"
+    
+    def __repr__(self):
+        return f"<DeviceUserAssignment(device={self.device_id}, user={self.user_id})>"
     
     @classmethod
     def get_device_users(cls, device, department):
-        """Get all active users assigned to a device in a department"""
+        """Get all active users assigned to a device in a department."""
         return cls.objects.filter(
             device=device,
             department=department,
@@ -359,7 +367,7 @@ class DeviceUserAssignment(models.Model):
     
     @classmethod
     def get_user_devices(cls, user, department):
-        """Get all active devices assigned to a user in a department"""
+        """Get all active devices assigned to a user in a department."""
         return cls.objects.filter(
             user=user,
             department=department,
@@ -370,7 +378,15 @@ class DeviceUserAssignment(models.Model):
     def assign_device_to_users(cls, device, users, department, assigned_by):
         """
         Bulk assign a device to multiple users.
-        Returns tuple: (created_count, already_assigned_count)
+        
+        Args:
+            device: Device instance
+            users: QuerySet or list of User instances
+            department: Department instance
+            assigned_by: User who made the assignment
+            
+        Returns:
+            tuple: (created_count, already_assigned_count)
         """
         created = 0
         existing = 0
@@ -401,7 +417,7 @@ class DeviceUserAssignment(models.Model):
     
     @classmethod
     def unassign_device_from_users(cls, device, users, department):
-        """Bulk unassign (soft delete) device from multiple users"""
+        """Bulk unassign (soft delete) device from multiple users."""
         return cls.objects.filter(
             device=device,
             user__in=users,
