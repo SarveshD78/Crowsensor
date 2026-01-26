@@ -37,6 +37,7 @@ SHARED_APPS = [
     
     # System-level apps (Public Schema)
     'systemadmin',  # Tenant management, system admin dashboard
+    'accounts',
 ]
 
 TENANT_APPS = [
@@ -48,7 +49,7 @@ TENANT_APPS = [
     'django.contrib.admin',
     
     # Tenant-specific apps (Isolated per tenant)
-    'accounts',
+    
     'companyadmin',
     'departmentadmin',
     'userdashboard',
